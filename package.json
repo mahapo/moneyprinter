@@ -6,7 +6,21 @@
   "author": "Manuel Haller Polo <manuel@wondrous.ch>",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "dev": "nodemon --exec babel-node bitmex-hedge/index.js"
+  },
   "dependencies": {
-    "ccxt": "^1.18.615"
+    "ccxt": "^1.18.615",
+    "nodemon": "^1.19.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/preset-env": "^7.4.5"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
   }
 }
