@@ -1,0 +1,12 @@
+{
+  "name": "decentralex-bots",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/mahapo/decentralex-bots.git",
+  "author": "Manuel Haller Polo <manuel@wondrous.ch>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "ccxt": "^1.18.615"
+  }
+}
