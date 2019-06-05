@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "ccxt": "^1.18.615",
+    "csv-parser": "^2.3.0",
     "nodemon": "^1.19.1"
   },
   "devDependencies": {
