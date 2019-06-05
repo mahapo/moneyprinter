@@ -14,14 +14,20 @@ function round(value, step) {
 }
 
 export default class Order {
-  constructor(side, Entry_Price) {
+  constructor(side, Entry_Price, PositionSize, Ratio = 2) {
     this.symbol = "XBTUSD";
+    this.PositionSize = PositionSize;
     this.Leverage = 100;
+
+    this.Ratio = Ratio; // SL/TP Ratio
 
     this.side = side === "long";
     this.Entry_Price = Entry_Price;
 
     this.Maintenance_Margin = 0.005;
+
+    this.StopLossTouched = false;
+    this.TakeProfitTouched = false;
   }
 
   get Adjusted_Long() {
@@ -75,7 +81,29 @@ export default class Order {
 
   get Take_Profit() {
     if (this.side)
-      return round(this.Entry_Price + Math.abs(this.Change_PL_USD) * 2, 0.5);
-    return round(this.Entry_Price - Math.abs(this.Change_PL_USD) * 2, 0.5);
+      return round(
+        this.Entry_Price + Math.abs(this.Change_PL_USD) * this.Ratio,
+        0.5
+      );
+    return round(
+      this.Entry_Price - Math.abs(this.Change_PL_USD) * this.Ratio,
+      0.5
+    );
+  }
+
+  get Take_Profit_P() {
+    return (this.Take_Profit / this.Entry_Price) * 100 - 100;
+  }
+
+  get Stop_Loss_P() {
+    return (this.Stop_Loss / this.Entry_Price) * 100 - 100;
+  }
+
+  get MaxLoss() {
+    return Math.abs((this.PositionSize / this.Leverage) * this.Stop_Loss_P);
+  }
+
+  get MaxWin() {
+    return (this.PositionSize / this.Leverage) * this.Take_Profit_P;
   }
 }

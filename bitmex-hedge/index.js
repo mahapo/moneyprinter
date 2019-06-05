@@ -1,7 +1,12 @@
-import Order from "./Order";
+import StrategyTester from "./StrategyTester";
+import HedgeOrder from "./HedgeOrder";
 
-let order = new Order("long", 8000);
-
-console.log(order.Liquidation_Price);
-console.log(order.Stop_Loss);
-console.log(order.Take_Profit);
+(async function() {
+  let tester = new StrategyTester();
+  await tester.loadDemo();
+  for (let ratio = 2; ratio < 100; ratio++) {
+    tester.runTest(ratio);
+    console.log(`Ratio: ${ratio} Win: ${tester.stats.totalWin}`);
+    tester.reset();
+  }
+})();
