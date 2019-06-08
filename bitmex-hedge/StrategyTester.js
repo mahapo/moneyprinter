@@ -13,7 +13,10 @@ export default class StrategyTester {
   reset() {
     this.currentIndex = 0;
     this.currentHedgeOrder = null;
+    this.balance = 1000;
+    this.percentPerTrade = 0.05;
     this.stats = {
+        candels: 0,
       trades: 0,
       win: 0,
       loss: 0,
@@ -23,10 +26,15 @@ export default class StrategyTester {
     };
   }
 
+  get orderSize() {
+    return this.balance * this.percentPerTrade * 100; // Leverage 100
+  }
+
   runTest(Ratio) {
     this.Ratio = Ratio;
     for (let index = 0; index < this.data.length; index++) {
       this.checkCandel(index);
+      this.stats.candels++
     }
     this.stats.totalWin = this.stats.winUSD - this.stats.lossUSD;
   }
@@ -35,7 +43,7 @@ export default class StrategyTester {
     if (!this.currentHedgeOrder) {
       this.currentHedgeOrder = new HedgeOrder(
         this.data[index]["Open"],
-        1000,
+        this.orderSize,
         this.Ratio
       );
       this.stats.trades++;
@@ -51,6 +59,7 @@ export default class StrategyTester {
     ) {
       this.stats.loss++;
       this.stats.lossUSD += this.currentHedgeOrder.MaxLoss;
+      this.balance -= this.currentHedgeOrder.MaxLoss;
       this.currentHedgeOrder = null;
     } else if (
       this.data[index]["High"] >=
@@ -59,14 +68,15 @@ export default class StrategyTester {
     ) {
       this.stats.win++;
       this.stats.winUSD += this.currentHedgeOrder.MaxWin;
+      this.balance += this.currentHedgeOrder.MaxWin;
       this.currentHedgeOrder = null;
     }
   }
 
-  async loadDemo() {
+  async loadDemo(file = "Gdax_BTCUSD_1h.csv") {
     // http://www.cryptodatadownload.com/data/northamerican/
     return new Promise(resolve => {
-      fs.createReadStream(__dirname + "/../data/Gdax_BTCUSD_1h.csv")
+      fs.createReadStream(__dirname + "/../data/" + file)
         .pipe(csv())
         .on("data", data => {
           try {
