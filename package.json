@@ -8,11 +8,13 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --exec babel-node bitmex-hedge/index.js",
-    "test": "nodemon --exec babel-node bitmex-hedge/test.js"
+    "test": "nodemon --exec babel-node bitmex-hedge/test.js",
+    "phemex": "nodemon --exec babel-node src/phemex"
   },
   "dependencies": {
     "ccxt": "^1.25.84",
     "csv-parser": "^2.3.2",
+    "dotenv": "^8.2.0",
     "nodemon": "^2.0.2"
   },
   "devDependencies": {
