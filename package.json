@@ -11,14 +11,14 @@
     "test": "nodemon --exec babel-node bitmex-hedge/test.js"
   },
   "dependencies": {
-    "ccxt": "^1.18.615",
-    "csv-parser": "^2.3.0",
-    "nodemon": "^1.19.1"
+    "ccxt": "^1.25.84",
+    "csv-parser": "^2.3.2",
+    "nodemon": "^2.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/node": "^7.4.5",
-    "@babel/preset-env": "^7.4.5"
+    "@babel/core": "^7.9.0",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.5"
   },
   "babel": {
     "presets": [
