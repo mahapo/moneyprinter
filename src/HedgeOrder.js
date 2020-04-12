@@ -1,7 +1,7 @@
 import Order from "./Order";
 
 export default class HedgeOrder {
-  constructor(Entry_Price, PositionSize, Ratio) {
+  constructor(Entry_Price, PositionSize, Ratio, Leverage = 100) {
     this.PositionSize = PositionSize;
     this.Ratio = Ratio;
     this.Entry_Price = parseFloat(Entry_Price);
@@ -9,13 +9,15 @@ export default class HedgeOrder {
       "long",
       this.Entry_Price,
       this.PositionSize,
-      this.Ratio
+      this.Ratio,
+      Leverage
     );
     this.shortOrder = new Order(
       "short",
       this.Entry_Price,
       this.PositionSize,
-      this.Ratio
+      this.Ratio,
+      Leverage
     );
 
     // console.log(`====Order ${this.Entry_Price}====`);

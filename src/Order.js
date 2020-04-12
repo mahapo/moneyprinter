@@ -14,10 +14,10 @@ function round(value, step) {
 }
 
 export default class Order {
-  constructor(side, Entry_Price, PositionSize, Ratio = 2) {
+  constructor(side, Entry_Price, PositionSize, Ratio = 2, Leverage = 100) {
     this.symbol = "XBTUSD";
     this.PositionSize = PositionSize;
-    this.Leverage = 100;
+    this.Leverage = Leverage;
 
     this.Ratio = Ratio; // SL/TP Ratio
 
