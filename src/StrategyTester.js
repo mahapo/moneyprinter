@@ -15,7 +15,7 @@ export default class StrategyTester {
   calcSteps(count = 15) {
     let step = {
       betFactor: 1,
-      total: 0,
+      total: 0,§
       profit: 0,
       profitTotal: 0,
     };
@@ -39,7 +39,7 @@ export default class StrategyTester {
     this.currentIndex = 0;
     this.currentHedgeOrder = null;
     this.balance = 15000;
-    this.percentPerTrade = 0.01;
+    this.percentPerTrade = 0.1;
     this.lossCount = 0;
     this.startOrderSize;
     this.badDates = [];
@@ -59,7 +59,7 @@ export default class StrategyTester {
 
   get orderSize() {
     // return 10000;
-    return (this.balance * this.Leverage) / 500;
+    return (this.balance * this.Leverage) / 300;
   }
 
   runTest(Ratio, Leverage) {
