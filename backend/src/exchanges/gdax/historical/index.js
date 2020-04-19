@@ -42,7 +42,7 @@ class HistoricalService {
       });
     });
 
-    return candlesticks;
+    return candlesticks.slice(0, 3);
   }
 
   async performInterval(intervals) {

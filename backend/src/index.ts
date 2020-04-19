@@ -1,39 +1,85 @@
-import * as Koa from "koa";
-import * as Router from "koa-router";
-import * as bodyParser from "koa-bodyparser";
-import { ChartRoutes } from "./routes";
-import * as WebSocket from "ws";
+import * as program from "commander";
+import { Backtester } from "./runners";
+import { Phemex } from "./exchanges";
+// import Trader from "./trader";
 
-const port = 4000;
-const dev = process.env.NODE_ENV === "development";
+const now = new Date();
+const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1e3);
 
-async function main() {
-  const app = new Koa();
-  const router = new Router();
-
-  // ChartRoutes.forEach((route) =>
-  //   router[route.method](route.path, route.action)
-  // );
-
-  app.use(router.routes());
-  app.use(router.allowedMethods());
-  app.use(bodyParser());
-
-  const httpServer = app.listen(port, () => {
-    // console.log(`🚀 Server ready at http://localhost:${port}`);
-  });
-
-  const ws = new WebSocket("wss://testnet.phemex.com/ws");
-
-  ws.on("open", function open() {
-    ws.send(
-      JSON.stringify({ method: "tick.subscribe", params: [".LINK"], id: 301 })
-    );
-  });
-
-  ws.on("message", function incoming(data) {
-    console.log(data);
-  });
+function toDate(val) {
+  return new Date(val * 1e3);
 }
 
-main().catch((e) => console.log(e));
+let urls = {
+  api: {
+    public: "https://testnet.phemex.com/api",
+    public2: "https://testnet-api.phemex.com",
+    private: "https://testnet-api.phemex.com",
+  },
+};
+let config = {
+  apiKey: process.env.ID1,
+  secret: process.env.SECRET1,
+  urls,
+};
+
+program
+  .version("1.0.0")
+  .option(
+    "-i, --interval [interval]",
+    "Interval in seconds for candlestick",
+    parseInt
+  )
+  .option("-p, --product [product]", "Product identifier", "BTC-USD")
+  .option(
+    "-s, --start [start]",
+    "Start time in unix seconds",
+    toDate,
+    yesterday
+  )
+
+  .option("-e, --end [end]", "End time in unix seconds", toDate, now)
+  .option("-t, --strategy [strategy]", "Strategy Type")
+  .option("-r, --type [type]", "Run type")
+  .option("-f, --funds [funds]", "Amount of money to use", parseInt)
+  .option("-l, --live", "Run live")
+  .parse(process.argv);
+
+const main = async function () {
+  const {
+    interval,
+    product,
+    start,
+    end,
+    strategy,
+    live,
+    type,
+    funds,
+  } = program;
+
+  if (type == "trader") {
+    // const trader = new Trader({
+    //   start,
+    //   end,
+    //   product,
+    //   interval,
+    //   strategyType: strategy,
+    //   live,
+    //   funds,
+    // });
+    // await trader.start();
+  } else {
+    const account = new Phemex(config);
+    const tester = new Backtester(account, {
+      start,
+      end,
+      product,
+      interval,
+      strategyType: strategy,
+    });
+
+    await tester.start();
+  }
+};
+
+main();
