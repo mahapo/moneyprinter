@@ -5,12 +5,11 @@ const Candlestick = require('../models/candlestick')
 const randomstring = require('randomstring')
 const colors = require('colors/safe')
 
-class Trader extends Runner {
-
-  constructor(data) {
-    super(data)
-    this.isLive = data.live
-    this.funds = data.funds
+export class Trader extends Runner {
+  constructor(account, options) {
+    super(account, options);
+    this.isLive = options.live
+    this.funds = options.funds
     this.broker = new Broker({ isLive: this.isLive, product: this.product })
     this.ticker = new Ticker({
       product: this.product,
@@ -88,5 +87,3 @@ class Trader extends Runner {
   }
 
 }
-
-module.exports = exports = Trader

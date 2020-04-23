@@ -1,52 +1,50 @@
-import * as phemex from "../../../../ccxt/js/phemex";
-import * as Candlestick from "../../models/candlestick";
 import * as fs from "fs";
 import * as csv from "csv-parser";
 
+import * as phemex from "../../../../ccxt/js/phemex";
+import { Candlestick } from "../../models";
+
 export class Phemex {
   instance: any;
+  onTick: any;
 
   constructor(options) {
     this.instance = new phemex(options);
   }
 
-  async getData() {
-    // const intervals = this.createRequests();
-    const results = await this.loadCSV();
-    const timestamps = {};
-
-    // const filtered = results.filter((x, i) => {
-    //   const timestamp = x[0];
-    //   const str = `${timestamp}`;
-    //   if (timestamps[str] !== undefined) {
-    //     return false;
-    //   }
-    //   timestamps[str] = true;
-    //   return true;
-    // });
-
-    // console.log(filtered);
-
-    const candlesticks = results.map((x) => {
-      return new Candlestick({
-        startTime: new Date(x["Date"]),
-        low: x["Low"],
-        high: x["High"],
-        open: x["Open"],
-        close: x["Close"],
-        // interval: this.interval,
-        volume: x["Volume"],
-      });
-    });
-
-    return candlesticks.slice(0, 30);
+  initTicker({onTick}) {
+    this.onTick = onTick
   }
 
-  async loadCSV(file = "data/gemini_BTCUSD_2019_1min.csv") {
+  async startTicker(interval = 1) {
+    let ticks = await this.getTestTickes()
+    console.log(ticks.length);
+    for (let tick of ticks) {
+      await new Promise(resolve => setInterval(resolve, 1000))
+      this.onTick(tick)
+    }
+  }
+
+  async getTestTickes() {
+    const results = await this.loadCSV("data/BTCUSD_Test_Prints.csv");
+    return results.slice(0, 20).map((tick) => {
+      const time = new Date(parseFloat(tick.unix))
+      // @ts-ignore
+      time.setHours(...tick.date.split(':').join('.').split('.'))
+
+      return {
+        time,
+        price: parseFloat(tick.price),
+        volume: parseFloat(tick.amount)
+      }
+    });
+  }
+
+  async loadCSV(file = "data/BTCUSDT_August2019_Binance_prints.csv") {
     // http://www.cryptodatadownload.com/data/northamerican/
     let data = [];
     return new Promise((resolve) => {
-      fs.createReadStream(__dirname + "/" + file)
+      fs.createReadStream(file)
         .pipe(csv())
         .on("data", (d) => data.push(d))
         .on("end", () => resolve(data));

@@ -1,16 +1,18 @@
-import { Position, Trade } from "../models";
+import { PositionLeveraged, TradeLeveraged } from "../models";
 export class StrategyBase {
-  onBuySignal: any;
-  onSellSignal: any;
+  onLongSignal: any;
+  onShortSignal: any;
   positions: any;
+  onStraddleSignal: any;
 
-  constructor({ onBuySignal, onSellSignal }) {
-    this.onBuySignal = onBuySignal;
-    this.onSellSignal = onSellSignal;
+  constructor({ onLongSignal, onShortSignal, onStraddleSignal }) {
+    this.onLongSignal = onLongSignal;
+    this.onShortSignal = onShortSignal;
+    this.onStraddleSignal = onStraddleSignal;
     this.positions = {};
   }
 
-  async run({ sticks, time }) {}
+  async run({ sticks = [], time, price }) {}
 
   getPositions() {
     return Object.keys({ ...this.positions }).map((k) => this.positions[k]);
@@ -20,14 +22,14 @@ export class StrategyBase {
     return this.getPositions().filter((p) => p.state === "open");
   }
 
-  async positionOpened({ price, time, size, id }) {
-    const trade = new Trade({ price, time, size });
-    const position = new Position({ trade, id });
+  async positionOpened({ price, time, size, id, leverage }) {
+    const trade = new TradeLeveraged({ price, time, size, leverage });
+    const position = new PositionLeveraged({ trade, id });
     this.positions[id] = position;
   }
 
-  async positionClosed({ price, time, size, id }) {
-    const trade = new Trade({ price, time, size });
+  async positionClosed({ price, time, size, id, leverage }) {
+    const trade = new TradeLeveraged({ price, time, size, leverage });
     const position = this.positions[id];
 
     if (position) {

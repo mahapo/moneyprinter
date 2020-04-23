@@ -25,11 +25,14 @@ export class Runner {
     // });
     this.strategyType = strategyType;
     this.strategy = Factory.create(this.strategyType, {
-      onBuySignal: (x) => {
-        this.onBuySignal(x);
+      onLongSignal: (x) => {
+        this.onLongSignal(x);
       },
-      onSellSignal: (x) => {
-        this.onSellSignal(x);
+      onShortSignal: (x) => {
+        this.onShortSignal(x);
+      },
+      onStraddleSignal: (x) => {
+        this.onStraddleSignal(x);
       },
     });
   }
@@ -53,6 +56,7 @@ export class Runner {
   }
 
   async start() {}
-  async onBuySignal(data) {}
-  async onSellSignal(data) {}
+  async onLongSignal(data) {}
+  async onShortSignal(data) {}
+  async onStraddleSignal(data) {}
 }
