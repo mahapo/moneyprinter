@@ -1,6 +1,3 @@
-const Candlestick = require("../models/candlestick");
-const randomstring = require("randomstring");
-const colors = require("colors/safe");
 import { Runner } from "./runner";
 
 export class Backtester extends Runner {
