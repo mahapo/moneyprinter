@@ -1,12 +1,12 @@
 // https://phemex.com/references/articles/liquidation-price
 // https://antiliquidation.gitlab.io/assets/scripts/main.js
 // liquidationPrice -Liquidation Price
-// long: "i.price + (i.price * rl.Change_PL_P) / 100",
-// short: "i.price + (i.price * rs.Change_PL_P) / 100"
+// long: "i.price + (i.price * rl.changePriceLiquidationPercent) / 100",
+// short: "i.price + (i.price * rs.changePriceLiquidationPercent) / 100"
 
-// Change_PL_P - Change in Price to Liquidation (%)
-// long: "rl.Change_PB_P + (a.Adjusted_Long * 100)",
-// short: "rs.Change_PB_P - (a.Adjusted_Short * 100)"
+// changePriceLiquidationPercent - Change in Price to Liquidation (%)
+// long: "rl.changePriceBankruptcyPercent + (a.Adjusted_Long * 100)",
+// short: "rs.changePriceBankruptcyPercent - (a.Adjusted_Short * 100)"
 
 function round(value, step) {
   step || (step = 1.0);
@@ -15,7 +15,13 @@ function round(value, step) {
 }
 
 export class TradeLeveraged {
-  [x: string]: any;
+  leverage: number;
+  price: number;
+  size: number;
+  ratio: number;
+  maintenanceMargin: number;
+  time: any;
+  side: string;
 
   constructor({ price, time, size, leverage = 100, ratio = 2, side = "long" }) {
     this.price = price;
@@ -28,84 +34,70 @@ export class TradeLeveraged {
     this.maintenanceMargin = 0.005;
   }
 
-  get formatedTime() {
+  get formatedTime(): number {
     return this.time.toLocaleString();
   }
 
-  get adjustedLong() {
+  get adjustedLong(): number {
     return (
-      this.maintenanceMargin -
-      (1 / this.leverage) * this.maintenanceMargin
-    ).toFixed(4);
+      this.maintenanceMargin - (1 / this.leverage) * this.maintenanceMargin
+    );
   }
 
-  get adjustedShort() {
+  get adjustedShort(): number {
     return (
-      this.maintenanceMargin +
-      (1 / this.leverage) * this.maintenanceMargin
-    ).toFixed(4);
+      this.maintenanceMargin + (1 / this.leverage) * this.maintenanceMargin
+    );
   }
 
   // Change in Price to Bankruptcy (%)
-  get Change_PB_P()  : number {
-    if (this.side) return (1 / (this.leverage + 1)) * -1 * 100;
+  get changePriceBankruptcyPercent(): number {
+    if (this.side === "long") return (1 / (this.leverage + 1)) * -1 * 100;
     else return (1 / (this.leverage - 1)) * 100;
   }
 
   // Change in Price to Liquidation (%)
-  get Change_PL_P()  : number {
-    if (this.side) return this.Change_PB_P + this.adjustedLong * 100;
-    return this.Change_PB_P - this.adjustedShort * 100;
+  get changePriceLiquidationPercent(): number {
+    if (this.side === "long") return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
+    return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
   }
 
   // Liquidation Price
-  get liquidationPrice()  : number {
-    if (this.side)
-      return round(
-        this.price + (this.price * this.Change_PL_P) / 100,
-        0.5
-      );
-    return round(
-      this.price + (this.price * this.Change_PL_P) / 100,
-      0.5
-    );
+  get liquidationPrice(): number {
+    if (this.side === "long")
+      return round(this.price + (this.price * this.changePriceLiquidationPercent) / 100, 0.5);
+    return round(this.price + (this.price * this.changePriceLiquidationPercent) / 100, 0.5);
   }
 
   // Change in Price to Liquidation ($)
-  get Change_PL_USD() : number {
-    return ((this.price - this.liquidationPrice) * -1).toFixed(1);
+  get changePriceLiquidation(): number {
+    return (this.price - this.liquidationPrice) * -1;
   }
 
-  get stopLoss()  : number {
-    if (this.side) return this.liquidationPrice + 5;
+  get stopLoss(): number {
+    if (this.side === "long") return this.liquidationPrice + 5;
     return this.liquidationPrice - 5;
   }
 
-  get takeProfit()  : number {
-    if (this.side)
-      return round(
-        this.price + Math.abs(this.Change_PL_USD) * this.Ratio,
-        0.5
-      );
-    return round(
-      this.price - Math.abs(this.Change_PL_USD) * this.Ratio,
-      0.5
-    );
+  get takeProfit(): number {
+    if (this.side === "long")
+      return round(this.price + Math.abs(this.changePriceLiquidation) * this.ratio, 0.5);
+    return round(this.price - Math.abs(this.changePriceLiquidation) * this.ratio, 0.5);
   }
 
-  get takeProfit_P() {
+  get takeProfitPercent(): number {
     return (this.takeProfit / this.price) * 100 - 100;
   }
 
-  get stopLoss_P() {
+  get stopLossPercent(): number {
     return (this.stopLoss / this.price) * 100 - 100;
   }
 
-  get maxLoss() {
-    return Math.abs((this.size / this.leverage) * this.stopLoss_P);
+  get maxLoss(): number {
+    return Math.abs((this.size / this.leverage) * this.stopLossPercent);
   }
 
-  get maxWin() {
-    return (this.size / this.leverage) * this.takeProfit_P;
+  get maxWin(): number {
+    return (this.size / this.leverage) * this.takeProfitPercent;
   }
 }
