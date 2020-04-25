@@ -1,4 +1,3 @@
-import { PositionLeveraged, TradeLeveraged } from "../models";
 export class StrategyBase {
   onLongSignal: any;
   onShortSignal: any;
@@ -18,22 +17,30 @@ export class StrategyBase {
     return Object.keys({ ...this.positions }).map((k) => this.positions[k]);
   }
 
-  openPositions() {
-    return this.getPositions().filter((p) => p.state === "open");
+  updatePositions({ price, time }) {
+    [...this.activePositions,...this.openPositions].forEach(p => p.onTick({ price, time }))
   }
 
-  async positionOpened({ price, time, size, id, leverage }) {
-    const trade = new TradeLeveraged({ price, time, size, leverage });
-    const position = new PositionLeveraged({ trade, id });
-    this.positions[id] = position;
+  get openPositions() {
+    return this.getPositions().filter((p) => p.state === "order");
   }
 
-  async positionClosed({ price, time, size, id, leverage }) {
-    const trade = new TradeLeveraged({ price, time, size, leverage });
-    const position = this.positions[id];
-
-    if (position) {
-      position.close({ trade });
-    }
+  get activePositions() {
+    return this.getPositions().filter((p) => p.state === "active");
   }
+
+  // async positionOpened({ price, time, size, id, leverage }) {
+  //   const trade = new TradeLeveraged({ price, time, size, leverage });
+  //   const position = new PositionLeveraged({ trade, id });
+  //   this.positions[id] = position;
+  // }
+
+  // async positionClosed({ price, time, size, id, leverage }) {
+  //   const trade = new TradeLeveraged({ price, time, size, leverage });
+  //   const position = this.positions[id];
+
+  //   if (position) {
+  //     position.close({ trade });
+  //   }
+  // }
 }

@@ -7,27 +7,31 @@ import { Candlestick } from "../../models";
 export class Phemex {
   instance: any;
   onTick: any;
+  onFinish: any;
 
   constructor(options) {
     this.instance = new phemex(options);
   }
 
-  initTicker({onTick}) {
+  initTicker({onTick, onFinish}) {
     this.onTick = onTick
+    this.onFinish = onFinish
   }
 
   async startTicker(interval = 1) {
     let ticks = await this.getTestTickes()
     console.log(ticks.length);
     for (let tick of ticks) {
-      await new Promise(resolve => setInterval(resolve, 1000))
+      // await new Promise(resolve => setInterval(resolve, 10))
       this.onTick(tick)
     }
+    this.onFinish()
   }
 
   async getTestTickes() {
     const results = await this.loadCSV("data/BTCUSD_Test_Prints.csv");
-    return results.slice(0, 20).map((tick) => {
+    // const results = await this.loadCSV("data/BTCUSDT_August2019_Binance_prints.csv");
+    return results.slice(0, 100000).map((tick) => {
       const time = new Date(parseFloat(tick.unix))
       // @ts-ignore
       time.setHours(...tick.date.split(':').join('.').split('.'))

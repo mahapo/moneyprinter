@@ -1,4 +1,4 @@
-import * as randomstring from "randomstring"
+import * as randomstring from "randomstring";
 import { Runner } from "./runner";
 
 export class Backtester extends Runner {
@@ -8,29 +8,18 @@ export class Backtester extends Runner {
     super(account, options);
 
     this.ticker = this.account.initTicker({
-      onTick: async (tick) => { await this.onTick(tick) },
+      onTick: async (tick) => {
+        await this.onTick(tick);
+      },
+      onFinish: () => this.onFinish(),
       // product: this.product,
       // onError: (error) => { this.onError(error) }
-    })
+    });
   }
 
   async start() {
     try {
-      this.account.startTicker()
-      // console.log(history);
-
-      // await Promise.all(
-      //   history.map((stick, index) => {
-      //     const sticks = history.slice(0, index + 1);
-      //     return this.strategy.run({
-      //       sticks,
-      //       time: stick.startTime,
-      //     });
-      //   })
-      // );
-
-      // this.printPositions();
-      // this.printProfit();
+      this.account.startTicker();
     } catch (error) {
       console.log(error);
     }
@@ -38,49 +27,26 @@ export class Backtester extends Runner {
 
   async onTick(tick) {
     try {
-      // if (this.currentCandle) {
-      //   this.currentCandle.onPrice({ price, volume, time })
-      // } else {
-      //   this.currentCandle = new Candlestick({
-      //     price: price,
-      //     volume: volume,
-      //     interval: this.interval,
-      //     startTime: time
-      //   })
-      // }
+      this.strategy.run(tick);
+      this.printPositions();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-    //   const sticks = this.history.slice()
-    //   sticks.push(this.currentCandle)
-
-      await this.strategy.run(tick)
-
-    //   if (this.currentCandle.state === 'closed') {
-    //     const candle = this.currentCandle
-    //     this.currentCandle = null
-    //     this.history.push(candle)
-
-        this.printPositions()
-    //     this.printProfit()
-    //   }
-    } catch (error) { console.log(error) }
+  onFinish() {
+    // this.printPositions();
+    this.printProfit();
+    process.exit(0);
   }
 
   async onStraddleSignal({ price, time }) {
     const id = randomstring.generate(20);
-    this.strategy.positionOpened({
+    this.strategy.staddleOpened({
       price,
       time,
-      size: 100,
+      size: 1000,
       id,
     });
   }
-
-  // async onShortSignal({ price, size, time, position }) {
-  //   // this.strategy.positionClosed({
-  //   //   price,
-  //   //   time,
-  //   //   size,
-  //   //   id: position.id,
-  //   // });
-  // }
 }
