@@ -1,4 +1,4 @@
-export class Trade {
+export class Order {
   [x: string]: any;
 
   constructor({ price, time, size }) {

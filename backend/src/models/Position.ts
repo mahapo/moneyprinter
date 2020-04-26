@@ -6,15 +6,15 @@ export class Position {
   id: any;
   exit: any;
 
-  constructor({ trade, id }) {
+  constructor({ order, id }) {
     this.state = "open";
-    this.enter = trade;
+    this.enter = order;
     this.id = id;
   }
 
-  close({ trade }) {
+  close({ order }) {
     this.state = "closed";
-    this.exit = trade;
+    this.exit = order;
   }
 
   print() {

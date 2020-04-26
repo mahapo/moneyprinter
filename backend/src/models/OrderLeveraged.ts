@@ -1,7 +1,7 @@
 // https://phemex.com/references/articles/liquidation-price
 // https://antiliquidation.gitlab.io/assets/scripts/main.js
 
-import * as colors from "colors/safe"
+import * as colors from "colors/safe";
 
 function round(value, step) {
   step || (step = 1.0);
@@ -9,7 +9,7 @@ function round(value, step) {
   return Math.round(value * inv) / inv;
 }
 
-export class TradeLeveraged {
+export class OrderLeveraged {
   leverage: number;
   price: number;
   size: number;
@@ -58,15 +58,22 @@ export class TradeLeveraged {
 
   // Change in Price to Liquidation (%)
   get changePriceLiquidationPercent(): number {
-    if (this.side === "long") return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
+    if (this.side === "long")
+      return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
     return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
   }
 
   // Liquidation Price
   get liquidationPrice(): number {
     if (this.side === "long")
-      return round(this.price + (this.price * this.changePriceLiquidationPercent) / 100, 0.5);
-    return round(this.price + (this.price * this.changePriceLiquidationPercent) / 100, 0.5);
+      return round(
+        this.price + (this.price * this.changePriceLiquidationPercent) / 100,
+        0.5
+      );
+    return round(
+      this.price + (this.price * this.changePriceLiquidationPercent) / 100,
+      0.5
+    );
   }
 
   // Change in Price to Liquidation ($)
@@ -76,8 +83,14 @@ export class TradeLeveraged {
 
   get takeProfitSuggestion(): number {
     if (this.side === "long")
-      return round(this.price + Math.abs(this.changePriceLiquidation) * this.ratio, 0.5);
-    return round(this.price - Math.abs(this.changePriceLiquidation) * this.ratio, 0.5);
+      return round(
+        this.price + Math.abs(this.changePriceLiquidation) * this.ratio,
+        0.5
+      );
+    return round(
+      this.price - Math.abs(this.changePriceLiquidation) * this.ratio,
+      0.5
+    );
   }
 
   get stopLossSuggestion(): number {
@@ -92,19 +105,21 @@ export class TradeLeveraged {
   get stopLossPercent(): number {
     return (this.stopLoss / this.price) * 100 - 100;
   }
-  
+
   get maxWin(): number {
-    if (this.side === "long") return (this.size / this.leverage) * this.takeProfitPercent;
+    if (this.side === "long")
+      return (this.size / this.leverage) * this.takeProfitPercent;
     return (this.size / this.leverage) * this.takeProfitPercent * -1;
   }
 
   get maxLoss(): number {
-    if (this.side === "long") return (this.size / this.leverage) * this.stopLossPercent;
+    if (this.side === "long")
+      return (this.size / this.leverage) * this.stopLossPercent;
     return (this.size / this.leverage) * this.stopLossPercent * -1;
   }
 
   toString(): string {
     const colored = this.side === "long" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`
+    return `${colored} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
   }
 }

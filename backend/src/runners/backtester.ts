@@ -8,10 +8,8 @@ export class Backtester extends Runner {
     super(account, options);
 
     this.ticker = this.account.initTicker({
-      onTick: async (tick) => {
-        await this.onTick(tick);
-      },
-      onFinish: () => this.onFinish(),
+      onTick: this.onTick.bind(this),
+      onFinish: this.onFinish.bind(this),
       // product: this.product,
       // onError: (error) => { this.onError(error) }
     });
@@ -19,7 +17,7 @@ export class Backtester extends Runner {
 
   async start() {
     try {
-      this.account.startTicker();
+      this.account.startDemoTicker();
     } catch (error) {
       console.log(error);
     }

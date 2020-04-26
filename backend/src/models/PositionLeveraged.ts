@@ -1,32 +1,34 @@
 const colors = require("colors/safe");
 
 export class PositionLeveraged {
+  static positions = [];
   state: string;
   triggered: string;
-  trade: any;
+  order: any;
   id: any;
   exit: number;
   onDone: any;
 
-  constructor({ trade, id, onDone = () => {} }) {
+  constructor({ order, id, onDone = () => {} }) {
     this.state = "order";
-    this.trade = trade;
-    this.id = id;
+    this.order = order;
+    // this.id = id;
     this.onDone = onDone;
+    PositionLeveraged.positions.push(this);
   }
 
   onTick({ price, time }) {
     if (this.state === "order") {
-      if (this.trade.side === "long" && this.trade.price <= price)
+      if (this.order.side === "long" && this.order.price <= price)
         this.state = "active";
-      else if (this.trade.side !== "long" && this.trade.price >= price)
+      else if (this.order.side !== "long" && this.order.price >= price)
         this.state = "active";
     } else if (this.state === "active") {
-      if (this.trade.side === "long") {
-        if (this.trade.takeProfit <= price || this.trade.stopLoss >= price)
+      if (this.order.side === "long") {
+        if (this.order.takeProfit <= price || this.order.stopLoss >= price)
           this.state = "done";
       } else {
-        if (this.trade.takeProfit >= price || this.trade.stopLoss <= price)
+        if (this.order.takeProfit >= price || this.order.stopLoss <= price)
           this.state = "done";
       }
 
@@ -45,19 +47,19 @@ export class PositionLeveraged {
       profit = `| Profit: ${colored}`;
     }
 
-    console.log(`${this.trade.toString()} - ${this.state} ${profit}`);
+    console.log(`${this.order.toString()} - ${this.state} ${profit}`);
   }
 
   profit() {
     if (this.state === "done") {
-      if (this.trade.side === "long")
-        return this.exit > this.trade.price
-          ? this.trade.maxWin
-          : this.trade.maxLoss;
+      if (this.order.side === "long")
+        return this.exit > this.order.price
+          ? this.order.maxWin
+          : this.order.maxLoss;
       else
-        return this.exit < this.trade.price
-          ? this.trade.maxWin
-          : this.trade.maxLoss;
+        return this.exit < this.order.price
+          ? this.order.maxWin
+          : this.order.maxLoss;
     }
     return 0;
   }

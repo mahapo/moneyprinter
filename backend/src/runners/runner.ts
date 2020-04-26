@@ -25,15 +25,9 @@ export class Runner {
     // });
     this.strategyType = strategyType;
     this.strategy = Factory.create(this.strategyType, {
-      onLongSignal: (x) => {
-        this.onLongSignal(x);
-      },
-      onShortSignal: (x) => {
-        this.onShortSignal(x);
-      },
-      onStraddleSignal: (x) => {
-        this.onStraddleSignal(x);
-      },
+      onLongSignal: this.onLongSignal.bind(this),
+      onShortSignal: this.onShortSignal.bind(this),
+      onStraddleSignal: this.onStraddleSignal.bind(this),
     });
   }
 

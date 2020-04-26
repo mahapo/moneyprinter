@@ -4,6 +4,7 @@ import * as csv from "csv-parser";
 import * as phemex from "../../../../ccxt/js/phemex";
 import * as WebSocket from "ws";
 import { EventEmitter } from "events";
+import { performance } from "perf_hooks";
 
 import { Candlestick } from "../../models";
 
@@ -98,10 +99,13 @@ export class Phemex extends EventEmitter {
   async startDemoTicker(interval = 1) {
     let ticks = await this.getTestTickes();
     console.log(ticks.length);
+    var t0 = performance.now();
     for (let tick of ticks) {
       // await new Promise(resolve => setInterval(resolve, 10))
-      // this.onTick(tick);
+      this.onTick(tick);
     }
+    var t1 = performance.now();
+    console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.");
     this.onFinish();
   }
 
@@ -133,7 +137,7 @@ export class Phemex extends EventEmitter {
   }
 
   async placeOrder(position) {
-    const order = position.trade;
+    const order = position.order;
     try {
       const options = {
         actionBy: "FromOrderPlacement",

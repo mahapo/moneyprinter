@@ -1,4 +1,4 @@
-import { TradeLeveraged } from "../models";
+import { OrderLeveraged, PositionLeveraged } from "../models";
 
 export class HedgeManager {
   steps: any;
@@ -8,9 +8,10 @@ export class HedgeManager {
   size: number;
   time: Date;
   state: any;
+  positions = [];
 
-  long: TradeLeveraged;
-  short: TradeLeveraged;
+  long: OrderLeveraged;
+  short: OrderLeveraged;
 
   priceRange: number;
   priceTop: number;
@@ -28,15 +29,15 @@ export class HedgeManager {
     return `${this.time.getTime()}-${this.leverage}`;
   }
 
-  createTrades() {
+  createPositions() {
     const options = {
       price: this.price,
       time: this.time,
       size: this.size,
       leverage: this.leverage,
     };
-    this.long = new TradeLeveraged({ ...options, side: "long" });
-    this.short = new TradeLeveraged({ ...options, side: "short" });
+    this.long = new OrderLeveraged({ ...options, side: "long" });
+    this.short = new OrderLeveraged({ ...options, side: "short" });
     this.priceRange = Math.round(this.short.changePriceLiquidation * 0.95);
     this.priceTop = this.price + this.priceRange / 2;
     this.priceBottom = this.price - this.priceRange / 2;
@@ -46,7 +47,18 @@ export class HedgeManager {
 
     this.state = "active";
 
-    return [this.long, this.short];
+    this.positions = [
+      new PositionLeveraged({
+        order: this.long,
+        id: this.id,
+      }),
+      new PositionLeveraged({
+        order: this.short,
+        id: this.id,
+      }),
+    ];
+
+    return this.positions;
   }
 
   calcSteps(count = 15) {
