@@ -1,5 +1,5 @@
 import * as program from "commander";
-import { Backtester } from "./runners";
+import { Backtester, TraderLeveraged } from "./runners";
 import { Phemex } from "./exchanges";
 // import Trader from "./trader";
 
@@ -56,20 +56,19 @@ const main = async function () {
     type,
     funds,
   } = program;
-
+  const account = new Phemex(config);
   if (type == "trader") {
-    // const trader = new Trader({
-    //   start,
-    //   end,
-    //   product,
-    //   interval,
-    //   strategyType: strategy,
-    //   live,
-    //   funds,
-    // });
-    // await trader.start();
+    const trader = new TraderLeveraged(account, {
+      start,
+      end,
+      product,
+      interval,
+      strategyType: strategy,
+      // live,
+      // funds,
+    });
+    await trader.start();
   } else {
-    const account = new Phemex(config);
     const tester = new Backtester(account, {
       start,
       end,
