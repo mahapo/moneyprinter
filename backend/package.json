@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "server": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
     "test": "nodemon --exec babel-node src/test.js",
     "phemex": "nodemon --exec babel-node src/phemex"
   },
@@ -18,12 +19,11 @@
     "commander": "^5.0.0",
     "csv-parser": "^2.3.2",
     "dotenv": "^8.2.0",
-    "koa": "^2.11.0",
-    "koa-bodyparser": "^4.3.0",
-    "koa-router": "^8.0.8",
+    "express": "^4.17.1",
     "nodemon": "^2.0.2",
     "randomstring": "^1.1.5",
     "request": "^2.88.2",
+    "socket.io": "^2.3.0",
     "tulind": "^0.8.18",
     "typescript": "^3.8.3",
     "uuid": "^7.0.3",

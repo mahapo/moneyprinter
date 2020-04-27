@@ -65,4 +65,11 @@ export class PositionLeveraged extends Position {
     }
     return 0;
   }
+
+  static overview() {
+    return Position.positions.map(position => ({
+      profit: position.profit(),
+      ...position
+    }))
+  }
 }

@@ -1,7 +1,8 @@
 import { Factory } from "../strategy";
 import * as colors from "colors/safe";
+const EventEmitter = require("events");
 
-export class Runner {
+export class Runner extends EventEmitter {
   account: any;
   startTime: any;
   endTime: any;
@@ -11,11 +12,12 @@ export class Runner {
   strategyType: any;
   strategy: any;
 
-  constructor(account, { start, end, interval, product, strategyType }) {
+  constructor(account, { /*start, end, interval,*/ product, strategyType }) {
+    super();
     this.account = account;
-    this.startTime = start;
-    this.endTime = end;
-    this.interval = interval;
+    // this.startTime = start;
+    // this.endTime = end;
+    // this.interval = interval;
     this.product = product;
     // this.historical = new account.Historical({
     //   start,

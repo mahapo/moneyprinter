@@ -14,7 +14,8 @@ export class MoneyPrinter extends StrategyBase {
     } else {
       // console.log(`Price: ${price.toFixed(2)}`);
       PositionLeveraged.updatePositions({ price, time });
-      if (this.currentHedge) this.currentHedge.onTick({ price, time });
+      if (this.currentHedge && this.currentHedge.onTick)
+        this.currentHedge.onTick({ price, time });
     }
     return;
   }

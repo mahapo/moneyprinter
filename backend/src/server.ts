@@ -1,39 +1,42 @@
-import * as Koa from "koa";
-import * as Router from "koa-router";
-import * as bodyParser from "koa-bodyparser";
-import { ChartRoutes } from "./routes";
-import * as WebSocket from "ws";
+import { Backtester } from "./runners";
+import { Phemex } from "./exchanges";
 
-const port = 4000;
-const dev = process.env.NODE_ENV === "development";
+const app = require("http").createServer();
+const io = require("socket.io")(app);
 
-async function main() {
-  const app = new Koa();
-  const router = new Router();
+app.listen(5000);
 
-  // ChartRoutes.forEach((route) =>
-  //   router[route.method](route.path, route.action)
-  // );
+(async () => {
+  let urls = {
+    api: {
+      public: "https://testnet.phemex.com/api",
+      public2: "https://testnet-api.phemex.com",
+      private: "https://testnet-api.phemex.com",
+    },
+  };
+  let config = {
+    apiKey: process.env.ID1,
+    secret: process.env.SECRET1,
+    urls,
+  };
+  const account = new Phemex(config);
 
-  app.use(router.routes());
-  app.use(router.allowedMethods());
-  app.use(bodyParser());
-
-  const httpServer = app.listen(port, () => {
-    // console.log(`🚀 Server ready at http://localhost:${port}`);
+  const tester = new Backtester(account, {
+    product: "BTCUSD",
+    strategyType: "",
   });
 
-  const ws = new WebSocket("wss://testnet.phemex.com/ws");
+  io.on("connection", (socket) => {
+    console.log("a user connected");
 
-  ws.on("open", function open() {
-    ws.send(
-      JSON.stringify({ method: "tick.subscribe", params: [".LINK"], id: 301 })
-    );
+    socket.on("backtest", (data) => {
+      console.log(data);
+      tester.start();
+    });
+    tester.on("finish", (data) => socket.emit("finish", data));
+
+    socket.on("disconnect", () => {
+      console.log("user disconnected");
+    });
   });
-
-  ws.on("message", function incoming(data) {
-    console.log(data);
-  });
-}
-
-main().catch((e) => console.log(e));
+})();

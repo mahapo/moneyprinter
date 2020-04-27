@@ -1,6 +1,6 @@
 import * as randomstring from "randomstring";
 import { Runner } from "./runner";
-import { Position, HedgeManager } from "../models";
+import { Position, HedgeManager, PositionLeveraged } from "../models";
 
 export class Backtester extends Runner {
   ticker: any;
@@ -20,8 +20,8 @@ export class Backtester extends Runner {
 
   async start() {
     try {
-      console.log(HedgeManager.calcSteps());
-
+      HedgeManager.calcSteps();
+      Position.positions = []
       this.account.startDemoTicker();
     } catch (error) {
       console.log(error);
@@ -38,10 +38,14 @@ export class Backtester extends Runner {
   }
 
   onFinish() {
-    Position.printPositions();
+    // Position.printPositions();
     Position.printProfit();
-    console.log(HedgeManager.maxStep);
-    process.exit(0);
+    this.emit("finish", {
+      positions: PositionLeveraged.overview(),
+      maxSteps: HedgeManager.maxStep,
+      profit: Position.profitTotal,
+      startBalance: this.startBalance,
+    });
   }
 
   async onStraddleSignal({ price, time }) {
