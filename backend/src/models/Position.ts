@@ -1,15 +1,18 @@
 const colors = require("colors/safe");
+const EventEmitter = require("events");
 
-export class Position {
+export class Position extends EventEmitter {
+  static positions = [];
   state: string;
-  enter: any;
+  order: any;
   id: any;
   exit: any;
 
-  constructor({ order, id }) {
+  constructor({ order }) {
+    super();
     this.state = "open";
-    this.enter = order;
-    this.id = id;
+    this.order = order;
+    Position.positions.push(this);
   }
 
   close({ order }) {
@@ -18,7 +21,7 @@ export class Position {
   }
 
   print() {
-    const enter = `Enter | ${this.enter.price} | ${this.enter.formatedTime}`;
+    const enter = `Enter | ${this.order.price} | ${this.order.formatedTime}`;
     const exit = this.exit
       ? `Exit: | ${this.exit.price} | ${this.exit.formatedTime}`
       : "";
@@ -46,5 +49,39 @@ export class Position {
 
   profitString() {
     return this.profit().toFixed(2);
+  }
+
+  static get openPositions() {
+    return Position.positions.filter((p) => p.state === "order");
+  }
+
+  static get activePositions() {
+    return Position.positions.filter((p) => p.state === "active");
+  }
+
+  static get profitTotal() {
+    return this.positions.reduce((r, p) => {
+      return r + p.profit();
+    }, 0);
+  }
+
+  static updatePositions({ price, time }) {
+    [...this.activePositions, ...this.openPositions].forEach((p) =>
+      p.onTick({ price, time })
+    );
+  }
+
+  static printPositions() {
+    const positions = this.positions;
+    positions.forEach((p) => {
+      p.print();
+    });
+  }
+
+  static printProfit() {
+    const prof = `${this.profitTotal}`;
+    const colored =
+      this.profitTotal > 0 ? colors.green(prof) : colors.red(prof);
+    console.log(`Total: ${colored}`);
   }
 }

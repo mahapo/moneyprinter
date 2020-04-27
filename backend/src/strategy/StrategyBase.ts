@@ -12,24 +12,6 @@ export class StrategyBase {
 
   async run({ sticks = [], time, price }) {}
 
-  getPositions() {
-    return PositionLeveraged.positions;
-  }
-
-  updatePositions({ price, time }) {
-    [...this.activePositions, ...this.openPositions].forEach((p) =>
-      p.onTick({ price, time })
-    );
-  }
-
-  get openPositions() {
-    return this.getPositions().filter((p) => p.state === "order");
-  }
-
-  get activePositions() {
-    return this.getPositions().filter((p) => p.state === "active");
-  }
-
   // async positionOpened({ price, time, size, id, leverage }) {
   //   const order = new OrderLeveraged({ price, time, size, leverage });
   //   const position = new PositionLeveraged({ order, id });

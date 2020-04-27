@@ -31,24 +31,6 @@ export class Runner {
     });
   }
 
-  printPositions() {
-    const positions = this.strategy.getPositions();
-    positions.forEach((p) => {
-      p.print();
-    });
-  }
-
-  printProfit() {
-    const positions = this.strategy.getPositions();
-    const total = positions.reduce((r, p) => {
-      return r + p.profit();
-    }, 0);
-
-    const prof = `${total}`;
-    const colored = total > 0 ? colors.green(prof) : colors.red(prof);
-    console.log(`Total: ${colored}`);
-  }
-
   async start() {}
   async onLongSignal(data) {}
   async onShortSignal(data) {}

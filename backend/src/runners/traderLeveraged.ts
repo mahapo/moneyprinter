@@ -1,5 +1,6 @@
 import * as randomstring from "randomstring";
 import { Runner } from "./runner";
+import { Position } from "../models";
 
 export class TraderLeveraged extends Runner {
   ticker: any;
@@ -26,7 +27,7 @@ export class TraderLeveraged extends Runner {
   async onTick(tick) {
     try {
       this.strategy.run(tick);
-      this.printPositions();
+      Position.printPositions();
     } catch (error) {
       console.log(error);
     }
@@ -34,7 +35,7 @@ export class TraderLeveraged extends Runner {
 
   onFinish() {
     // this.printPositions();
-    this.printProfit();
+    Position.printProfit();
     process.exit(0);
   }
 

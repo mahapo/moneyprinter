@@ -1,7 +1,7 @@
-const colors = require("colors/safe");
+import * as colors from "colors/safe";
+import { Position } from "./Position";
 
-export class PositionLeveraged {
-  static positions = [];
+export class PositionLeveraged extends Position {
   state: string;
   triggered: string;
   order: any;
@@ -9,32 +9,34 @@ export class PositionLeveraged {
   exit: number;
   onDone: any;
 
-  constructor({ order, id, onDone = () => {} }) {
+  constructor({ order, onDone = () => {} }) {
+    super({ order });
     this.state = "order";
     this.order = order;
     // this.id = id;
     this.onDone = onDone;
-    PositionLeveraged.positions.push(this);
   }
 
   onTick({ price, time }) {
     if (this.state === "order") {
-      if (this.order.side === "long" && this.order.price <= price)
+      if (
+        (this.order.side === "long" && this.order.price <= price) ||
+        (this.order.side === "short" && this.order.price >= price)
+      ) {
         this.state = "active";
-      else if (this.order.side !== "long" && this.order.price >= price)
-        this.state = "active";
-    } else if (this.state === "active") {
-      if (this.order.side === "long") {
-        if (this.order.takeProfit <= price || this.order.stopLoss >= price)
-          this.state = "done";
-      } else {
-        if (this.order.takeProfit >= price || this.order.stopLoss <= price)
-          this.state = "done";
+        this.emit("active");
       }
-
-      if (this.state === "done") {
+    } else if (this.state === "active") {
+      if (
+        (this.order.side === "long" &&
+          (this.order.takeProfit <= price || this.order.stopLoss >= price)) ||
+        (this.order.side === "short" &&
+          (this.order.takeProfit >= price || this.order.stopLoss <= price))
+      ) {
+        this.state = "done";
         this.exit = price;
-        this.onDone();
+
+        this.emit("done", this.profit() > 0);
       }
     }
   }
@@ -62,9 +64,5 @@ export class PositionLeveraged {
           : this.order.maxLoss;
     }
     return 0;
-  }
-
-  profitString() {
-    return this.profit().toFixed(2);
   }
 }

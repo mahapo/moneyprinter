@@ -122,4 +122,17 @@ export class OrderLeveraged {
     const colored = this.side === "long" ? colors.green("L") : colors.red("S");
     return `${colored} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
   }
+
+  clone() {
+    const order = new OrderLeveraged({
+      price: this.price,
+      time: this.time, //Remove
+      size: this.size,
+      leverage: this.leverage,
+      side: this.side,
+    });
+    order.takeProfit = this.takeProfit;
+    order.stopLoss = this.stopLoss;
+    return order;
+  }
 }

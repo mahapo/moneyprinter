@@ -4,13 +4,16 @@ export class MoneyPrinter extends StrategyBase {
   currentHedge: any;
 
   async run({ price, time }) {
-    if ([...this.activePositions, ...this.openPositions].length == 0) {
-      console.log(`================`);
-      console.log(`Time: ${time.toLocaleString()}  Price: ${price.toFixed(2)}`);
+    if (
+      [...PositionLeveraged.activePositions, ...PositionLeveraged.openPositions]
+        .length == 0
+    ) {
+      // console.log(`================`);
+      // console.log(`Time: ${time.toLocaleString()}  Price: ${price.toFixed(2)}`);
       this.onStraddleSignal({ price, time });
     } else {
-      console.log(`Price: ${price.toFixed(2)}`);
-      this.updatePositions({ price, time });
+      // console.log(`Price: ${price.toFixed(2)}`);
+      PositionLeveraged.updatePositions({ price, time });
       if (this.currentHedge) this.currentHedge.onTick({ price, time });
     }
     return;

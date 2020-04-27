@@ -110,9 +110,15 @@ export class Phemex extends EventEmitter {
   }
 
   async getTestTickes() {
-    const results = await this.loadCSV("data/BTCUSD_Test_Prints.csv");
-    // const results = await this.loadCSV("data/BTCUSDT_August2019_Binance_prints.csv");
-    return results.slice(0, 100000).map((tick) => {
+    // const results = await this.loadCSV("data/BTCUSD_Test_Prints.csv");
+    const [aug, sep, okt] = await Promise.all([
+      this.loadCSV("data/BTCUSDT_August2019_Binance_prints.csv"),
+      this.loadCSV("data/BTCUSDT_September2019_Binance_prints.csv"),
+      this.loadCSV("data/BTCUSDT_October2019_Binance_prints.csv"),
+    ]);
+    // console.log([...aug, ...sep, ...okt].length);
+
+    return [...aug, ...sep, ...okt].slice(0, 10000000).map((tick) => {
       const time = new Date(parseFloat(tick.unix));
       // @ts-ignore
       time.setHours(...tick.date.split(":").join(".").split("."));
