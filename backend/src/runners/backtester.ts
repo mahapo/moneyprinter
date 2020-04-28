@@ -1,6 +1,6 @@
 import * as randomstring from "randomstring";
 import { Runner } from "./runner";
-import { Position, HedgeManager, PositionLeveraged } from "../models";
+import { Position, PositionLeveraged } from "../models";
 
 export class Backtester extends Runner {
   ticker: any;
@@ -9,19 +9,14 @@ export class Backtester extends Runner {
 
   constructor(account, options) {
     super(account, options);
-
-    this.ticker = this.account.initTicker({
-      onTick: this.onTick.bind(this),
-      onFinish: this.onFinish.bind(this),
-      // product: this.product,
-      // onError: (error) => { this.onError(error) }
-    });
+    this.account.on("tick", this.onTick.bind(this));
+    this.account.on("finish", this.onFinish.bind(this));
+    this.strategy.on("signal", this.onSignal.bind(this));
   }
 
   async start() {
     try {
-      HedgeManager.calcSteps();
-      Position.positions = []
+      Position.positions = new Map();
       this.account.startDemoTicker();
     } catch (error) {
       console.log(error);
@@ -31,7 +26,7 @@ export class Backtester extends Runner {
   async onTick(tick) {
     try {
       this.strategy.run(tick);
-      // Position.printPositions();
+      Position.printPositions();
     } catch (error) {
       console.log(error);
     }
@@ -42,21 +37,17 @@ export class Backtester extends Runner {
     Position.printProfit();
     this.emit("finish", {
       positions: PositionLeveraged.overview(),
-      maxSteps: HedgeManager.maxStep,
+      // maxSteps: HedgeManager.maxStep,
       profit: Position.profitTotal,
       startBalance: this.startBalance,
     });
   }
 
-  async onStraddleSignal({ price, time }) {
-    const id = randomstring.generate(20);
-    // console.log(this.balance);
-
-    this.strategy.staddleOpened({
+  async onSignal({ price, time }) {
+    this.strategy.openOrders({
       price,
       time,
       size: this.idealSize,
-      id,
     });
   }
 

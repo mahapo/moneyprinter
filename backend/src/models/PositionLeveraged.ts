@@ -1,5 +1,5 @@
 import * as colors from "colors/safe";
-import { Position } from "./Position";
+import { Position, OrderLeveraged } from "./";
 
 export class PositionLeveraged extends Position {
   state: string;
@@ -9,24 +9,26 @@ export class PositionLeveraged extends Position {
   exit: number;
   onDone: any;
 
-  constructor({ order, onDone = () => {} }) {
-    super({ order });
-    this.state = "order";
-    this.order = order;
-    // this.id = id;
-    this.onDone = onDone;
+  constructor({ order, id }) {
+    super({ order, id });
+  }
+
+  static updatePositions({ price, time }) {
+    [...Position.openPositions, ...Position.filledPositions].forEach((p) =>
+      p.onTick({ price, time })
+    );
   }
 
   onTick({ price, time }) {
-    if (this.state === "order") {
+    if (this.state === "open") {
       if (
         (this.order.side === "long" && this.order.price <= price) ||
         (this.order.side === "short" && this.order.price >= price)
       ) {
-        this.state = "active";
-        this.emit("active");
+        this.state = "filled";
+        this.emit("filled");
       }
-    } else if (this.state === "active") {
+    } else if (this.state === "filled") {
       if (
         (this.order.side === "long" &&
           (this.order.takeProfit <= price || this.order.stopLoss >= price)) ||
@@ -35,10 +37,30 @@ export class PositionLeveraged extends Position {
       ) {
         this.state = "done";
         this.exit = price;
-
         this.emit("done", this.profit() > 0);
       }
     }
+  }
+
+  static createFromOptions(options) {
+    const orderOptions = {
+      price: options.price,
+      time: options.time,
+      size: options.size,
+      leverage: options.leverage,
+      side: options.side,
+    };
+    const order = new OrderLeveraged(orderOptions);
+
+    order.stopLoss = options.stopLoss;
+    order.takeProfit = options.takeProfit;
+
+    new PositionLeveraged({
+      order,
+      id: options.oldId,
+    });
+
+    return order;
   }
 
   print() {
@@ -67,9 +89,9 @@ export class PositionLeveraged extends Position {
   }
 
   static overview() {
-    return Position.positions.map(position => ({
+    return Position.positionsArray.map((position) => ({
       profit: position.profit(),
-      ...position
-    }))
+      ...position,
+    }));
   }
 }

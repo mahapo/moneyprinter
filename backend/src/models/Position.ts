@@ -2,17 +2,18 @@ const colors = require("colors/safe");
 const EventEmitter = require("events");
 
 export class Position extends EventEmitter {
-  static positions = [];
+  static positions = new Map();
   state: string;
   order: any;
-  id: any;
   exit: any;
+  id: any;
 
-  constructor({ order }) {
+  constructor({ order, id }) {
     super();
     this.state = "open";
     this.order = order;
-    Position.positions.push(this);
+    this.id = `${id}-${order.side}`;
+    Position.positions.set(this.id, this);
   }
 
   close({ order }) {
@@ -51,29 +52,28 @@ export class Position extends EventEmitter {
     return this.profit().toFixed(2);
   }
 
-  static get openPositions() {
-    return Position.positions.filter((p) => p.state === "order");
+  static get positionsArray() {
+    return Array.from(Position.positions.values());
   }
 
-  static get activePositions() {
-    return Position.positions.filter((p) => p.state === "active");
+  static get openPositions() {
+    return Position.positionsArray.filter((p) => p.state === "open");
+  }
+
+  static get filledPositions() {
+    return Position.positionsArray.filter((p) => p.state === "filled");
   }
 
   static get profitTotal() {
-    return this.positions.reduce((r, p) => {
+    return Position.positionsArray.reduce((r, p) => {
       return r + p.profit();
     }, 0);
   }
 
-  static updatePositions({ price, time }) {
-    [...this.activePositions, ...this.openPositions].forEach((p) =>
-      p.onTick({ price, time })
-    );
-  }
-
   static printPositions() {
-    const positions = this.positions;
-    positions.forEach((p) => {
+    // console.log(Position.positionsArray);
+
+    Position.positionsArray.forEach((p) => {
       p.print();
     });
   }

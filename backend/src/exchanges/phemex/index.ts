@@ -5,26 +5,31 @@ import * as phemex from "../../../../ccxt/js/phemex";
 import * as WebSocket from "ws";
 import { EventEmitter } from "events";
 import { performance } from "perf_hooks";
+import { isEqual } from "lodash";
 
-import { Candlestick } from "../../models";
+import { HedgeManager } from "../../models";
 
 export class Phemex extends EventEmitter {
   instance: any;
-  onTick: any;
   onFinish: any;
   socket: any;
+  _orders: any = new Map();
+  _positions: any = new Map();
+  markets: any;
+  ready: Boolean = false;
 
   constructor(options) {
     super();
     this.instance = new phemex(options);
   }
 
-  initTicker({ onTick, onFinish }) {
-    this.onTick = onTick;
-    this.onFinish = onFinish;
+  async init() {
+    this.markets = await this.instance.fetchMarkets();
+    this.startTicker();
   }
 
   startTicker() {
+    console.log("startTicker");
     this.socket = new WebSocket("wss://testnet.phemex.com/ws");
     let id = 1;
 
@@ -49,6 +54,7 @@ export class Phemex extends EventEmitter {
           id: id++,
         })
       );
+      this.authSocket();
 
       heartbeat();
     });
@@ -58,11 +64,9 @@ export class Phemex extends EventEmitter {
     });
 
     this.socket.on("message", (data) => {
-      // console.log(data);
-      let { tick, id, accounts } = JSON.parse(data);
-
-      if (tick) {
-        this.onTick({
+      let { tick, id, accounts, orders, positions } = JSON.parse(data);
+      if (tick && this.ready) {
+        this.emit("tick", {
           price: tick.last / Math.pow(10, 4),
           time: new Date(tick.timestmp / 1000000),
         });
@@ -74,13 +78,17 @@ export class Phemex extends EventEmitter {
             params: [],
           })
         );
-      } else if (accounts) {
-        console.log(accounts[0]);
+      } else if (orders) {
+        this.ready = true;
+        this.orders = orders;
+      } else if (positions) {
+        this.positions = positions;
       }
     });
   }
 
   authSocket() {
+    console.log("authSocket");
     const expiry = parseInt(
       this.instance.numberToString(this.instance.seconds() + 2 * 60)
     );
@@ -102,11 +110,11 @@ export class Phemex extends EventEmitter {
     var t0 = performance.now();
     for (let tick of ticks) {
       // await new Promise(resolve => setInterval(resolve, 10))
-      this.onTick(tick);
+      this.emit("tick", tick);
     }
     var t1 = performance.now();
     console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.");
-    this.onFinish();
+    this.emit("finish");
   }
 
   async getTestTickes() {
@@ -118,7 +126,7 @@ export class Phemex extends EventEmitter {
     ]);
     const results = [...aug, ...sep, ...okt];
 
-    return results.slice(0, 5000000).map((tick) => {
+    return results.slice(0, 5000).map((tick) => {
       const time = new Date(parseFloat(tick.unix));
       // @ts-ignore
       time.setHours(...tick.date.split(":").join(".").split("."));
@@ -163,8 +171,8 @@ export class Phemex extends EventEmitter {
         takeProfitEp: this.instance.convertToEp(order.takeProfit),
         stopLossEp: this.instance.convertToEp(order.stopLoss),
       };
+      console.log(options);
       let id = await this.instance.privatePostOrders(options);
-      console.log(id);
     } catch (error) {
       console.error(error);
     }
@@ -186,5 +194,61 @@ export class Phemex extends EventEmitter {
       pegPriceType: "TrailingTakeProfitPeg",
       pegOffsetValueEp: -30000,
     };
+  }
+
+  set orders(orders) {
+    orders.forEach((order) => {
+      const id = order.clOrdID;
+      order = this.instance.parseOrder(order, this.markets[0]);
+      order.id = id;
+      if (id.includes(HedgeManager.id)) {
+        delete order.info;
+        const old = this._orders.get(order.id);
+        if (old) {
+          const same = isEqual(old, order);
+          if (!same && old.status !== "canceled") {
+            this._orders.set(order.id, order);
+            this.emit("order_updated", order);
+          }
+        } else {
+          this._orders.set(order.id, order);
+          this.emit("order_added", order);
+        }
+      }
+    });
+  }
+
+  get orders() {
+    return this._orders;
+  }
+
+  get openOrders() {
+    return Array.from(this._orders.values()).filter(
+      (order) => order.status === "open"
+    );
+  }
+
+  set positions(positions) {
+    // console.log(positions);
+
+    positions
+      .filter((position) => position.transactTimeNs)
+      .forEach((position) => {
+        const old = this._positions.get(position.transactTimeNs);
+        if (old) {
+          const same = isEqual(old, position);
+          if (!same) {
+            this._positions.set(position.transactTimeNs, position);
+            this.emit("position_updated", position);
+          }
+        } else {
+          this._positions.set(position.transactTimeNs, position);
+          this.emit("position_added", position);
+        }
+      });
+  }
+
+  get positions() {
+    return this._positions;
   }
 }

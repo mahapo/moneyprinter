@@ -1,13 +1,12 @@
 import { PositionLeveraged } from "../models";
-export class StrategyBase {
+const EventEmitter = require("events");
+export class StrategyBase extends EventEmitter {
   onLongSignal: any;
   onShortSignal: any;
   onStraddleSignal: any;
 
-  constructor({ onLongSignal, onShortSignal, onStraddleSignal }) {
-    this.onLongSignal = onLongSignal;
-    this.onShortSignal = onShortSignal;
-    this.onStraddleSignal = onStraddleSignal;
+  constructor() {
+    super();
   }
 
   async run({ sticks = [], time, price }) {}

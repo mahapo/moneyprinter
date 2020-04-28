@@ -1,6 +1,6 @@
 import * as randomstring from "randomstring";
-import { Runner } from "./runner";
-import { Position } from "../models";
+import { Runner, MoneyPrinter } from "./runner";
+import { Position, OrderLeveraged, PositionLeveraged } from "../models";
 
 export class TraderLeveraged extends Runner {
   ticker: any;
@@ -8,17 +8,26 @@ export class TraderLeveraged extends Runner {
   constructor(account, options) {
     super(account, options);
 
-    this.ticker = this.account.initTicker({
-      onTick: this.onTick.bind(this),
-      onFinish: this.onFinish.bind(this),
-      // product: this.product,
-      // onError: (error) => { this.onError(error) }
+    this.account.on("tick", this.onTick.bind(this));
+    this.account.on("order_added", this.updatePositions.bind(this));
+    this.account.on("order_updated", this.updatePositions.bind(this));
+  }
+
+  updatePositions() {
+    this.account.openOrders.forEach((order) => {
+      let position = Position.positions.get(order.id);
+
+      if (!position) {
+        // const options = HedgeManager.optionsFromId(order.id);
+        // PositionLeveraged.createFromOptions(options);
+      }
     });
   }
 
   async start() {
+    console.log("trader start");
     try {
-      this.account.startTicker();
+      this.account.init();
     } catch (error) {
       console.log(error);
     }
