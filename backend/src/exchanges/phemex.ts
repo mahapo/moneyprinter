@@ -1,20 +1,22 @@
 import * as fs from "fs";
 import * as csv from "csv-parser";
 
-import * as phemex from "../../../../ccxt/js/phemex";
+import * as phemex from "../../../ccxt/js/phemex";
 import * as WebSocket from "ws";
 import { EventEmitter } from "events";
 import { performance } from "perf_hooks";
 import { isEqual } from "lodash";
-
-import { HedgeManager } from "../../models";
+import * as configuration from "../configuration";
 
 export class Phemex extends EventEmitter {
   instance: any;
   onFinish: any;
+  accounts: any;
   socket: any;
   _orders: any = new Map();
   _positions: any = new Map();
+  lastPosition;
+  lastOrder;
   markets: any;
   ready: Boolean = false;
 
@@ -25,7 +27,15 @@ export class Phemex extends EventEmitter {
 
   async init() {
     this.markets = await this.instance.fetchMarkets();
+    await this.closeAllOrders(this.markets[0]);
     this.startTicker();
+  }
+
+  async closeAllOrders(market) {
+    const orders = await this.instance.fetchOpenOrders("BTC/USD");
+    for (const order of orders) {
+      await this.instance.cancelOrder(order.id, "BTC/USD");
+    }
   }
 
   startTicker() {
@@ -78,12 +88,13 @@ export class Phemex extends EventEmitter {
             params: [],
           })
         );
-      } else if (orders) {
+      }
+      if (orders) {
         this.ready = true;
         this.orders = orders;
-      } else if (positions) {
-        this.positions = positions;
       }
+      if (positions) this.positions = positions;
+      if (accounts) this.accounts = accounts;
     });
   }
 
@@ -126,7 +137,7 @@ export class Phemex extends EventEmitter {
     ]);
     const results = [...aug, ...sep, ...okt];
 
-    return results.slice(0, 5000).map((tick) => {
+    return results.slice(0, 100000).map((tick) => {
       const time = new Date(parseFloat(tick.unix));
       // @ts-ignore
       time.setHours(...tick.date.split(":").join(".").split("."));
@@ -171,8 +182,8 @@ export class Phemex extends EventEmitter {
         takeProfitEp: this.instance.convertToEp(order.takeProfit),
         stopLossEp: this.instance.convertToEp(order.stopLoss),
       };
-      console.log(options);
-      let id = await this.instance.privatePostOrders(options);
+      let { data } = await this.instance.privatePostOrders(options);
+      console.log(`Order places:`, data.clOrdID);
     } catch (error) {
       console.error(error);
     }
@@ -201,14 +212,18 @@ export class Phemex extends EventEmitter {
       const id = order.clOrdID;
       order = this.instance.parseOrder(order, this.markets[0]);
       order.id = id;
-      if (id.includes(HedgeManager.id)) {
+      if (id.includes(configuration.get("KEY"))) {
         delete order.info;
         const old = this._orders.get(order.id);
         if (old) {
           const same = isEqual(old, order);
           if (!same && old.status !== "canceled") {
-            this._orders.set(order.id, order);
+            if (old.status === "filled") {
+              this.lastOrder = order;
+              this.emit("order_filled", order);
+            }
             this.emit("order_updated", order);
+            this._orders.set(order.id, order);
           }
         } else {
           this._orders.set(order.id, order);
@@ -224,26 +239,34 @@ export class Phemex extends EventEmitter {
 
   get openOrders() {
     return Array.from(this._orders.values()).filter(
-      (order) => order.status === "open"
+      ({ status }) => status === "open"
     );
   }
 
   set positions(positions) {
-    // console.log(positions);
-
+    this._positions = new Map();
     positions
-      .filter((position) => position.transactTimeNs)
+      // .filter((position) => position.transactTimeNs)
       .forEach((position) => {
-        const old = this._positions.get(position.transactTimeNs);
+        let id = position.transactTimeNs;
+        // console.log(id);
+
+        this._positions.set(id, position);
+        this.emit("position_updated", position);
+        const old = this._positions.get(id);
         if (old) {
-          const same = isEqual(old, position);
-          if (!same) {
-            this._positions.set(position.transactTimeNs, position);
-            this.emit("position_updated", position);
-          }
+          // const same = isEqual(old, position);
+          // if (!same) {
+          // }
         } else {
-          this._positions.set(position.transactTimeNs, position);
-          this.emit("position_added", position);
+          this._positions.set(id, position);
+          this.lastPosition = position;
+          if (this.lastOrder) {
+            this.lastOrder.position = position;
+            this.lastPosition.order = this.lastOrder;
+          }
+          this.emit("position_added", this.lastPosition);
+          console.log(this.lastPosition);
         }
       });
   }

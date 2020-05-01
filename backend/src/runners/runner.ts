@@ -1,6 +1,5 @@
 import { Factory } from "../strategy";
-import * as colors from "colors/safe";
-const EventEmitter = require("events");
+import { EventEmitter } from "events";
 
 export class Runner extends EventEmitter {
   account: any;
@@ -12,28 +11,32 @@ export class Runner extends EventEmitter {
   strategyType: any;
   strategy: any;
 
-  constructor(account, { /*start, end, interval,*/ product, strategyType }) {
-    super();
-    this.account = account;
-    // this.startTime = start;
-    // this.endTime = end;
-    // this.interval = interval;
-    this.product = product;
-    // this.historical = new account.Historical({
-    //   start,
-    //   end,
-    //   interval,
-    //   product,
-    // });
-    this.strategyType = strategyType;
-    this.strategy = Factory.create(this.strategyType, {
-      onLongSignal: this.onLongSignal.bind(this),
-      onShortSignal: this.onShortSignal.bind(this),
-      onStraddleSignal: this.onStraddleSignal.bind(this),
-    });
-  }
+  // constructor(
+  //   account,
+  //   { /*start, end, interval,*/ product = "", strategyType = "" }
+  // ) {
+  //   super();
+  //   this.account = account;
 
-  async start() {}
+  //   // this.startTime = start;
+  //   // this.endTime = end;
+  //   // this.interval = interval;
+  //   // this.product = product;
+  //   // this.historical = new account.Historical({
+  //   //   start,
+  //   //   end,
+  //   //   interval,
+  //   //   product,
+  //   // });
+  //   this.strategyType = strategyType;
+  //   this.strategy = Factory.create(this.strategyType, {
+  //     onLongSignal: this.onLongSignal.bind(this),
+  //     onShortSignal: this.onShortSignal.bind(this),
+  //     onStraddleSignal: this.onStraddleSignal.bind(this),
+  //   });
+  // }
+
+  async start(options) {}
   async onLongSignal(data) {}
   async onShortSignal(data) {}
   async onStraddleSignal(data) {}

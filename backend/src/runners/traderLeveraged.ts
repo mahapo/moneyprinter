@@ -1,6 +1,5 @@
-import * as randomstring from "randomstring";
-import { Runner, MoneyPrinter } from "./runner";
-import { Position, OrderLeveraged, PositionLeveraged } from "../models";
+import { Runner } from "./runner";
+import { Position } from "../models";
 
 export class TraderLeveraged extends Runner {
   ticker: any;
@@ -8,20 +7,30 @@ export class TraderLeveraged extends Runner {
   constructor(account, options) {
     super(account, options);
 
-    this.account.on("tick", this.onTick.bind(this));
+    this.account.on("tick", (tick) => this.onTick(tick));
+    this.strategy.on("signal", (tick) => this.onSignal(tick));
     this.account.on("order_added", this.updatePositions.bind(this));
     this.account.on("order_updated", this.updatePositions.bind(this));
   }
 
   updatePositions() {
-    this.account.openOrders.forEach((order) => {
-      let position = Position.positions.get(order.id);
+    if (!this.account.orders) console.log("No Orders found");
+    else {
+      // console.log(`${this.account.openOrders.length} open orders found`);
+      this.account.orders.forEach((order) => {
+        let position = Position.positions.get(order.id);
 
-      if (!position) {
-        // const options = HedgeManager.optionsFromId(order.id);
-        // PositionLeveraged.createFromOptions(options);
-      }
-    });
+        if (position && position.status === "open") {
+          if (order.status === "closed" && order.filled > 0) {
+            console.log(`Order filled: ${order.id} ${position.id}`);
+            position.emit("filled");
+          }
+          //   const options = this.strategy.optionsFromId(order.id);
+          //   let position = this.strategy.createFromOptions(options);
+          //   console.log(`Order imported: ${order.id} ${position.id}`);
+        }
+      });
+    }
   }
 
   async start() {
@@ -36,28 +45,25 @@ export class TraderLeveraged extends Runner {
   async onTick(tick) {
     try {
       this.strategy.run(tick);
-      Position.printPositions();
     } catch (error) {
       console.log(error);
     }
   }
 
   onFinish() {
-    // this.printPositions();
     Position.printProfit();
     process.exit(0);
   }
 
-  async onStraddleSignal({ price, time }) {
-    const id = randomstring.generate(20);
-    const positions = this.strategy.staddleOpened({
+  async onSignal({ price, time }) {
+    const positions = this.strategy.openOrders({
       price,
       time,
       size: 1000,
-      id,
     });
     for (const position of positions) {
       this.account.placeOrder(position);
     }
+    Position.printPositions();
   }
 }

@@ -1,9 +1,8 @@
-import { PositionLeveraged } from "../models";
 const EventEmitter = require("events");
+const colors = require("colors/safe");
 export class StrategyBase extends EventEmitter {
-  onLongSignal: any;
-  onShortSignal: any;
-  onStraddleSignal: any;
+  static id: string = "aa";
+  positions = [];
 
   constructor() {
     super();
@@ -11,18 +10,35 @@ export class StrategyBase extends EventEmitter {
 
   async run({ sticks = [], time, price }) {}
 
-  // async positionOpened({ price, time, size, id, leverage }) {
-  //   const order = new OrderLeveraged({ price, time, size, leverage });
-  //   const position = new PositionLeveraged({ order, id });
-  //   this.positions[id] = position;
-  // }
+  get activePositions() {
+    return this.positions.filter(
+      (position) => position.status === "open" || position.status === "filled"
+    );
+  }
 
-  // async positionClosed({ price, time, size, id, leverage }) {
-  //   const order = new OrderLeveraged({ price, time, size, leverage });
-  //   const position = this.positions[id];
+  get overview() {
+    return this.positions.map((position) => ({
+      profit: position.profit(),
+      ...position,
+    }));
+  }
 
-  //   if (position) {
-  //     position.close({ order });
-  //   }
-  // }
+  get profitTotal() {
+    return this.positions.reduce((r, p) => {
+      return r + p.profit();
+    }, 0);
+  }
+
+  printPositions() {
+    this.positions.forEach((p) => {
+      p.print();
+    });
+  }
+
+  printProfit() {
+    const prof = `${this.profitTotal}`;
+    const colored =
+      this.profitTotal > 0 ? colors.green(prof) : colors.red(prof);
+    console.log(`Total: ${colored}`);
+  }
 }
