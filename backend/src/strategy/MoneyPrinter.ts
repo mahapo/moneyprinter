@@ -74,7 +74,7 @@ export class MoneyPrinter extends StrategyBase {
     this.long.price = this.short.stopLoss = this.priceTop;
     this.short.price = this.long.stopLoss = this.priceBottom;
 
-    this.positions.push(
+    const positions = [
       new PositionLeveraged({
         order: this.long,
         id: this.id,
@@ -82,11 +82,13 @@ export class MoneyPrinter extends StrategyBase {
       new PositionLeveraged({
         order: this.short,
         id: this.id,
-      })
-    );
+      }),
+    ];
 
-    this.positions.forEach(this.initPositionEvents.bind(this));
-    return this.positions;
+    this.positions.push(...positions);
+
+    positions.forEach(this.initPositionEvents.bind(this));
+    return positions;
   }
 
   initPositionEvents(position) {

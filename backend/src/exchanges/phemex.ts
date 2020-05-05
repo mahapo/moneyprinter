@@ -13,12 +13,14 @@ export class Phemex extends EventEmitter {
   onFinish: any;
   accounts: any;
   socket: any;
-  _orders: any = new Map();
-  _positions: any = new Map();
+  _orders: any = [];
+  _positions: any = [];
   lastPosition;
   lastOrder;
   markets: any;
   ready: Boolean = false;
+
+  id: number = 0;
 
   constructor(options) {
     super();
@@ -28,20 +30,12 @@ export class Phemex extends EventEmitter {
   async init() {
     this.markets = await this.instance.fetchMarkets();
     await this.closeAllOrders(this.markets[0]);
-    this.startTicker();
+    this.startWebSocket();
   }
 
-  async closeAllOrders(market) {
-    const orders = await this.instance.fetchOpenOrders("BTC/USD");
-    for (const order of orders) {
-      await this.instance.cancelOrder(order.id, "BTC/USD");
-    }
-  }
-
-  startTicker() {
+  startWebSocket() {
     console.log("startTicker");
     this.socket = new WebSocket("wss://testnet.phemex.com/ws");
-    let id = 1;
 
     const heartbeat = () => {
       if (!this.socket) return;
@@ -49,22 +43,16 @@ export class Phemex extends EventEmitter {
       this.socket.send(
         JSON.stringify({
           method: "server.ping",
-          params: [".LINK"],
-          id: id++,
+          params: [],
+          id: this.id++,
         })
       );
       setTimeout(heartbeat, 10000);
     };
 
     this.socket.on("open", () => {
-      this.socket.send(
-        JSON.stringify({
-          method: "tick.subscribe",
-          params: [".BTC"],
-          id: id++,
-        })
-      );
       this.authSocket();
+      this.startTicker([".BTC"]);
 
       heartbeat();
     });
@@ -75,27 +63,37 @@ export class Phemex extends EventEmitter {
 
     this.socket.on("message", (data) => {
       let { tick, id, accounts, orders, positions } = JSON.parse(data);
-      if (tick && this.ready) {
+      if (tick) {
         this.emit("tick", {
+          scale: tick.scale,
+          symbol: tick.symbol,
           price: tick.last / Math.pow(10, 4),
           time: new Date(tick.timestmp / 1000000),
         });
-      } else if (id === 0) {
+      }
+      if (id === 0) {
         this.socket.send(
           JSON.stringify({
-            id: id++,
+            id: 1,
             method: "aop.subscribe",
             params: [],
           })
         );
       }
-      if (orders) {
-        this.ready = true;
-        this.orders = orders;
-      }
+      if (orders) this.orders = orders;
       if (positions) this.positions = positions;
       if (accounts) this.accounts = accounts;
     });
+  }
+
+  startTicker(params) {
+    this.socket.send(
+      JSON.stringify({
+        method: "tick.subscribe",
+        params,
+        id: this.id++,
+      })
+    );
   }
 
   authSocket() {
@@ -115,50 +113,11 @@ export class Phemex extends EventEmitter {
     );
   }
 
-  async startDemoTicker(interval = 1) {
-    let ticks = await this.getTestTickes();
-    console.log(ticks.length);
-    var t0 = performance.now();
-    for (let tick of ticks) {
-      // await new Promise(resolve => setInterval(resolve, 10))
-      this.emit("tick", tick);
+  async closeAllOrders(market) {
+    const orders = await this.instance.fetchOpenOrders("BTC/USD");
+    for (const order of orders) {
+      await this.instance.cancelOrder(order.id, "BTC/USD");
     }
-    var t1 = performance.now();
-    console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.");
-    this.emit("finish");
-  }
-
-  async getTestTickes() {
-    // const results = await this.loadCSV("data/BTCUSD_Test_Prints.csv");
-    const [aug, sep, okt] = await Promise.all([
-      this.loadCSV("data/BTCUSDT_August2019_Binance_prints.csv"),
-      this.loadCSV("data/BTCUSDT_September2019_Binance_prints.csv"),
-      this.loadCSV("data/BTCUSDT_October2019_Binance_prints.csv"),
-    ]);
-    const results = [...aug, ...sep, ...okt];
-
-    return results.slice(0, 100000).map((tick) => {
-      const time = new Date(parseFloat(tick.unix));
-      // @ts-ignore
-      time.setHours(...tick.date.split(":").join(".").split("."));
-
-      return {
-        time,
-        price: parseFloat(tick.price),
-        volume: parseFloat(tick.amount),
-      };
-    });
-  }
-
-  async loadCSV(file = "data/BTCUSDT_August2019_Binance_prints.csv") {
-    // http://www.cryptodatadownload.com/data/northamerican/
-    let data = [];
-    return new Promise((resolve) => {
-      fs.createReadStream(file)
-        .pipe(csv())
-        .on("data", (d) => data.push(d))
-        .on("end", () => resolve(data));
-    });
   }
 
   async placeOrder(position) {
@@ -207,30 +166,41 @@ export class Phemex extends EventEmitter {
     };
   }
 
+  async getCurrentPrice(symbol) {
+    try {
+      const { bids, asks } = await this.instance.fetchOrderBook(symbol);
+      return Math.max(bids[0][0]);
+    } catch (error) {}
+  }
+
   set orders(orders) {
-    orders.forEach((order) => {
-      const id = order.clOrdID;
-      order = this.instance.parseOrder(order, this.markets[0]);
-      order.id = id;
-      if (id.includes(configuration.get("KEY"))) {
-        delete order.info;
-        const old = this._orders.get(order.id);
-        if (old) {
-          const same = isEqual(old, order);
-          if (!same && old.status !== "canceled") {
-            if (old.status === "filled") {
-              this.lastOrder = order;
-              this.emit("order_filled", order);
-            }
-            this.emit("order_updated", order);
-            this._orders.set(order.id, order);
-          }
-        } else {
-          this._orders.set(order.id, order);
-          this.emit("order_added", order);
-        }
-      }
-    });
+    this.emit("order_updated", orders);
+    this._orders = orders.filter(({ clOrdID }) =>
+      clOrdID.includes(configuration.get("KEY"))
+    );
+    // orders.forEach((order) => {
+    //   const id = order.clOrdID;
+    //   order = this.instance.parseOrder(order, this.markets[0]);
+    //   order.id = id;
+    //   if (id.includes(configuration.get("KEY"))) {
+    //     delete order.info;
+    //     const old = this._orders.get(order.id);
+    //     if (old) {
+    //       const same = isEqual(old, order);
+    //       if (!same && old.status !== "canceled") {
+    //         if (old.status === "filled") {
+    //           this.lastOrder = order;
+    //           this.emit("order_filled", order);
+    //         }
+    //         this.emit("order_updated", order);
+    //         this._orders.set(order.id, order);
+    //       }
+    //     } else {
+    //       this._orders.set(order.id, order);
+    //       this.emit("order_added", order);
+    //     }
+    //   }
+    // });
   }
 
   get orders() {
@@ -249,8 +219,6 @@ export class Phemex extends EventEmitter {
       // .filter((position) => position.transactTimeNs)
       .forEach((position) => {
         let id = position.transactTimeNs;
-        // console.log(id);
-
         this._positions.set(id, position);
         this.emit("position_updated", position);
         const old = this._positions.get(id);

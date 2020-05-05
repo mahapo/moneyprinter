@@ -1,16 +1,15 @@
 import { Runner } from "./runner";
 import { Position } from "../models";
+import { MoneyPrinter } from "../strategy";
 
 export class TraderLeveraged extends Runner {
   ticker: any;
   currentCandle: any;
-  constructor(account, options) {
-    super(account, options);
 
-    this.account.on("tick", (tick) => this.onTick(tick));
-    this.strategy.on("signal", (tick) => this.onSignal(tick));
-    this.account.on("order_added", this.updatePositions.bind(this));
-    this.account.on("order_updated", this.updatePositions.bind(this));
+  constructor(public account, options) {
+    super(options);
+    // this.account.on("order_added", this.updatePositions.bind(this));
+    // this.account.on("order_updated", this.updatePositions.bind(this));
   }
 
   updatePositions() {
@@ -33,37 +32,49 @@ export class TraderLeveraged extends Runner {
     }
   }
 
-  async start() {
-    console.log("trader start");
-    try {
-      this.account.init();
-    } catch (error) {
-      console.log(error);
-    }
+  async start(options) {
+    console.log(options);
+    this.strategy = new MoneyPrinter(this);
+    this.strategy.on("signal", (tick) => this.onSignal(tick));
+    this.account.on("tick", (tick) => this.onTick(tick));
+
+    // console.log("trader start", options);
+    // try {
+    //   this.account.init();
+    // } catch (error) {
+    //   console.log(error);
+    // }
   }
 
   async onTick(tick) {
     try {
-      this.strategy.run(tick);
+      console.log(await this.account.instance.fetchTrades("BTC/USD"));
+      // console.log(await this.account.instance.fetchOrders("BTC/USD"));
+
+      // this.strategy.run(tick);
     } catch (error) {
       console.log(error);
     }
   }
 
   onFinish() {
-    Position.printProfit();
+    this.strategy.printProfit();
     process.exit(0);
   }
 
-  async onSignal({ price, time }) {
-    const positions = this.strategy.openOrders({
-      price,
-      time,
-      size: 1000,
-    });
-    for (const position of positions) {
-      this.account.placeOrder(position);
-    }
-    Position.printPositions();
+  async onSignal({ time }) {
+    try {
+      const p = await this.account.getCurrentPrice("BTC/USD");
+      console.log(p);
+      const positions = this.strategy.openOrders({
+        price: p,
+        time,
+        size: 2000,
+      });
+      console.log(positions);
+      for (const position of positions) {
+        await this.account.placeOrder(position);
+      }
+    } catch (error) {}
   }
 }

@@ -1,6 +1,4 @@
 import { Runner } from "./runner";
-import { Position, PositionLeveraged } from "../models";
-import { Faker } from "../exchanges";
 import { performance } from "perf_hooks";
 
 import * as fs from "fs";
@@ -12,16 +10,22 @@ import { MoneyPrinter } from "../strategy";
 export class Backtester extends Runner {
   currentCandle: any;
   startBalance: number = 400;
-  progress: number = 0;
+  ratio: number = 2;
+  leverage: number = 100;
+  percent: number = 0;
+  time: number = 0;
   ticks: any = [];
 
   async start(options) {
     await MoneyPrinter.calcSteps(20);
     this.strategy = new MoneyPrinter(this);
-    this.progress = 0;
+    this.percent = 0;
+    this.ratio = parseInt(options.ratio);
+    this.leverage = parseInt(options.leverage);
+    this.startBalance = parseInt(options.startBalance);
 
     this.emit("backtestUpdate", {
-      percent: this.progress,
+      percent: this.percent,
       text: "Loading trades",
     });
     this.ticks = await this.getTestTickes(options.file);
@@ -30,24 +34,24 @@ export class Backtester extends Runner {
     });
     const t0 = performance.now();
     let count = 0;
-    let progressOld = 0;
+    let percentOld = 0;
     for (let tick of this.ticks) {
       await this.onTick(tick);
 
-      progressOld = this.progress;
-      this.progress = Math.max(
+      percentOld = this.percent;
+      this.percent = Math.max(
         Math.round((count++ / this.ticks.length) * 100),
-        this.progress
+        this.percent
       );
-      if (progressOld !== this.progress) {
-        // console.log(this.progress);
+      if (percentOld !== this.percent) {
+        // console.log(this.percent);
         this.emit("backtestUpdate", {
-          percent: this.progress,
+          percent: this.percent,
         });
       }
     }
-    const t1 = performance.now();
-    console.log("Call to ticker took " + (t1 - t0) + " milliseconds.");
+    this.time = performance.now() - t0;
+    console.log("Call to ticker took " + this.time + " milliseconds.");
     this.emit("backtestUpdate", {
       percent: 100,
       text: `Backtest on ${this.ticks.length} trades successful`,
@@ -70,6 +74,7 @@ export class Backtester extends Runner {
       countMax: this.strategy.countMax,
       profit: this.strategy.profitTotal,
       startBalance: this.startBalance,
+      time: this.time,
     });
   }
 
@@ -78,6 +83,8 @@ export class Backtester extends Runner {
       price,
       time,
       size: this.idealSize,
+      ratio: this.ratio,
+      leverage: this.leverage,
     });
   }
 

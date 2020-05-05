@@ -1,3 +1,3 @@
 const config = require("./config.json");
 
-exports.get = (key) => process.env[key] || config[key];
+export const get = (key) => process.env[key] || config[key];
