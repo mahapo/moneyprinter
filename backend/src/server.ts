@@ -1,28 +1,23 @@
 import { Backtester, TraderLeveraged } from "./runners";
-import { Phemex, Faker } from "./exchanges";
+import { Bybit } from "./exchanges";
+require("dotenv").config();
 
 const app = require("http").createServer();
 const io = require("socket.io")(app);
 
 app.listen(5000);
 
-let urls = {
-  api: {
-    public: "https://testnet.phemex.com/api",
-    public2: "https://testnet-api.phemex.com",
-    private: "https://testnet-api.phemex.com",
-  },
-};
-let config = {
-  apiKey: process.env.ID2,
-  secret: process.env.SECRET2,
-  urls,
-};
-
 (async () => {
-  const account = new Phemex(config);
+  const account = new Bybit(
+    {
+      apiKey: process.env.BYBITID,
+      secret: process.env.BYBITSECRET,
+    },
+    true
+  );
   const trader = new TraderLeveraged(account, {});
   account.init();
+  account.startWebSocket();
 
   const backtester = new Backtester();
   const files = await backtester.getFiles();
