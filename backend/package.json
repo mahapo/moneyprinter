@@ -13,26 +13,22 @@
     "phemex": "nodemon --exec babel-node src/phemex"
   },
   "dependencies": {
-    "async": "^3.2.0",
-    "ccxt": "^1.25.84",
+    "ccxt": "^1.27.29",
     "colors": "^1.4.0",
-    "commander": "^5.0.0",
+    "commander": "^5.1.0",
     "csv-parser": "^2.3.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "nodemon": "^2.0.2",
-    "randomstring": "^1.1.5",
     "request": "^2.88.2",
     "socket.io": "^2.3.0",
     "tulind": "^0.8.18",
     "typescript": "^3.8.3",
-    "uuid": "^7.0.3",
-    "ws": "^7.2.3"
+    "ws": "^7.2.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
+    "@babel/core": "^7.9.6",
     "@babel/node": "^7.8.7",
-    "@babel/preset-env": "^7.9.5",
+    "@babel/preset-env": "^7.9.6",
     "@types/consola": "^2.2.5",
     "@types/graphql": "^14.5.0",
     "@types/koa": "^2.11.3",
