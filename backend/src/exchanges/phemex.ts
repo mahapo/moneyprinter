@@ -1,6 +1,3 @@
-import * as fs from "fs";
-import * as csv from "csv-parser";
-
 import * as phemex from "../../../ccxt/js/phemex";
 import * as WebSocket from "ws";
 import { EventEmitter } from "events";
@@ -24,6 +21,14 @@ export class Phemex extends EventEmitter {
 
   constructor(options) {
     super();
+    // TODO: Add demo params
+    let urls = {
+      api: {
+        public: "https://testnet.phemex.com/api",
+        public2: "https://testnet-api.phemex.com",
+        private: "https://testnet-api.phemex.com",
+      },
+    };
     this.instance = new phemex(options);
   }
 
@@ -127,7 +132,7 @@ export class Phemex extends EventEmitter {
         actionBy: "FromOrderPlacement",
         symbol: "BTCUSD",
         clOrdID: position.id,
-        side: order.side === "long" ? "Buy" : "Sell",
+        side: order.side === "buy" ? "Buy" : "Sell",
         ordType: "Stop",
         orderQty: order.size,
         priceEp: this.instance.convertToEp(order.price), // Scaled price, required for limit order

@@ -35,23 +35,51 @@ export class TraderLeveraged extends Runner {
   async start(options) {
     console.log(options);
     this.strategy = new MoneyPrinter(this);
-    this.strategy.on("signal", (tick) => this.onSignal(tick));
-    this.account.on("tick", (tick) => this.onTick(tick));
-
-    // console.log("trader start", options);
-    // try {
-    //   this.account.init();
-    // } catch (error) {
-    //   console.log(error);
-    // }
+    await this.account.instance.cancelAllOrders("BTC/USD");
+    this.onTick({})
+    this.account.on("TakeProfit", (position) => this.onTakeProfit(position));
+    this.account.on("StopLoss", (position) => this.onStopLoss(position));
+    this.account.on("Filled", (position) => this.onFilled(position));
   }
 
   async onTick(tick) {
     try {
-      console.log(await this.account.instance.fetchTrades("BTC/USD"));
-      // console.log(await this.account.instance.fetchOrders("BTC/USD"));
+      this.strategy.run({ price: await this.account.getCurrentPrice("BTC/USD"), time:this.account.instance.now()});
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-      // this.strategy.run(tick);
+  async onTakeProfit(position) {
+    position = this.strategy.positions.find(p => p.id === position.info.order_link_id)
+    try {
+      console.log("onTakeProfit", position.id);
+      await this.strategy.onPositionDone(position, true);
+      this.account.lastTime=0
+      this.onTick({})
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async onStopLoss(position) {
+    position = this.strategy.positions.find(p => p.id === position.info.order_link_id)
+    try {
+      console.log("onStopLoss", position.id);
+      await this.strategy.onPositionDone(position, false);
+      this.onTick({})
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async onFilled(position) {
+    position = this.strategy.positions.find(p => p.id === position.info.order_link_id)
+    try {
+      console.log("onFilled", position.id);
+      let newPosition = await this.strategy.onPositionFilled(position)
+      if(newPosition) await this.account.placeOrder(newPosition);
+      console.log("count", this.strategy.count);
     } catch (error) {
       console.log(error);
     }
@@ -69,9 +97,8 @@ export class TraderLeveraged extends Runner {
       const positions = this.strategy.openOrders({
         price: p,
         time,
-        size: 2000,
+        size: 100,
       });
-      console.log(positions);
       for (const position of positions) {
         await this.account.placeOrder(position);
       }

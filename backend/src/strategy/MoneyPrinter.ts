@@ -64,10 +64,13 @@ export class MoneyPrinter extends StrategyBase {
       ratio: ratio,
     };
 
-    this.long = new OrderLeveraged({ ...this.options, side: "long" });
-    this.short = new OrderLeveraged({ ...this.options, side: "short" });
+    this.count = 0;
 
-    this.priceRange = Math.round(this.short.changePriceLiquidation * 0.4);
+    this.long = new OrderLeveraged({ ...this.options, side: "buy" });
+    this.short = new OrderLeveraged({ ...this.options, side: "sell" });
+
+    this.priceRange = Math.round(this.short.changePriceLiquidation * 0.1);
+    this.priceRange = 2;
     this.priceTop = Math.round(this.options.price + this.priceRange / 2);
     this.priceBottom = Math.round(this.options.price - this.priceRange / 2);
 
@@ -93,38 +96,45 @@ export class MoneyPrinter extends StrategyBase {
 
   initPositionEvents(position) {
     // console.log("initPositionEvents", position.order.size);
-    position.on("filled", () => {
-      position.status = "filled";
-      if (this.count === 0) this.side = position.order.side;
-      else {
-        let side =
-          this.count % 2 !== 0
-            ? this.side
-            : this.side === "long"
-            ? "short"
-            : "long";
-        let order = side === "long" ? this.long.clone() : this.short.clone();
-        let factor = MoneyPrinter.steps[this.count].betFactor;
-        order.size = order.size * factor;
+    // position.on("filled", () => this.onPositionFilled(position));
+    // position.on("done", (win) => this.onPositionDone(position, win));
+  }
 
-        let position = new PositionLeveraged({ order, id: this.id });
-        this.initPositionEvents(position);
-        this.positions.push(position);
-      }
-      this.count++;
-      this.countMax = Math.max(this.countMax, this.count);
-    });
-    position.on("done", (win) => {
-      position.status = "done";
-      if (win) {
-        this.positions.forEach((p) => {
-          if (p.status === "open") p.status = "closed";
-        });
+  onPositionFilled(position) {
+    let newPosition
+    position.status = "filled";
+    this.count++;
+    if (this.count === 1) this.side = position.order.side;
+    else {
+      let side =
+        this.count % 2 !== 0
+          ? this.side
+          : this.side === "buy"
+          ? "sell"
+          : "buy";
+      let order = side === "buy" ? this.long.clone() : this.short.clone();
+      let factor = MoneyPrinter.steps[this.count].betFactor;
+      order.size = order.size * factor;
 
-        this.options.time = new Date();
-        this.count = 0;
-      }
-    });
+      newPosition = new PositionLeveraged({ order, id: this.id });
+      this.initPositionEvents(newPosition);
+      this.positions.push(newPosition);
+    }
+    
+    this.countMax = Math.max(this.countMax, this.count);
+    return newPosition
+  }
+
+  onPositionDone(position,win) {
+    position.status = "done";
+    if (win) {
+      this.positions.forEach((p) => {
+        if (p.status === "open") p.status = "closed";
+      });
+
+      this.options.time = new Date();
+      this.count = 0;
+    }
   }
 
   get id(): string {
@@ -177,7 +187,7 @@ export class MoneyPrinter extends StrategyBase {
     this.priceBottom = parseFloat(options.priceBottom);
     this.count = parseInt(options.count);
 
-    if (options.side === "long") {
+    if (options.side === "buy") {
       order.stopLoss = this.priceBottom;
       order.takeProfit = this.priceTop;
     } else {

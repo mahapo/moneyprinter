@@ -16,17 +16,17 @@ export class PositionLeveraged extends Position {
   onTick({ price, time }) {
     if (this.status === "open") {
       if (
-        (this.order.side === "long" && this.order.price <= price) ||
-        (this.order.side === "short" && this.order.price >= price)
+        (this.order.side === "buy" && this.order.price <= price) ||
+        (this.order.side === "sell" && this.order.price >= price)
       ) {
         this.status = "filled";
         this.emit("filled");
       }
     } else if (this.status === "filled") {
       if (
-        (this.order.side === "long" &&
+        (this.order.side === "buy" &&
           (this.order.takeProfit <= price || this.order.stopLoss >= price)) ||
-        (this.order.side === "short" &&
+        (this.order.side === "sell" &&
           (this.order.takeProfit >= price || this.order.stopLoss <= price))
       ) {
         this.status = "done";
@@ -49,7 +49,7 @@ export class PositionLeveraged extends Position {
 
   profit() {
     if (this.status === "done") {
-      if (this.order.side === "long")
+      if (this.order.side === "buy")
         return this.exit > this.order.price
           ? this.order.maxWin
           : this.order.maxLoss;

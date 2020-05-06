@@ -20,7 +20,7 @@ export class OrderLeveraged {
   time: any;
   side: string;
 
-  constructor({ price, time, size, leverage = 100, ratio = 2, side = "long" }) {
+  constructor({ price, time, size, leverage = 100, ratio = 1, side = "buy" }) {
     this.price = price;
     this.time = time;
     this.size = size;
@@ -52,20 +52,20 @@ export class OrderLeveraged {
 
   // Change in Price to Bankruptcy (%)
   get changePriceBankruptcyPercent(): number {
-    if (this.side === "long") return (1 / (this.leverage + 1)) * -1 * 100;
+    if (this.side === "buy") return (1 / (this.leverage + 1)) * -1 * 100;
     return (1 / (this.leverage - 1)) * 100;
   }
 
   // Change in Price to Liquidation (%)
   get changePriceLiquidationPercent(): number {
-    if (this.side === "long")
+    if (this.side === "buy")
       return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
     return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
   }
 
   // Liquidation Price
   get liquidationPrice(): number {
-    if (this.side === "long")
+    if (this.side === "buy")
       return round(
         this.price + (this.price * this.changePriceLiquidationPercent) / 100,
         0.5
@@ -82,19 +82,28 @@ export class OrderLeveraged {
   }
 
   get takeProfitSuggestion(): number {
-    if (this.side === "long")
+    if (this.side === "buy")
       return round(
-        this.price + Math.abs(this.changePriceLiquidation) * this.ratio,
+        this.price + 15,
         0.5
       );
     return round(
-      this.price - Math.abs(this.changePriceLiquidation) * this.ratio,
+      this.price - 15,
       0.5
     );
+    // if (this.side === "buy")
+    //   return round(
+    //     this.price + Math.abs(this.changePriceLiquidation) * this.ratio,
+    //     0.5
+    //   );
+    // return round(
+    //   this.price - Math.abs(this.changePriceLiquidation) * this.ratio,
+    //   0.5
+    // );
   }
 
   get stopLossSuggestion(): number {
-    if (this.side === "long") return this.liquidationPrice + 5;
+    if (this.side === "buy") return this.liquidationPrice + 5;
     return this.liquidationPrice - 5;
   }
 
@@ -107,19 +116,19 @@ export class OrderLeveraged {
   }
 
   get maxWin(): number {
-    if (this.side === "long")
+    if (this.side === "buy")
       return (this.size / this.leverage) * this.takeProfitPercent;
     return (this.size / this.leverage) * this.takeProfitPercent * -1;
   }
 
   get maxLoss(): number {
-    if (this.side === "long")
+    if (this.side === "buy")
       return (this.size / this.leverage) * this.stopLossPercent;
     return (this.size / this.leverage) * this.stopLossPercent * -1;
   }
 
   toString(): string {
-    const colored = this.side === "long" ? colors.green("L") : colors.red("S");
+    const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
     return `${colored} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
   }
 
