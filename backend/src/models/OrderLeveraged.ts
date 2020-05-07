@@ -34,6 +34,11 @@ export class OrderLeveraged {
     this.stopLoss = this.stopLossSuggestion;
   }
 
+  get basePrice(): number {
+    if (this.side === "buy") return this.price - 0.5;
+    return this.price + 0.5;
+  }
+
   get formatedTime(): number {
     return this.time.toLocaleString();
   }
@@ -82,15 +87,8 @@ export class OrderLeveraged {
   }
 
   get takeProfitSuggestion(): number {
-    if (this.side === "buy")
-      return round(
-        this.price + 15,
-        0.5
-      );
-    return round(
-      this.price - 15,
-      0.5
-    );
+    if (this.side === "buy") return round(this.price + 15, 0.5);
+    return round(this.price - 15, 0.5);
     // if (this.side === "buy")
     //   return round(
     //     this.price + Math.abs(this.changePriceLiquidation) * this.ratio,

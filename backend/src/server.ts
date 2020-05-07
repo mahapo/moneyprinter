@@ -17,12 +17,14 @@ app.listen(5000);
   );
   const trader = new TraderLeveraged(account, {});
   account.init();
-  account.startWebSocket();
+  account.reset("BTC/USD");
+
 
   const backtester = new Backtester();
   const files = await backtester.getFiles();
 
   try {
+    // account.startWebSocket();
     backtester.on("backtestUpdate", (update) =>
       io.sockets.emit("backtestUpdate", update)
     );
@@ -30,7 +32,7 @@ app.listen(5000);
       io.sockets.emit("backtestFinish", data)
     );
   } catch (error) {
-    console.error(error);
+    console.log(error);
   }
 
   io.on("connection", async (socket) => {
@@ -80,3 +82,9 @@ app.listen(5000);
     });
   });
 })();
+
+
+process.on('uncaughtException', err => {
+  console.log('There was an uncaught error', err)
+  process.exit(1) //mandatory (as per the Node.js docs)
+})

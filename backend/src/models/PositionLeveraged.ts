@@ -20,9 +20,9 @@ export class PositionLeveraged extends Position {
         (this.order.side === "sell" && this.order.price >= price)
       ) {
         this.status = "filled";
-        this.emit("filled");
       }
-    } else if (this.status === "filled") {
+    }
+    if (this.status === "filled") {
       if (
         (this.order.side === "buy" &&
           (this.order.takeProfit <= price || this.order.stopLoss >= price)) ||
@@ -31,7 +31,6 @@ export class PositionLeveraged extends Position {
       ) {
         this.status = "done";
         this.exit = price;
-        this.emit("done", this.profit() > 0);
       }
     }
   }

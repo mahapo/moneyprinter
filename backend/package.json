@@ -9,8 +9,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
     "server": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
-    "test": "nodemon --exec babel-node src/test.js",
-    "phemex": "nodemon --exec babel-node src/phemex"
+    "test": "ts-node-dev --respawn --transpileOnly ./src/test.ts"
   },
   "dependencies": {
     "ccxt": "^1.27.29",

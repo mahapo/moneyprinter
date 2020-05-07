@@ -1,12 +1,8 @@
 const EventEmitter = require("events");
 const colors = require("colors/safe");
-export class StrategyBase extends EventEmitter {
+export class StrategyBase {
   static id: string = "aa";
   positions = [];
-
-  constructor() {
-    super();
-  }
 
   async run({ sticks = [], time, price }) {}
 
@@ -14,6 +10,10 @@ export class StrategyBase extends EventEmitter {
     return this.positions.filter(
       (position) => position.status === "open" || position.status === "filled"
     );
+  }
+
+  get openPositions() {
+    return this.positions.filter((position) => position.status === "open");
   }
 
   get overview() {
@@ -31,6 +31,12 @@ export class StrategyBase extends EventEmitter {
 
   printPositions() {
     this.positions.forEach((p) => {
+      p.print();
+    });
+  }
+
+  printActivePositions() {
+    this.activePositions.forEach((p) => {
       p.print();
     });
   }

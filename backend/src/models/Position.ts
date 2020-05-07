@@ -7,6 +7,8 @@ export class Position extends EventEmitter {
   order: any;
   exit: any;
   id: any;
+  idExchange: any;
+  needsUpdate: boolean = false;
 
   constructor({ order, id }) {
     super();
@@ -52,37 +54,4 @@ export class Position extends EventEmitter {
   profitString() {
     return this.profit().toFixed(2);
   }
-
-  // static get positionsArray() {
-  //   return Array.from(Position.positions.values());
-  // }
-
-  // static get openPositions() {
-  //   return Position.positionsArray.filter((p) => p.status === "open");
-  // }
-
-  // static get filledPositions() {
-  //   return Position.positionsArray.filter((p) => p.status === "filled");
-  // }
-
-  // static get profitTotal() {
-  //   return Position.positionsArray.reduce((r, p) => {
-  //     return r + p.profit();
-  //   }, 0);
-  // }
-
-  // static printPositions() {
-  //   // console.log(Position.positionsArray);
-
-  //   Position.positionsArray.forEach((p) => {
-  //     p.print();
-  //   });
-  // }
-
-  // static printProfit() {
-  //   const prof = `${this.profitTotal}`;
-  //   const colored =
-  //     this.profitTotal > 0 ? colors.green(prof) : colors.red(prof);
-  //   console.log(`Total: ${colored}`);
-  // }
 }
