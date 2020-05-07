@@ -1,0 +1,21 @@
+import * as program from "commander";
+import { Backtester } from "./runners";
+require("dotenv").config();
+
+program.version("1.0.0").option("-l, --file", "Run live").parse(process.argv);
+
+const main = async function () {
+  try {
+    const backtester = new Backtester();
+    backtester.start({
+      ratio: 2,
+      leverage: 100,
+      file: "data/BTCUSD_Test_Prints.csv",
+      startBalance: 400,
+    });
+  } catch (error) {
+    console.debug("Main failed", error.message);
+  }
+};
+
+main();

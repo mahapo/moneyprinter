@@ -16,42 +16,45 @@ export class Backtester extends Runner {
   time: number = 0;
   ticks: any = [];
 
-  async start(options) {
-    await MoneyPrinter.calcSteps(20);
+  async start({ ratio, leverage, startBalance, file, update = false }) {
     this.strategy = new MoneyPrinter(this);
     this.percent = 0;
-    this.ratio = parseInt(options.ratio);
-    this.leverage = parseInt(options.leverage);
-    this.startBalance = parseInt(options.startBalance);
+    this.ratio = parseInt(ratio);
+    this.leverage = parseInt(leverage);
+    this.startBalance = parseInt(startBalance);
+    let count = 0;
+    let percentOld = 0;
+    this.ticks = await this.getTestTickes(file);
 
     this.emit("backtestUpdate", {
       percent: this.percent,
       text: "Loading trades",
     });
-    this.ticks = await this.getTestTickes(options.file);
     this.emit("backtestUpdate", {
       text: `Test Strategy on ${this.ticks.length} Trades`,
     });
-    const t0 = performance.now();
-    let count = 0;
-    let percentOld = 0;
-    for (let tick of this.ticks) {
-      await this.onTick(tick);
 
-      percentOld = this.percent;
-      this.percent = Math.max(
-        Math.round((count++ / this.ticks.length) * 100),
-        this.percent
-      );
-      if (percentOld !== this.percent) {
-        // console.log(this.percent);
-        this.emit("backtestUpdate", {
-          percent: this.percent,
-        });
+    const t0 = performance.now();
+    for (let tick of this.ticks) {
+      this.onTick(tick);
+
+      if (update) {
+        percentOld = this.percent;
+        this.percent = Math.max(
+          Math.round((count++ / this.ticks.length) * 100),
+          this.percent
+        );
+        if (percentOld !== this.percent) {
+          // console.log(this.percent);
+          this.emit("backtestUpdate", {
+            percent: this.percent,
+          });
+        }
       }
     }
     this.time = performance.now() - t0;
-    console.log("Call to ticker took " + this.time + " milliseconds.");
+    console.log("Backtest took " + this.time + " milliseconds.");
+
     this.emit("backtestUpdate", {
       percent: 100,
       text: `Backtest on ${this.ticks.length} trades successful`,
@@ -61,13 +64,44 @@ export class Backtester extends Runner {
 
   async onTick(tick) {
     try {
-      await this.strategy.run(tick);
+      this.updatePositions(tick);
+      this.strategy.run(tick);
     } catch (error) {
       console.log(error);
     }
   }
 
+  updatePositions({ price }) {
+    this.strategy.currentPositions.forEach((position) => {
+      if (position.status === "open") {
+        if (
+          (position.order.side === "buy" && position.order.price <= price) ||
+          (position.order.side === "sell" && position.order.price >= price)
+        ) {
+          position.status = "filled";
+          this.strategy.onPositionFilled(position);
+        }
+      }
+      if (position.status === "filled") {
+        if (
+          (position.order.side === "buy" &&
+            (position.order.takeProfit <= price ||
+              position.order.stopLoss >= price)) ||
+          (position.order.side === "sell" &&
+            (position.order.takeProfit >= price ||
+              position.order.stopLoss <= price))
+        ) {
+          position.status = "done";
+          position.exit = price;
+          this.strategy.onPositionDone(position, position.profit() > 0);
+        }
+      }
+    });
+  }
+
   onFinish() {
+    this.strategy.positions.push(...this.strategy.currentPositions);
+    // this.strategy.printPositions();
     this.strategy.printProfit();
     this.emit("backtestFinish", {
       positions: this.strategy.overview,
@@ -117,7 +151,7 @@ export class Backtester extends Runner {
     });
   }
 
-  async loadCSV(filePath): any[] {
+  async loadCSV(filePath) {
     let data = [];
     return new Promise((resolve) => {
       fs.createReadStream(filePath)
