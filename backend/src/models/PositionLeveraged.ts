@@ -1,5 +1,5 @@
 import * as colors from "colors/safe";
-import { Position, OrderLeveraged } from "./";
+import { Position } from "./";
 
 export class PositionLeveraged extends Position {
   state: string;

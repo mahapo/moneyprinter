@@ -20,7 +20,7 @@ export class OrderLeveraged {
   time: any;
   side: string;
 
-  constructor({ price, time, size, leverage = 100, ratio = 1, side = "buy" }) {
+  constructor({ price, time, size, leverage, ratio = 1, side = "buy" }) {
     this.price = price;
     this.time = time;
     this.size = size;
@@ -73,11 +73,11 @@ export class OrderLeveraged {
     if (this.side === "buy")
       return round(
         this.price + (this.price * this.changePriceLiquidationPercent) / 100,
-        0.5
+        0.0001
       );
     return round(
       this.price + (this.price * this.changePriceLiquidationPercent) / 100,
-      0.5
+      0.0001
     );
   }
 

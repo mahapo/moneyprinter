@@ -26,8 +26,12 @@ export class MoneyPrinter extends StrategyBase {
     ratio: 2,
   };
 
+  stats = {
+    countMax: 0,
+    sizeMax: 0,
+  };
+
   count: number = 0;
-  countMax: number = 0;
   side: string;
 
   long: OrderLeveraged;
@@ -53,13 +57,13 @@ export class MoneyPrinter extends StrategyBase {
   //   this.activePositions.forEach((p) => p.onTick({ price, time }));
   // }
 
-  openOrders({ price, time, size, leverage = 100, ratio = 2 }) {
+  openOrders({ price, time, size, leverage, ratio = 2 }) {
     this.options = {
-      price: price,
+      price,
       time: new Date(time),
       size: Math.round(size),
-      leverage: leverage,
-      ratio: ratio,
+      leverage,
+      ratio,
     };
 
     this.count = 0;
@@ -67,13 +71,16 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = Math.round(this.short.changePriceLiquidation * 0.1);
-    // this.priceRange = 6;
+    this.priceRange = this.short.changePriceLiquidation * 0.9;
+    // this.priceRange = 20;
     this.priceTop = this.options.price + this.priceRange / 2;
     this.priceBottom = this.options.price - this.priceRange / 2;
 
     this.long.price = this.short.stopLoss = this.priceTop;
     this.short.price = this.long.stopLoss = this.priceBottom;
+
+    this.long.takeProfit = this.short.price + this.priceRange * ratio;
+    this.short.takeProfit = this.short.price - this.priceRange * ratio;
 
     // this.long.stopLoss += 1;
     // this.short.stopLoss -= 1;
@@ -95,6 +102,7 @@ export class MoneyPrinter extends StrategyBase {
 
   onPositionFilled(position) {
     position.status = "filled";
+
     if (this.countFilled === 1) {
       this.side = position.order.side;
       // let otherSide = this.openPositions.find(
@@ -107,11 +115,15 @@ export class MoneyPrinter extends StrategyBase {
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
       order.size = order.size * this.currentStep.factor;
 
-      const newPosition = new PositionLeveraged({ order, id: this.createId() });
+      const newPosition = new PositionLeveraged({
+        order,
+        id: this.createId(),
+      });
       this.currentPositions.push(newPosition);
+      this.stats.sizeMax = Math.max(this.stats.sizeMax, order.size);
     }
 
-    this.countMax = Math.max(this.countMax, this.countFilled);
+    this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
   }
 
   onPositionDone(position, win) {

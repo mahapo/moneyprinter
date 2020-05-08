@@ -10,6 +10,8 @@ import { MoneyPrinter } from "../strategy";
 export class Backtester extends Runner {
   currentCandle: any;
   startBalance: number = 400;
+  balances = [];
+  currentBalance: number = 0;
   ratio: number = 2;
   leverage: number = 100;
   percent: number = 0;
@@ -22,6 +24,8 @@ export class Backtester extends Runner {
     this.ratio = parseInt(ratio);
     this.leverage = parseInt(leverage);
     this.startBalance = parseInt(startBalance);
+    this.currentBalance = this.startBalance;
+    this.balances.push(this.currentBalance);
     let count = 0;
     let percentOld = 0;
     this.ticks = await this.getTestTickes(file);
@@ -93,6 +97,13 @@ export class Backtester extends Runner {
         ) {
           position.status = "done";
           position.exit = price;
+
+          this.balances.push(
+            this.currentBalance - position.order.size / position.order.leverage
+          );
+          this.currentBalance += position.profit(); // TODO: Fix Profit
+          this.balances.push(this.currentBalance);
+
           this.strategy.onPositionDone(position, position.profit() > 0);
         }
       }
@@ -103,6 +114,10 @@ export class Backtester extends Runner {
     this.strategy.positions.push(...this.strategy.currentPositions);
     // this.strategy.printPositions();
     this.strategy.printProfit();
+
+    // console.log(this.strategy.stats, this.strategy.positions.length);
+    console.log(Math.min(...this.balances), Math.max(...this.balances));
+
     this.emit("backtestFinish", {
       positions: this.strategy.overview,
       countMax: this.strategy.countMax,
@@ -122,12 +137,12 @@ export class Backtester extends Runner {
     });
   }
 
-  get balance() {
-    return this.startBalance + this.strategy.profitTotal;
-  }
+  // get balance() {
+  //   return this.startBalance + this.strategy.profitTotal;
+  // }
 
   get idealSize() {
-    return (this.balance / 100) * 100;
+    return Math.round((this.currentBalance / 200) * 100);
   }
 
   async getTestTickes(filePath) {

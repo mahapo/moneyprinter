@@ -40,16 +40,16 @@ export class Position extends EventEmitter {
     console.log(`${enter} - ${exit} - ${profit}`);
   }
 
-  profit() {
-    const fee = 0.0025;
-    const entrance = this.enter.price * (1 + fee);
-    if (this.exit) {
-      const exit = this.exit.price * (1 - fee);
-      return exit - entrance;
-    } else {
-      return 0;
-    }
-  }
+  // profit() {
+  //   const fee = 0.0025;
+  //   const entrance = this.enter.price * (1 + fee);
+  //   if (this.exit) {
+  //     const exit = this.exit.price * (1 - fee);
+  //     return exit - entrance;
+  //   } else {
+  //     return 0;
+  //   }
+  // }
 
   profitString() {
     return this.profit().toFixed(2);
