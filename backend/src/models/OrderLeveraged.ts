@@ -19,14 +19,24 @@ export class OrderLeveraged {
   maintenanceMargin: number;
   time: any;
   side: string;
+  symbol: string;
 
-  constructor({ price, time, size, leverage, ratio = 1, side = "buy" }) {
+  constructor({
+    price,
+    time,
+    size,
+    symbol,
+    leverage = 50,
+    ratio = 1,
+    side = "buy",
+  }) {
     this.price = price;
     this.time = time;
     this.size = size;
     this.leverage = leverage;
     this.ratio = ratio;
     this.side = side;
+    this.symbol = symbol;
 
     this.maintenanceMargin = 0.005;
 
@@ -127,7 +137,7 @@ export class OrderLeveraged {
 
   toString(): string {
     const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
+    return `${colored} ${this.symbol} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
   }
 
   clone() {
@@ -137,6 +147,7 @@ export class OrderLeveraged {
       size: this.size,
       leverage: this.leverage,
       side: this.side,
+      symbol: this.symbol,
     });
     order.takeProfit = this.takeProfit;
     order.stopLoss = this.stopLoss;

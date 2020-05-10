@@ -33,16 +33,6 @@ export class ExchangeBase extends EventEmitter {
     return Math.max(bids[0][0]);
   }
 
-  async reset(symbol) {
-    await this.instance.loadMarkets();
-    const market = this.instance.market(symbol);
-    const request = {
-      symbol: market["id"],
-    };
-    // await this.instance.privatePostOrderCancelAll(request);
-    await this.instance.privatePostStopOrderCancelAll(request);
-  }
-
   get orders(): Order[] {
     return this._orders
       .filter((order) => !!order.info.order_link_id)

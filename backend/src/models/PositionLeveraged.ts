@@ -2,11 +2,8 @@ import * as colors from "colors/safe";
 import { Position } from "./";
 
 export class PositionLeveraged extends Position {
-  state: string;
-  triggered: string;
   order: any;
   id: any;
-  exit: number;
   onDone: any;
 
   constructor({ order, id }) {

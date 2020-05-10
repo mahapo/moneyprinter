@@ -3,11 +3,13 @@ import { bybit as BybitCCXT } from "ccxt";
 import * as WebSocket from "ws";
 import * as crypto from "crypto";
 
+// https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
   constructor(options, demo) {
     super(options);
     this.instance = new BybitCCXT(options);
     this.instance.setSandboxMode(demo);
+    console.log(this.instance.openapiPostStopOrderCancel);
   }
 
   startWebSocket() {
@@ -30,17 +32,14 @@ export class Bybit extends ExchangeBase {
             else if (topic === "position") this.onPosition(data);
             else if (topic === "execution") this.onExecution(data);
             else if (topic === "stop_order") this.onOrderStop(data);
-            else if (topic.includes("instrument_info"))
-              this.onInstrumentInfo(data);
+            // else if (topic.includes("instrument_info"))
+            //   this.onInstrumentInfo(data);
           }
         });
 
         this.socket.on("open", () => {
           console.log("Websocket open");
           resolve();
-          this.socket.send(
-            '{"op": "subscribe", "args": ["instrument_info.100ms.XRPUSD"]}'
-          );
           this.socket.send(
             '{"op": "subscribe", "args": ["position", "order", "execution", "stop_order"]}'
           );
@@ -69,50 +68,48 @@ export class Bybit extends ExchangeBase {
     return `api_key=${this.instance.apiKey}&expires=${expires}&signature=${signature}`;
   }
 
-  onOrder(orders) {
-    // orders = orders.map((order) => this.instance.parseOrder(order))
-    // // console.log(orders);
-    // this._orders.push(...orders)
-    // this.emit("orders")
-  }
+  onOrder(orders) {}
 
-  onPosition(positions) {
-    //   this.positions = positions
-    //   this.emit("positions")
-    //   console.log("positions", positions);
-  }
+  onPosition(positions) {}
 
-  onExecution(execution) {
-    // console.log("execution", execution);
-    // const order = this.orders.find(order => order.id === execution[0].execID)
-    // if(order) console.log("Position created:", order.info.order_link_id)
-  }
+  onExecution(execution) {}
 
   onOrderStop(orders) {
-    const position = this.activeOrders
-      .filter((order) => order.info.qty === orders[0].qty)
-      .find((order) => order.info.side === orders[0].side);
-
-    if (orders[0].order_status === "Created") {
-      if (orders[0].stop_order_type === "TakeProfit")
-        this.emit("TakeProfit", position);
-      else if (orders[0].stop_order_type === "StopLoss")
-        this.emit("StopLoss", position);
-      else if (orders[0].order_type === "Market") this.emit("Filled", position);
+    for (const order of orders) {
+      if (order.order_status === "Created") {
+        const formatedOrder = {
+          idExchange: order.order_id,
+          id: order.order_link_id,
+          side: order.side.toLowerCase(),
+          size: order.qty,
+          price: parseFloat(order.trigger_price),
+        };
+        if (order.stop_order_type === "TakeProfit")
+          this.emit("TakeProfit", formatedOrder);
+        else if (order.stop_order_type === "StopLoss")
+          this.emit("StopLoss", formatedOrder);
+        else if (order.order_type === "Market")
+          this.emit("Filled", formatedOrder);
+        else console.table(order);
+      }
     }
   }
 
-  onInstrumentInfo(info) {
-    // console.log("stop_order", info.update);
+  async reset(symbol) {
+    await this.instance.loadMarkets();
+    const market = this.instance.market(symbol);
+    const request = {
+      symbol: market["id"],
+    };
+    // await this.instance.privatePostOrderCancelAll(request);
+    await this.instance.privatePostStopOrderCancelAll(request);
   }
 
-  async placeMarketStopOrder(position) {
+  async placeMarketStopOrder(position, newPosition = true) {
     try {
       const order = position.order;
-      console.log(
-        `Order: ${position.symbol} ${order.side} ${order.size} @ ${order.price} - TP: ${order.takeProfit} SL: ${order.stopLoss}`
-      );
-      this.lastTime = order.time.getTime();
+      console.log(`New Order: ${order.toString()}`);
+      if (newPosition) this.lastTime = order.time.getTime();
       const params = {
         leverage: order.leverage,
         order_link_id: position.id,
@@ -126,7 +123,7 @@ export class Bybit extends ExchangeBase {
         ordertype: "Conditions",
       };
       let newOrder = await this.instance.createOrder(
-        "BTC/USD",
+        order.symbol,
         "market",
         order.side,
         order.size,
@@ -138,27 +135,50 @@ export class Bybit extends ExchangeBase {
       this._orders.push(newOrder);
       return newOrder;
     } catch (error) {
-      console.debug(error.message);
+      console.debug("placeMarketStopOrder", error.message);
+      console.debug(position);
     }
   }
 
-  async updateOrder(position) {
+  // async updateOrder(position) {
+  //   try {
+  //     const order = position.order;
+  //     console.log(
+  //       `Order update: ${position.idExchange} ${position.symbol} ${order.side} ${order.size} @ ${order.price} - TP: ${order.takeProfit} SL: ${order.stopLoss}`
+  //     );
+  //     let result = await this.instance.editOrder(
+  //       position.idExchange,
+  //       order.symbol,
+  //       null,
+  //       null,
+  //       position.order.size,
+  //       undefined,
+  //       {
+  //         stop_order_id: position.idExchange,
+  //       }
+  //     );
+  //     return true;
+  //   } catch (error) {
+  //     console.debug(error.message);
+  //     return false;
+  //   }
+  // }
+
+  async setTpSLTs(position) {
     try {
       const order = position.order;
-      console.log(
-        `Order update: ${position.idExchange} ${position.symbol} ${order.side} ${order.size} @ ${order.price} - TP: ${order.takeProfit} SL: ${order.stopLoss}`
-      );
-      let result = await this.instance.editOrder(
-        position.idExchange,
-        "BTC/USD",
-        null,
-        null,
-        position.order.size,
-        undefined,
-        {
-          stop_order_id: position.idExchange,
-        }
-      );
+      console.log(`Set TP SL: ${order.toString()}`);
+      let request = await this.instance.openapiPostPositionTradingStop({
+        // take_profit: position.order.takeProfit,
+        // stop_loss: position.order.stopLoss,
+        // new_tp_trigger_by: "LastPrice",
+        // new_sl_trigger_by: "LastPrice",
+        new_trailing_active: position.order.takeProfit,
+        new_trailing_stop: 2,
+
+        symbol: order.symbol.replace("/", ""),
+      });
+
       return true;
     } catch (error) {
       console.debug(error.message);
@@ -166,23 +186,15 @@ export class Bybit extends ExchangeBase {
     }
   }
 
-  async setTpSLTs(position) {
+  async cancelPosition(position) {
     try {
       const order = position.order;
-      console.log(
-        `Set TP SL: ${order.size} @ ${order.price} - TP: ${order.takeProfit} SL: ${order.stopLoss}`
-      );
-      let request = await this.instance.openapiPostPositionTradingStop({
-        take_profit: position.order.takeProfit,
-        // stop_loss: position.order.stopLoss,
-        // new_tp_trigger_by: "LastPrice",
-        // new_sl_trigger_by: "LastPrice",
-        // new_trailing_stop: 0,
-        // new_trailing_active: 0,
-
-        symbol: "BTCUSD",
+      console.log(`Delete:${order.toString()}`);
+      let request = await this.instance.openapiPostStopOrderCancel({
+        order_link_id: position.id,
+        symbol: order.symbol.replace("/", ""),
       });
-
+      position.idExchange = "";
       return true;
     } catch (error) {
       console.debug(error.message);

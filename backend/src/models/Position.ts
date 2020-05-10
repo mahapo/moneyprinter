@@ -2,7 +2,6 @@ const colors = require("colors/safe");
 const EventEmitter = require("events");
 
 export class Position extends EventEmitter {
-  // static positions = new Map();
   status: string;
   order: any;
   exit: any;
@@ -15,8 +14,6 @@ export class Position extends EventEmitter {
     this.status = "open";
     this.order = order;
     this.id = `${id}-${order.side}`;
-    this.setMaxListeners(10000000);
-    // Position.positions.set(this.id, this);
   }
 
   close({ order }) {
@@ -40,16 +37,16 @@ export class Position extends EventEmitter {
     console.log(`${enter} - ${exit} - ${profit}`);
   }
 
-  // profit() {
-  //   const fee = 0.0025;
-  //   const entrance = this.enter.price * (1 + fee);
-  //   if (this.exit) {
-  //     const exit = this.exit.price * (1 - fee);
-  //     return exit - entrance;
-  //   } else {
-  //     return 0;
-  //   }
-  // }
+  profit() {
+    const fee = 0.0025;
+    const entrance = this.enter.price * (1 + fee);
+    if (this.exit) {
+      const exit = this.exit.price * (1 - fee);
+      return exit - entrance;
+    } else {
+      return 0;
+    }
+  }
 
   profitString() {
     return this.profit().toFixed(2);
