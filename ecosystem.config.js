@@ -22,7 +22,7 @@ module.exports = {
       repo: "https://github.com/mahapo/decentralex-bots.git",
       path: "/var/www/decentralex-bots",
       "post-deploy":
-        "cd backend && yarn && yarn build && pm2 reload ecosystem.config.js --env production",
+        "cd backend && yarn && yarn build && pm2 reload ../ecosystem.config.js --env production",
     },
   },
 };
