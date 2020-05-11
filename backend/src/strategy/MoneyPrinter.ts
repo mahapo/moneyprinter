@@ -118,7 +118,7 @@ export class MoneyPrinter extends StrategyBase {
 
       let order =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + position.order.size;
+      order.size = order.size * this.currentStep.factor;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -133,7 +133,7 @@ export class MoneyPrinter extends StrategyBase {
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + position.order.size;
+      order.size = order.size * this.currentStep.factor;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -173,6 +173,7 @@ export class MoneyPrinter extends StrategyBase {
       this.options.leverage,
       this.countFilled,
       this.options.ratio,
+      this.currentStep,
     ];
     return Object.values(options).join("-");
   }
@@ -232,23 +233,8 @@ export class MoneyPrinter extends StrategyBase {
     );
   }
 
-  get countFilled(): number {
-    return this.currentPositions.filter(
-      (position: PositionLeveraged) =>
-        position.status === "filled" || position.status === "done"
-    ).length;
-  }
-
-  get nextSide() {
-    return this.countFilled % 2 !== 0
-      ? this.side
-      : this.side === "buy"
-      ? "sell"
-      : "buy";
-  }
-
-  get currentStep() {
-    return [...Array(this.countFilled)].reduce(
+  calcStep(index) {
+    return [...Array(index)].reduce(
       (step, _, i) => {
         if (i > 0) {
           do {
@@ -269,6 +255,28 @@ export class MoneyPrinter extends StrategyBase {
         profit: 0,
         profitTotal: 0,
       }
+    );
+  }
+
+  get countFilled(): number {
+    return this.currentPositions.filter(
+      (position: PositionLeveraged) =>
+        position.status === "filled" || position.status === "done"
+    ).length;
+  }
+
+  get nextSide() {
+    return this.countFilled % 2 !== 0
+      ? this.side
+      : this.side === "buy"
+      ? "sell"
+      : "buy";
+  }
+
+  get currentStep() {
+    if (this.countFilled === 0) return this.calcStep(this.countFilled);
+    return (
+      this.calcStep(this.countFilled) + this.calcStep(this.countFilled - 1)
     );
   }
 }
