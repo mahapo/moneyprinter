@@ -2,14 +2,6 @@ import * as colors from "colors/safe";
 import { Position } from "./";
 
 export class PositionLeveraged extends Position {
-  order: any;
-  id: any;
-  onDone: any;
-
-  constructor({ order, id }) {
-    super({ order, id });
-  }
-
   onTick({ price, time }) {
     if (this.status === "open") {
       if (

@@ -7,7 +7,10 @@ export class Position extends EventEmitter {
   exit: any;
   id: any;
   idExchange: any;
+
   needsUpdate: boolean = false;
+  stopLossSet: boolean = false;
+  stopTakeProfitSet: boolean = false;
 
   constructor({ order, id }) {
     super();
