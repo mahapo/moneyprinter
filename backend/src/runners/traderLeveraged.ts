@@ -110,10 +110,19 @@ export class TraderLeveraged extends Runner {
       )) {
         if (position.status === "closed" && position.idExchange) {
           await this.account.cancelOrder(position);
-        } else if (position.status === "open") {
-          await this.account.placeMarketStopOrder(position);
         } else if (position.status === "filled" && !position.stopLossSet) {
           position.stopLossSet = await this.account.setTpSLTs(position);
+        } else if (position.status === "open") {
+          try {
+            await this.account.placeMarketStopOrder(position);
+          } catch {
+            console.log("Try again");
+            this.strategy.currentPositions = [];
+            this.account.lastTime = 0;
+            await this.account.reset(this.options.symbol);
+            await this.account.cancelAllPositions(this.options.symbol);
+            this.onTick();
+          }
         }
       }
     }

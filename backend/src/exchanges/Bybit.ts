@@ -140,7 +140,9 @@ export class Bybit extends ExchangeBase {
       this._orders.push(newOrder);
       return newOrder;
     } catch (error) {
-      Slack.send("placeMarketStopOrder", error.message);
+      if (error.message.includes("expect Rising, but trigger_price"))
+        throw error;
+      else Slack.send("placeMarketStopOrder", error.message);
     }
   }
 
