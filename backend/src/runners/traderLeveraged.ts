@@ -48,17 +48,17 @@ export class TraderLeveraged extends Runner {
   async onSignal({ time }) {
     try {
       const price = await this.account.getCurrentPrice(this.options.symbol);
-      console.log(`=====================`);
-      console.log(`New signal @ ${price}`);
-      this.strategy.openOrders({
+      const params = {
         price,
         time,
         size: 1000,
         leverage: this.options.leverage,
         symbol: this.options.symbol,
         ratio: this.options.ratio,
-      });
+      };
+      this.strategy.openOrders(params);
       await this.updatePositions();
+      console.signal(params);
     } catch (error) {
       console.log("Try again");
       await this.account.reset(this.options.symbol);
