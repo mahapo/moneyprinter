@@ -118,7 +118,7 @@ export class MoneyPrinter extends StrategyBase {
 
       let order =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor;
+      order.size = order.size * this.currentStep.factor + position.order.size;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -133,7 +133,7 @@ export class MoneyPrinter extends StrategyBase {
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor;
+      order.size = order.size * this.currentStep.factor + position.order.size
 
       this.currentPositions.push(
         // @ts-ignore
@@ -173,7 +173,7 @@ export class MoneyPrinter extends StrategyBase {
       this.options.leverage,
       this.countFilled,
       this.options.ratio,
-      this.currentStep,
+      this.currentStep.total,
     ];
     return Object.values(options).join("-");
   }
@@ -276,7 +276,7 @@ export class MoneyPrinter extends StrategyBase {
   get currentStep() {
     if (this.countFilled === 0) return this.calcStep(this.countFilled);
     return (
-      this.calcStep(this.countFilled) + this.calcStep(this.countFilled - 1)
+      this.calcStep(this.countFilled)
     );
   }
 }
