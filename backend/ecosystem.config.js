@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "moneyprinter",
-      cwd: "./backend",
+      // cwd: "./backend",
       script: "yarn",
       args: "start",
       interpreter: "none",
@@ -22,7 +22,7 @@ module.exports = {
       repo: "https://github.com/mahapo/decentralex-bots.git",
       path: "/var/www/decentralex-bots",
       "post-deploy":
-        "cd backend && yarn install && yarn tsc && yarn build && pm2 reload ecosystem.config.js --env production",
+        "yarn install && yarn tsc && yarn build && pm2 reload ecosystem.config.js --env production",
     },
   },
 };
