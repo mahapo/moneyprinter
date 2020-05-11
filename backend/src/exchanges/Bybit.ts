@@ -130,6 +130,7 @@ export class Bybit extends ExchangeBase {
         order.side,
         order.size,
         0,
+        // @ts-ignore
         params
       );
 

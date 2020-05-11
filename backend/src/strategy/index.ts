@@ -1,6 +1,2 @@
-export * as Factory from "./factory";
-export * as StrategyBase from "./StrategyBase";
-
-export * as SimpleStrategy from "./simple";
-export * as SimpleMACD from "./simpleMACD";
+export { StrategyBase } from "./StrategyBase";
 export { MoneyPrinter } from "./MoneyPrinter";

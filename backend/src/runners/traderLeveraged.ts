@@ -1,5 +1,4 @@
 import { Runner } from "./runner";
-import { Position } from "../models";
 import { MoneyPrinter } from "../strategy";
 
 import * as colors from "colors/safe";
@@ -58,6 +57,7 @@ export class TraderLeveraged extends Runner {
       };
       this.strategy.openOrders(params);
       await this.updatePositions();
+      // @ts-ignore
       console.signal(params);
     } catch (error) {
       console.log("Try again");

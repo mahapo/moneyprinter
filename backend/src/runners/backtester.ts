@@ -170,6 +170,7 @@ export class Backtester extends Runner {
   async getTestTickes(filePath) {
     const results = await this.loadCSV(filePath);
 
+    // @ts-ignore
     return results.map((tick) => {
       let time;
       if (tick.unix.includes("+")) {

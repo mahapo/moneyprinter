@@ -1,5 +1,5 @@
 import { StrategyBase } from "./StrategyBase";
-import { PositionLeveraged, Position, OrderLeveraged } from "../models";
+import { PositionLeveraged, OrderLeveraged } from "../models";
 import * as configuration from "../configuration";
 
 export class MoneyPrinter extends StrategyBase {

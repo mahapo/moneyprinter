@@ -1,4 +1,3 @@
-import { Factory } from "../strategy";
 import { EventEmitter } from "events";
 
 export class Runner extends EventEmitter {
