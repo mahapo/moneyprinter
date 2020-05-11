@@ -10,7 +10,9 @@
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
     "server": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
     "test": "ts-node-dev --respawn --transpileOnly ./src/test.ts",
-    "deploy": "pm2 deploy production"
+    "deploy": "pm2 deploy production",
+    "build": "tsc",
+    "start": "node ./dist/index.js"
   },
   "dependencies": {
     "@slack/events-api": "^2.3.2",
