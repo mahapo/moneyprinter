@@ -6,12 +6,23 @@
         <v-card-text>
           <v-row>
             <v-col md="4">
-              <v-text-field label="Leverage" v-model="options.leverage" type="number"></v-text-field>
-              <v-text-field label="Ratio" v-model="options.ratio" type="number"></v-text-field>
-              <strong>{{tick}}</strong>
+              <v-text-field
+                v-model="options.leverage"
+                label="Leverage"
+                type="number"
+              ></v-text-field>
+              <v-text-field
+                v-model="options.ratio"
+                label="Ratio"
+                type="number"
+              ></v-text-field>
+              <strong>{{ tick }}</strong>
             </v-col>
             <v-col md="8">
-              <Trade-Stepper :ratio="botOptions.ratio" :leverage="botOptions.leverage"></Trade-Stepper>
+              <Trade-Stepper
+                :ratio="botOptions.ratio"
+                :leverage="botOptions.leverage"
+              ></Trade-Stepper>
             </v-col>
           </v-row>
         </v-card-text>
@@ -24,8 +35,16 @@
     <v-col md="12">
       <v-card>
         <v-card-text>
-          <v-data-table :headers="headersPosition" :items="positions" :items-per-page="20"></v-data-table>
-          <v-data-table :headers="headers" :items="orders" :items-per-page="20"></v-data-table>
+          <v-data-table
+            :headers="headersPosition"
+            :items="positions"
+            :items-per-page="20"
+          ></v-data-table>
+          <v-data-table
+            :headers="headers"
+            :items="orders"
+            :items-per-page="20"
+          ></v-data-table>
         </v-card-text>
       </v-card>
     </v-col>
@@ -100,7 +119,7 @@ export default {
         ratio: parseInt(this.options.ratio),
         leverage: parseInt(this.options.leverage),
       }
-    }
+    },
   },
   methods: {
     startBot() {

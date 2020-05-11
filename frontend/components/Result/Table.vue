@@ -1,9 +1,19 @@
 <template>
-  <v-data-table :headers="header" :items="result" :items-per-page="20"></v-data-table>
+  <v-data-table
+    :headers="header"
+    :items="result"
+    :items-per-page="20"
+  ></v-data-table>
 </template>
 
 <script>
 export default {
+  props: {
+    result: {
+      type: Array,
+      default: () => [],
+    },
+  },
   data() {
     return {
       header: [
@@ -19,12 +29,6 @@ export default {
       ],
     }
   },
-  props: {
-    result: {
-      type: Array,
-      default: () => []
-    }
-  }
 }
 </script>
 
