@@ -73,7 +73,7 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = this.short.changePriceLiquidation * 0.6;
+    this.priceRange = this.short.changePriceLiquidation * 0.8;
     this.priceRange = Math.round(this.priceRange);
     // this.priceRange = 14;
     this.priceTop = this.options.price + this.priceRange / 2;
@@ -133,7 +133,7 @@ export class MoneyPrinter extends StrategyBase {
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + position.order.size
+      order.size = order.size * this.currentStep.factor + position.order.size;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -275,8 +275,6 @@ export class MoneyPrinter extends StrategyBase {
 
   get currentStep() {
     if (this.countFilled === 0) return this.calcStep(this.countFilled);
-    return (
-      this.calcStep(this.countFilled)
-    );
+    return this.calcStep(this.countFilled);
   }
 }
