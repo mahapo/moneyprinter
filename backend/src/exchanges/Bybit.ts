@@ -2,6 +2,7 @@ import { ExchangeBase } from ".";
 import { bybit as BybitCCXT } from "ccxt";
 import * as WebSocket from "ws";
 import * as crypto from "crypto";
+import { Slack } from "../utils/Slack";
 
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
@@ -38,7 +39,7 @@ export class Bybit extends ExchangeBase {
         });
 
         this.socket.on("open", () => {
-          console.log("Websocket open");
+          Slack.log("Websocket open");
           resolve();
           this.socket.send(
             '{"op": "subscribe", "args": ["position", "order", "execution", "stop_order"]}'
@@ -47,7 +48,7 @@ export class Bybit extends ExchangeBase {
         });
 
         this.socket.on("close", () => {
-          console.log("ws disconnected");
+          Slack.log("ws disconnected");
           reject("ws disconnected");
           throw new Error("socket error");
         });
@@ -111,7 +112,7 @@ export class Bybit extends ExchangeBase {
   async placeMarketStopOrder(position, newPosition = true) {
     try {
       const order = position.order;
-      console.log(`New Order: ${order.toString()}`);
+      Slack.log(`New Order: ${order.toString()}`);
       if (newPosition) this.lastTime = order.time.getTime();
       const params = {
         leverage: order.leverage,
@@ -139,15 +140,14 @@ export class Bybit extends ExchangeBase {
       this._orders.push(newOrder);
       return newOrder;
     } catch (error) {
-      console.debug("placeMarketStopOrder", error.message);
-      console.debug(position);
+      Slack.send("placeMarketStopOrder", error.message);
     }
   }
 
   // async updateOrder(position) {
   //   try {
   //     const order = position.order;
-  //     console.log(
+  //     Slack.log(
   //       `Order update: ${position.idExchange} ${position.symbol} ${order.side} ${order.size} @ ${order.price} - TP: ${order.takeProfit} SL: ${order.stopLoss}`
   //     );
   //     let result = await this.instance.editOrder(
@@ -163,7 +163,7 @@ export class Bybit extends ExchangeBase {
   //     );
   //     return true;
   //   } catch (error) {
-  //     console.debug(error.message);
+  //     Slack.log(error.message);
   //     return false;
   //   }
   // }
@@ -171,7 +171,7 @@ export class Bybit extends ExchangeBase {
   async setTpSLTs(position) {
     try {
       const order = position.order;
-      console.log(`Set TP SL: ${order.toString()}`);
+      Slack.log(`Set TP SL: ${order.toString()}`);
       let request = await this.instance.openapiPostPositionTradingStop({
         // take_profit: position.order.takeProfit,
         // stop_loss: position.order.stopLoss,
@@ -182,7 +182,7 @@ export class Bybit extends ExchangeBase {
 
       return true;
     } catch (error) {
-      console.debug(error.message);
+      Slack.log(error.message);
       return false;
     }
   }
@@ -190,7 +190,7 @@ export class Bybit extends ExchangeBase {
   async cancelOrder(position) {
     try {
       const order = position.order;
-      console.log(`Delete:${order.toString()}`);
+      Slack.log(`Delete:${order.toString()}`);
       let request = await this.instance.openapiPostStopOrderCancel({
         order_link_id: position.id,
         symbol: order.symbol.replace("/", ""),
@@ -198,7 +198,7 @@ export class Bybit extends ExchangeBase {
       position.idExchange = "";
       return true;
     } catch (error) {
-      console.debug(error.message);
+      Slack.log(error.message);
       return false;
     }
   }
@@ -225,7 +225,7 @@ export class Bybit extends ExchangeBase {
 
       return true;
     } catch (error) {
-      console.debug(error.message);
+      Slack.log(error.message);
       return false;
     }
   }
