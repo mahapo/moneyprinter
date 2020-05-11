@@ -42,6 +42,7 @@ export class MoneyPrinter extends StrategyBase {
   priceBottom: number;
 
   currentPositions = [];
+  currentPosition: PositionLeveraged;
 
   constructor(private runner) {
     super();
@@ -72,8 +73,9 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    // this.priceRange = this.short.changePriceLiquidation * 0.9;
-    this.priceRange = 14;
+    this.priceRange = this.short.changePriceLiquidation * 0.6;
+    this.priceRange = Math.round(this.priceRange);
+    // this.priceRange = 14;
     this.priceTop = this.options.price + this.priceRange / 2;
     this.priceBottom = this.options.price - this.priceRange / 2;
 
@@ -116,7 +118,7 @@ export class MoneyPrinter extends StrategyBase {
 
       let order =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + 33;
+      order.size = order.size * this.currentStep.factor + position.order.size;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -125,13 +127,13 @@ export class MoneyPrinter extends StrategyBase {
           id: this.createId(),
         })
       );
-    } else if (this.countFilled > Infinity) {
-      this.onPositionDone(position, true);
-      // TODO: Stop Trading after reach max count
+      // } else if (this.countFilled > Infinity) {
+      //   this.onPositionDone(position, true);
+      //   // TODO: Stop Trading after reach max count
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor;
+      order.size = order.size * this.currentStep.factor + position.order.size;
 
       this.currentPositions.push(
         // @ts-ignore

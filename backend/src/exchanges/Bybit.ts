@@ -9,7 +9,6 @@ export class Bybit extends ExchangeBase {
     super(options);
     this.instance = new BybitCCXT(options);
     this.instance.setSandboxMode(demo);
-    console.log(this.instance.openapiPostStopOrderCancel);
   }
 
   startWebSocket() {
@@ -84,7 +83,10 @@ export class Bybit extends ExchangeBase {
           size: order.qty,
           price: parseFloat(order.trigger_price),
         };
-        if (order.stop_order_type === "TakeProfit")
+        if (
+          order.stop_order_type === "TakeProfit" &&
+          order.stop_order_type === "TrailingStop"
+        )
           this.emit("TakeProfit", formatedOrder);
         else if (order.stop_order_type === "StopLoss")
           this.emit("StopLoss", formatedOrder);
@@ -171,11 +173,8 @@ export class Bybit extends ExchangeBase {
       let request = await this.instance.openapiPostPositionTradingStop({
         // take_profit: position.order.takeProfit,
         // stop_loss: position.order.stopLoss,
-        // new_tp_trigger_by: "LastPrice",
-        // new_sl_trigger_by: "LastPrice",
+        trailing_stop: 2,
         new_trailing_active: position.order.takeProfit,
-        new_trailing_stop: 2,
-
         symbol: order.symbol.replace("/", ""),
       });
 

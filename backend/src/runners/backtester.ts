@@ -8,27 +8,42 @@ import * as csv from "csv-parser";
 import { MoneyPrinter } from "../strategy";
 
 export class Backtester extends Runner {
-  currentCandle: any;
-  startBalance: number = 400;
   balances = [];
   currentBalance: number = 0;
-  ratio: number = 2;
-  leverage: number = 100;
   percent: number = 0;
   time: number = 0;
   ticks: any = [];
 
-  async start({ ratio, leverage, startBalance, file, update = false }) {
+  currentfile: string = "";
+
+  options = {
+    ratio: 2,
+    leverage: 100,
+    startBalance: 100,
+    file: "",
+    update: false,
+  };
+
+  async start(options) {
+    this.options = {
+      ratio: parseFloat(options.ratio),
+      leverage: parseFloat(options.leverage),
+      startBalance: parseFloat(options.startBalance),
+      file: options.file,
+      update: options.update,
+    };
+
     this.strategy = new MoneyPrinter(this);
     this.percent = 0;
-    this.ratio = parseInt(ratio);
-    this.leverage = parseInt(leverage);
-    this.startBalance = parseInt(startBalance);
-    this.currentBalance = this.startBalance;
-    this.balances.push(this.currentBalance);
+    this.currentBalance = this.options.startBalance;
+
+    this.balances = [];
+    // this.balances.push(this.currentBalance);
     let count = 0;
     let percentOld = 0;
-    this.ticks = await this.getTestTickes(file);
+    if (this.currentfile !== options.file)
+      this.ticks = await this.getTestTickes(this.options.file);
+    this.currentfile = options.file;
 
     this.emit("backtestUpdate", {
       percent: this.percent,
@@ -42,7 +57,7 @@ export class Backtester extends Runner {
     for (let tick of this.ticks) {
       this.onTick(tick);
 
-      if (update) {
+      if (this.options.update) {
         percentOld = this.percent;
         this.percent = Math.max(
           Math.round((count++ / this.ticks.length) * 100),
@@ -75,7 +90,7 @@ export class Backtester extends Runner {
     }
   }
 
-  updatePositions({ price }) {
+  updatePositions({ price, time }) {
     this.strategy.currentPositions.forEach((position) => {
       if (position.status === "open") {
         if (
@@ -98,11 +113,17 @@ export class Backtester extends Runner {
           position.status = "done";
           position.exit = price;
 
-          this.balances.push(
-            this.currentBalance - position.order.size / position.order.leverage
-          );
+          this.balances.push({
+            time: position.order.time,
+            balance:
+              this.currentBalance -
+              position.order.size / position.order.leverage,
+          });
           this.currentBalance += position.profit(); // TODO: Fix Profit
-          this.balances.push(this.currentBalance);
+          this.balances.push({
+            time,
+            balance: this.currentBalance,
+          });
 
           this.strategy.onPositionDone(position, position.profit() > 0);
         }
@@ -122,8 +143,9 @@ export class Backtester extends Runner {
       positions: this.strategy.overview,
       countMax: this.strategy.countMax,
       profit: this.strategy.profitTotal,
-      startBalance: this.startBalance,
+      startBalance: this.options.startBalance,
       time: this.time,
+      balances: this.balances,
     });
   }
 
@@ -132,8 +154,8 @@ export class Backtester extends Runner {
       price,
       time,
       size: this.idealSize,
-      ratio: this.ratio,
-      leverage: this.leverage,
+      ratio: this.options.ratio,
+      leverage: this.options.leverage,
     });
   }
 
@@ -142,7 +164,7 @@ export class Backtester extends Runner {
   // }
 
   get idealSize() {
-    return Math.round((this.currentBalance / 200) * 100);
+    return Math.round((this.currentBalance / 500) * 100);
   }
 
   async getTestTickes(filePath) {
