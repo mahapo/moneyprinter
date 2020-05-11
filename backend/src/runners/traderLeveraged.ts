@@ -1,5 +1,6 @@
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
+import { Slack } from "../utils/Slack";
 
 import * as colors from "colors/safe";
 
@@ -27,6 +28,7 @@ export class TraderLeveraged extends Runner {
     };
     this.strategy = new MoneyPrinter(this);
     await this.account.reset(options.symbol);
+    await this.account.cancelAllPositions(options.symbol);
     this.onTick();
     this.account.on("TakeProfit", (position) => this.onTakeProfit(position));
     this.account.on("StopLoss", (position) => this.onStopLoss(position));
@@ -57,10 +59,9 @@ export class TraderLeveraged extends Runner {
       };
       this.strategy.openOrders(params);
       await this.updatePositions();
-      // @ts-ignore
-      console.signal(params);
+      Slack.signal(params);
     } catch (error) {
-      console.log("Try again");
+      console.log("Try again", error.message);
       await this.account.reset(this.options.symbol);
       this.onTick();
     }
@@ -103,13 +104,17 @@ export class TraderLeveraged extends Runner {
   }
 
   async updatePositions() {
-    for (const position of this.strategy.currentPositions) {
-      if (position.status === "closed" && position.idExchange) {
-        await this.account.cancelPosition(position);
-      } else if (position.status === "open") {
-        await this.account.placeMarketStopOrder(position);
-      } else if (position.status === "filled" && !position.stopLossSet) {
-        position.stopLossSet = await this.account.setTpSLTs(position);
+    for (const status of ["closed", "filled", "open"]) {
+      for (const position of this.strategy.currentPositions.filter(
+        (position) => position.status === status
+      )) {
+        if (position.status === "closed" && position.idExchange) {
+          await this.account.cancelOrder(position);
+        } else if (position.status === "open") {
+          await this.account.placeMarketStopOrder(position);
+        } else if (position.status === "filled" && !position.stopLossSet) {
+          position.stopLossSet = await this.account.setTpSLTs(position);
+        }
       }
     }
   }

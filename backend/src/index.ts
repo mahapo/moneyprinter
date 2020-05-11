@@ -1,4 +1,3 @@
-import { Slack } from "./utils/Slack";
 import { TraderLeveraged } from "./runners";
 import { Bybit } from "./exchanges";
 require("dotenv").config();
@@ -6,11 +5,6 @@ require("dotenv").config();
 
 const main = async function () {
   try {
-    // @ts-ignore
-    console = new Slack({
-      token: process.env.SLACK_TOKEN,
-      channelId: process.env.SLACK_CHANNEL,
-    });
     const account = new Bybit(
       {
         apiKey: process.env.BYBITID,

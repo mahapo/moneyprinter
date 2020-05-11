@@ -5,6 +5,7 @@ import * as crypto from "crypto";
 
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
+  instance: BybitCCXT;
   constructor(options, demo) {
     super(options);
     this.instance = new BybitCCXT(options);
@@ -186,7 +187,7 @@ export class Bybit extends ExchangeBase {
     }
   }
 
-  async cancelPosition(position) {
+  async cancelOrder(position) {
     try {
       const order = position.order;
       console.log(`Delete:${order.toString()}`);
@@ -195,6 +196,33 @@ export class Bybit extends ExchangeBase {
         symbol: order.symbol.replace("/", ""),
       });
       position.idExchange = "";
+      return true;
+    } catch (error) {
+      console.debug(error.message);
+      return false;
+    }
+  }
+
+  async cancelAllPositions(symbol) {
+    try {
+      let orders = await this.instance.privateGetPositionList({
+        symbol: symbol.replace("/", ""),
+      });
+      if (orders.result.side === "Sell")
+        await this.instance.createOrder(
+          symbol,
+          "market",
+          "buy",
+          orders.result.size
+        );
+      else if (orders.result.side === "Buy")
+        await this.instance.createOrder(
+          symbol,
+          "market",
+          "sell",
+          orders.result.size
+        );
+
       return true;
     } catch (error) {
       console.debug(error.message);

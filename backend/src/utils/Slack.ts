@@ -1,42 +1,42 @@
 import { WebClient } from "@slack/web-api";
-const { Console } = require("console");
 export class Slack {
-  channelId: string;
-  client: WebClient;
+  static channelId: string;
+  static client: WebClient;
 
-  constructor({ token, channelId }) {
-    // super()
-
-    this.client = new WebClient(token);
-    this.channelId = channelId;
+  static auth() {
+    this.client = new WebClient(process.env.SLACK_TOKEN);
+    this.channelId = String(process.env.SLACK_CHANNEL);
   }
 
-  send(text, options = {}) {
-    return this.client.chat.postMessage({
-      channel: this.channelId,
+  static send(text, options = {}) {
+    this.auth();
+    console.log(text);
+
+    return Slack.client.chat.postMessage({
+      channel: Slack.channelId,
       text,
       ...options,
     });
   }
 
-  log(...text) {
-    return this.send(text.join(" "));
+  static log(...text) {
+    return Slack.send(text.join(" "));
   }
 
-  debug(...text) {
-    return this.send(text.join(" "));
+  static debug(...text) {
+    return Slack.send(text.join(" "));
   }
 
-  error(...text) {
-    return this.send(text.join(" "));
+  static error(...text) {
+    return Slack.send(text.join(" "));
   }
 
-  info(...text) {
-    return this.send(text.join(" "));
+  static info(...text) {
+    return Slack.send(text.join(" "));
   }
 
-  signal(signal) {
-    return this.send("New signal", {
+  static signal(signal) {
+    return Slack.send("New signal", {
       blocks: [
         {
           type: "section",
