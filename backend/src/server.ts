@@ -1,5 +1,5 @@
 import { Backtester, TraderLeveraged } from "./runners";
-import { Bybit } from "./exchanges";
+// import { Bybit } from "./exchanges";
 require("dotenv").config();
 
 const app = require("http").createServer();
@@ -8,18 +8,6 @@ const io = require("socket.io")(app);
 app.listen(5000);
 
 (async () => {
-  const account = new Bybit(
-    {
-      apiKey: process.env.BYBITID,
-      secret: process.env.BYBITSECRET,
-    },
-    true
-  );
-  const trader = new TraderLeveraged(account, {});
-  account.init();
-  account.reset("BTC/USD");
-
-
   const backtester = new Backtester();
   const files = await backtester.getFiles();
 
@@ -40,22 +28,22 @@ app.listen(5000);
 
     // Backtester Events
     socket.emit("files", files);
-    socket.on("backtestStart", backtester.start);
+    socket.on("backtestStart", (options) => backtester.start(options));
 
     // Trader
-    socket.on("botStart", (options) => trader.start(options));
+    // socket.on("botStart", (options) => trader.start(options));
 
-    socket.emit("markets", account.markets);
+    // socket.emit("markets", account.markets);
 
-    socket.emit("orders", account.orders);
-    account.on("orders", () => socket.emit("orders", account.orders));
-    socket.on("orders", () => socket.emit("orders", account.orders));
+    // socket.emit("orders", account.orders);
+    // account.on("orders", () => socket.emit("orders", account.orders));
+    // socket.on("orders", () => socket.emit("orders", account.orders));
 
-    socket.emit("positions", account.positions);
-    account.on("positions", () => socket.emit("positions", account.positions));
-    socket.on("positions", () => socket.emit("positions", account.positions));
+    // socket.emit("positions", account.positions);
+    // account.on("positions", () => socket.emit("positions", account.positions));
+    // socket.on("positions", () => socket.emit("positions", account.positions));
 
-    account.on("tick", (tick) => socket.emit("tick", tick));
+    // account.on("tick", (tick) => socket.emit("tick", tick));
 
     // socket.on("orders", () => {
     //   socket.emit("orders", Array.from(account.orders.values()));
@@ -83,8 +71,7 @@ app.listen(5000);
   });
 })();
 
-
-process.on('uncaughtException', err => {
-  console.log('There was an uncaught error', err)
-  process.exit(1) //mandatory (as per the Node.js docs)
-})
+process.on("uncaughtException", (err) => {
+  console.log("There was an uncaught error", err);
+  process.exit(1); //mandatory (as per the Node.js docs)
+});
