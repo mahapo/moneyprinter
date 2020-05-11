@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "moneyprinter",
-      // cwd: "./backend",
+      cwd: "./backend",
       script: "yarn",
       args: "start",
       interpreter: "none",
