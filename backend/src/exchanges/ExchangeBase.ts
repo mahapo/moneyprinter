@@ -19,18 +19,18 @@ export class ExchangeBase extends EventEmitter {
 
   async init() {
     try {
-      // this.markets = await this.instance.fetchMarkets();
-      // this.balance = await this.instance.fetchBalance();
-      // this._orders = await this.instance.fetchOrders();
-      //   this.positions = await this.instance.fetchTrades("BTC/USD");
-      //   console.log(this.positions);
-      // this.emit("orders");
+      this.markets = await this.instance.fetchMarkets();
     } catch (error) {}
   }
 
   async getCurrentPrice(symbol) {
     const { bids, asks } = await this.instance.fetchOrderBook(symbol);
     return Math.max(bids[0][0]);
+  }
+
+  async getCurrentBalance(coin) {
+    const { result } = await this.instance.privateGetWalletBalance({ coin });
+    return result[coin].available_balance;
   }
 
   get orders(): Order[] {

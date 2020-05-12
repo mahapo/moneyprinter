@@ -11,28 +11,28 @@ export class TraderLeveraged extends Runner {
   options = {
     ratio: 2,
     leverage: 100,
-    update: false,
     symbol: "",
   };
 
   constructor(public account, options) {
     super(options);
-  }
-
-  async start(options) {
     this.options = {
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
-      update: options.update,
       symbol: options.symbol,
     };
+  }
+
+  async start() {
     this.strategy = new MoneyPrinter(this);
-    await this.account.reset(options.symbol);
-    await this.account.cancelAllPositions(options.symbol);
+    await this.account.reset(this.options.symbol);
+    await this.account.cancelAllPositions(this.options.symbol);
     this.onTick();
-    this.account.on("TakeProfit", (position) => this.onTakeProfit(position));
-    this.account.on("StopLoss", (position) => this.onStopLoss(position));
-    this.account.on("Filled", (position) => this.onFilled(position));
+    const symbol = this.options.symbol.replace("/", "");
+    this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));
+    this.account.on(`${symbol}:Liquidation`, this.onStopLoss.bind(this));
+    this.account.on(`${symbol}:StopLoss`, this.onStopLoss.bind(this));
+    this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this));
   }
 
   async onTick() {
@@ -49,21 +49,25 @@ export class TraderLeveraged extends Runner {
   async onSignal({ time }) {
     try {
       const price = await this.account.getCurrentPrice(this.options.symbol);
+      const balance = await this.account.getCurrentBalance(
+        this.options.symbol.split("/")[0]
+      );
+      const size = Math.round((balance * price * this.options.leverage) / 100);
+
       const params = {
         price,
         time,
-        size: 1000,
+        size,
         leverage: this.options.leverage,
         symbol: this.options.symbol,
         ratio: this.options.ratio,
       };
       this.strategy.openOrders(params);
-      await this.updatePositions();
       Slack.signal(params);
+      await this.updatePositions();
     } catch (error) {
-      console.log("Try again", error.message);
-      await this.account.reset(this.options.symbol);
-      this.onTick();
+      console.error("Try again", error);
+      this.reset();
     }
   }
 
@@ -104,7 +108,7 @@ export class TraderLeveraged extends Runner {
   }
 
   async updatePositions() {
-    for (const status of ["closed", "filled", "open"]) {
+    for (const status of ["closed", "open", "filled"]) {
       for (const position of this.strategy.currentPositions.filter(
         (position) => position.status === status
       )) {
@@ -115,17 +119,27 @@ export class TraderLeveraged extends Runner {
         } else if (position.status === "open") {
           try {
             await this.account.placeMarketStopOrder(position);
-          } catch {
-            console.log("Try again");
-            this.strategy.currentPositions = [];
-            this.account.lastTime = 0;
-            await this.account.reset(this.options.symbol);
-            await this.account.cancelAllPositions(this.options.symbol);
-            this.onTick();
+          } catch ({ message }) {
+            if (this.strategy.countFilled === 0) this.reset();
+            else {
+              message = message.replace("bybit ", "");
+              message = JSON.parse(message);
+              console.log("Reset", message.ret_msg);
+              await this.account.placeMarketStopOrder(position);
+            }
           }
         }
       }
     }
+  }
+
+  async reset() {
+    console.log("Reset");
+    this.strategy.currentPositions = [];
+    this.account.lastTime = 0;
+    await this.account.reset(this.options.symbol);
+    await this.account.cancelAllPositions(this.options.symbol);
+    this.onTick();
   }
 
   onFinish() {
