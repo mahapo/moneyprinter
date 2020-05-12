@@ -20,7 +20,7 @@ const main = async function () {
     const traderSettings = [
       {
         symbol: "BTC/USD",
-        leverage: 100,
+        leverage: 50,
         ratio: 2,
       },
       {
