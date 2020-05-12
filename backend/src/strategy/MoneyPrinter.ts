@@ -3,7 +3,6 @@ import { PositionLeveraged, OrderLeveraged } from "../models";
 import * as configuration from "../configuration";
 
 export class MoneyPrinter extends StrategyBase {
-  static steps: any;
   static maxStep: number = 0;
   static idKeys = [
     "id",
@@ -31,7 +30,6 @@ export class MoneyPrinter extends StrategyBase {
     sizeMax: 0,
   };
 
-  count: number = 0;
   side: string;
 
   long: OrderLeveraged;
@@ -68,25 +66,22 @@ export class MoneyPrinter extends StrategyBase {
       ratio,
     };
 
-    this.count = 0;
+    const rounder = (price: number) =>
+      parseFloat(this.runner.account.instance.priceToPrecision(symbol, price));
 
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = this.short.changePriceLiquidation * 0.8;
-    this.priceRange = Math.round(this.priceRange);
-    // this.priceRange = 14;
-    this.priceTop = this.options.price + this.priceRange / 2;
-    this.priceBottom = this.options.price - this.priceRange / 2;
+    this.priceRange = rounder(this.short.changePriceLiquidation * 0.7);
+
+    this.priceTop = rounder(this.options.price + this.priceRange / 2);
+    this.priceBottom = rounder(this.options.price - this.priceRange / 2);
 
     this.long.price = this.short.stopLoss = this.priceTop;
     this.short.price = this.long.stopLoss = this.priceBottom;
 
-    this.long.takeProfit = this.short.price + this.priceRange * ratio;
-    this.short.takeProfit = this.short.price - this.priceRange * ratio;
-
-    // this.long.stopLoss += 1;
-    // this.short.stopLoss -= 1;
+    this.long.takeProfit = rounder(this.short.price + this.priceRange * ratio);
+    this.short.takeProfit = rounder(this.short.price - this.priceRange * ratio);
 
     this.currentPositions.push(
       // @ts-ignore
@@ -113,8 +108,6 @@ export class MoneyPrinter extends StrategyBase {
       let otherSide: PositionLeveraged = this.currentPositions.find(
         (position: PositionLeveraged) => position.order.side !== this.side
       );
-      position.done = "done";
-      if (otherSide) otherSide.status = "closed";
 
       let order =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
@@ -127,13 +120,15 @@ export class MoneyPrinter extends StrategyBase {
           id: this.createId(),
         })
       );
+      position.done = "done";
+      if (otherSide) otherSide.status = "closed";
       // } else if (this.countFilled > Infinity) {
       //   this.onPositionDone(position, true);
       //   // TODO: Stop Trading after reach max count
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + position.order.size;
+      order.size = order.size * this.currentStep.factor;
 
       this.currentPositions.push(
         // @ts-ignore
@@ -156,7 +151,6 @@ export class MoneyPrinter extends StrategyBase {
       });
 
       this.options.time = new Date();
-      this.count = 0;
       this.positions.push(...this.currentPositions);
       this.currentPositions = [];
     }
@@ -166,16 +160,72 @@ export class MoneyPrinter extends StrategyBase {
     let options = [
       configuration.get("KEY"),
       this.options.time.getTime(),
-      Math.round(this.options.price),
-      this.priceTop,
-      this.priceBottom,
+
+      this.options.price,
+      this.priceRange,
+
       this.options.size,
       this.options.leverage,
-      this.countFilled,
       this.options.ratio,
-      this.currentStep.total,
+
+      this.countFilled,
     ];
     return Object.values(options).join("-");
+  }
+
+  searchPosition(order) {
+    return this.currentPositions.find(
+      (position: PositionLeveraged) =>
+        position.id === order.id ||
+        position.idExchange === order.idExchange ||
+        (position.order.side === order.side &&
+          position.order.size === order.size)
+    );
+  }
+
+  calcStep(index) {
+    return [...Array(index)].reduce(
+      (step, _, i) => {
+        if (i > 0) {
+          do {
+            step.factor += 1;
+            step.profit = step.factor * (this.options.ratio - 1);
+            step.profitTotal = step.profit - step.total;
+          } while (step.profitTotal < 0);
+        } else {
+          step.profit = step.factor * (this.options.ratio - 1);
+          step.profitTotal = step.profit - step.total;
+        }
+        step.total += step.factor;
+        return step;
+      },
+      {
+        factor: 1,
+        total: 1,
+        profit: 1,
+        profitTotal: 1,
+      }
+    );
+  }
+
+  get countFilled(): number {
+    return this.currentPositions.filter(
+      (position: PositionLeveraged) =>
+        position.status === "filled" || position.status === "done"
+    ).length;
+  }
+
+  get nextSide() {
+    return this.countFilled % 2 !== 0
+      ? this.side
+      : this.side === "buy"
+      ? "sell"
+      : "buy";
+  }
+
+  get currentStep() {
+    if (this.countFilled === 0) return this.calcStep(this.countFilled);
+    return this.calcStep(this.countFilled);
   }
 
   // optionsFromId(id) {
@@ -222,59 +272,4 @@ export class MoneyPrinter extends StrategyBase {
 
   //   return order;
   // }
-
-  searchPosition(order) {
-    return this.currentPositions.find(
-      (position: PositionLeveraged) =>
-        position.id === order.id ||
-        position.idExchange === order.idExchange ||
-        (position.order.side === order.side &&
-          position.order.size === order.size)
-    );
-  }
-
-  calcStep(index) {
-    return [...Array(index)].reduce(
-      (step, _, i) => {
-        if (i > 0) {
-          do {
-            step.factor += 1;
-            step.profit = step.factor * (this.options.ratio - 1);
-            step.profitTotal = step.profit - step.total;
-          } while (step.profitTotal < 0);
-        } else {
-          step.profit = step.factor * (this.options.ratio - 1);
-          step.profitTotal = step.profit - step.total;
-        }
-        step.total += step.factor;
-        return step;
-      },
-      {
-        factor: 1,
-        total: 0,
-        profit: 0,
-        profitTotal: 0,
-      }
-    );
-  }
-
-  get countFilled(): number {
-    return this.currentPositions.filter(
-      (position: PositionLeveraged) =>
-        position.status === "filled" || position.status === "done"
-    ).length;
-  }
-
-  get nextSide() {
-    return this.countFilled % 2 !== 0
-      ? this.side
-      : this.side === "buy"
-      ? "sell"
-      : "buy";
-  }
-
-  get currentStep() {
-    if (this.countFilled === 0) return this.calcStep(this.countFilled);
-    return this.calcStep(this.countFilled);
-  }
 }
