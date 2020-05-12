@@ -27,7 +27,7 @@ export class OrderLeveraged {
     size,
     symbol,
     leverage = 50,
-    ratio = 1,
+    ratio = 2,
     side = "buy",
   }) {
     this.price = price;
@@ -40,14 +40,14 @@ export class OrderLeveraged {
 
     this.maintenanceMargin = 0.005;
 
-    this.takeProfit = this.takeProfitSuggestion;
-    this.stopLoss = this.stopLossSuggestion;
+    // this.takeProfit = this.takeProfitSuggestion;
+    // this.stopLoss = this.stopLossSuggestion;
   }
 
-  get basePrice(): number {
-    if (this.side === "buy") return this.price - 0.5;
-    return this.price + 0.5;
-  }
+  // get basePrice(): number {
+  //   if (this.side === "buy") return this.price - 0.5;
+  //   return this.price + 0.5;
+  // }
 
   get formatedTime(): number {
     return this.time.toLocaleString();
@@ -81,14 +81,10 @@ export class OrderLeveraged {
   // Liquidation Price
   get liquidationPrice(): number {
     if (this.side === "buy")
-      return round(
-        this.price + (this.price * this.changePriceLiquidationPercent) / 100,
-        0.0001
+      return (
+        this.price + (this.price * this.changePriceLiquidationPercent) / 100
       );
-    return round(
-      this.price + (this.price * this.changePriceLiquidationPercent) / 100,
-      0.0001
-    );
+    return this.price + (this.price * this.changePriceLiquidationPercent) / 100;
   }
 
   // Change in Price to Liquidation ($)
@@ -97,8 +93,8 @@ export class OrderLeveraged {
   }
 
   get takeProfitSuggestion(): number {
-    if (this.side === "buy") return round(this.price + 15, 0.5);
-    return round(this.price - 15, 0.5);
+    if (this.side === "buy") return round(this.price + 15, 0.00001);
+    return round(this.price - 15, 0.00001);
     // if (this.side === "buy")
     //   return round(
     //     this.price + Math.abs(this.changePriceLiquidation) * this.ratio,
