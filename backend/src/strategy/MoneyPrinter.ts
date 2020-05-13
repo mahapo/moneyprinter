@@ -3,7 +3,6 @@ import { PositionLeveraged, OrderLeveraged } from "../models";
 import * as configuration from "../configuration";
 
 export class MoneyPrinter extends StrategyBase {
-  static maxStep: number = 0;
   static idKeys = [
     "id",
     "time",
@@ -42,6 +41,8 @@ export class MoneyPrinter extends StrategyBase {
   currentPositions = [];
   currentPosition: PositionLeveraged;
 
+  maxSteps: number = 20;
+
   constructor(private runner) {
     super();
   }
@@ -51,10 +52,6 @@ export class MoneyPrinter extends StrategyBase {
       this.runner.onSignal(tick);
     }
   }
-
-  // updatePositions({ price, time }) {
-  //   this.activePositions.forEach((p) => p.onTick({ price, time }));
-  // }
 
   openOrders({ price, time, size, leverage, symbol, ratio = 2 }) {
     this.options = {
@@ -67,7 +64,11 @@ export class MoneyPrinter extends StrategyBase {
     };
 
     const rounder = (price: number) =>
-      parseFloat(this.runner.account.instance.priceToPrecision(symbol, price));
+      this.isLive
+        ? parseFloat(
+            this.runner.account.instance.priceToPrecision(symbol, price)
+          )
+        : price;
 
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
@@ -80,8 +81,12 @@ export class MoneyPrinter extends StrategyBase {
     this.long.price = this.short.stopLoss = this.priceTop;
     this.short.price = this.long.stopLoss = this.priceBottom;
 
-    this.long.takeProfit = rounder(this.short.price + this.priceRange * ratio);
-    this.short.takeProfit = rounder(this.short.price - this.priceRange * ratio);
+    this.long.takeProfit = rounder(
+      this.short.price + this.priceRange * this.options.ratio
+    );
+    this.short.takeProfit = rounder(
+      this.short.price - this.priceRange * this.options.ratio
+    );
 
     this.currentPositions.push(
       // @ts-ignore
@@ -105,26 +110,28 @@ export class MoneyPrinter extends StrategyBase {
 
     if (this.countFilled === 1) {
       this.side = position.order.side;
-      let otherSide: PositionLeveraged = this.currentPositions.find(
-        (position: PositionLeveraged) => position.order.side !== this.side
-      );
+      if (this.isLive) {
+        let otherSide: PositionLeveraged = this.currentPositions.find(
+          (position: PositionLeveraged) => position.order.side !== this.side
+        );
 
-      let order =
-        this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor + position.order.size;
+        let order =
+          this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
+        order.size = order.size * this.currentStep.factor + position.order.size;
 
-      this.currentPositions.push(
-        // @ts-ignore
-        new PositionLeveraged({
-          order,
-          id: this.createId(),
-        })
-      );
-      position.done = "done";
-      if (otherSide) otherSide.status = "closed";
-      // } else if (this.countFilled > Infinity) {
-      //   this.onPositionDone(position, true);
-      //   // TODO: Stop Trading after reach max count
+        this.currentPositions.push(
+          // @ts-ignore
+          new PositionLeveraged({
+            order,
+            id: this.createId(),
+          })
+        );
+        position.done = "done";
+        if (otherSide) otherSide.status = "closed";
+      }
+    } else if (this.countFilled >= Infinity) {
+      this.onPositionDone(position, true);
+      // TODO: Stop Trading after reach max count
     } else {
       let order =
         this.nextSide === "buy" ? this.long.clone() : this.short.clone();
@@ -208,6 +215,12 @@ export class MoneyPrinter extends StrategyBase {
     );
   }
 
+  get profitTotal() {
+    return [...this.currentPositions, ...this.positions].reduce((r, p) => {
+      return r + p.profit();
+    }, 0);
+  }
+
   get countFilled(): number {
     return this.currentPositions.filter(
       (position: PositionLeveraged) =>
@@ -226,6 +239,10 @@ export class MoneyPrinter extends StrategyBase {
   get currentStep() {
     if (this.countFilled === 0) return this.calcStep(this.countFilled);
     return this.calcStep(this.countFilled);
+  }
+
+  get isLive() {
+    return !!this.runner.account;
   }
 
   // optionsFromId(id) {

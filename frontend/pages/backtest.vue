@@ -16,7 +16,7 @@
     </v-col>
     <v-col md="12">
       <v-card>
-        <v-tabs>
+        <v-tabs v-model="tab">
           <v-tab> <v-icon left>mdi-account</v-icon>Settings </v-tab>
           <v-tab> <v-icon left>mdi-account</v-icon>Trades </v-tab>
           <v-tab> <v-icon left>mdi-money</v-icon>Results </v-tab>
@@ -24,19 +24,10 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
-                <v-row v-if="false">
-                  <v-col cols="6">
-                    <v-select
-                      v-model="testOptions.strategy"
-                      :items="strategies"
-                      label="Strategy"
-                    ></v-select>
-                  </v-col>
-                </v-row>
-
                 <v-row>
-                  <v-col cols="6">
+                  <v-col cols="12">
                     <v-select
+                      v-show="false"
                       v-model="testOptions.strategy"
                       :items="strategies"
                       label="Strategy"
@@ -46,13 +37,13 @@
                       :items="files"
                       label="Testfile"
                     ></v-select>
-                  </v-col>
-                  <v-col cols="6">
                     <v-text-field
                       v-model="testOptions.startBalance"
                       label="Startbalance"
                       type="number"
                     ></v-text-field>
+                  </v-col>
+                  <v-col v-if="false" cols="12">
                     <v-text-field
                       v-model="testOptions.leverage"
                       label="Leverage"
@@ -63,6 +54,9 @@
                       label="Ratio"
                       type="number"
                     ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <input-table v-model="testMatrix"></input-table>
                   </v-col>
                 </v-row>
 
@@ -96,7 +90,7 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
-                <result-table :result="result"></result-table>
+                <result-table :results="results"></result-table>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -112,7 +106,10 @@ export default {
     files(files) {
       this.files = Array.from(files)
     },
-    backtestFinish({ startBalance, positions, profit, maxCount, balances }) {
+    ticks(ticks) {
+      this.ticks = ticks
+    },
+    backtestFinish({ positions, balances }) {
       balances = balances
         .sort(function (a, b) {
           return new Date(a.time) - new Date(b.time)
@@ -121,22 +118,11 @@ export default {
       const labels = balances.map((balance) => balance.time)
       this.positions = positions
 
-      this.result = [
-        {
-          positionTotal: positions.length,
-          startBalance,
-          // endBalance: balance,
-          profit,
-          maxCount,
-        },
-      ]
-
       this.datacollection = {
         labels,
         datasets: [
           {
             label: 'Balance',
-            backgroundColor: 'green',
             borderColor: 'green',
             data: balances.map((balance) => balance.balance),
             fill: false,
@@ -144,6 +130,9 @@ export default {
           },
         ],
       }
+    },
+    backtestFinishMatrix(update) {
+      this.results.push(update)
     },
     backtestUpdate(update) {
       this.progress = {
@@ -154,20 +143,25 @@ export default {
   },
   data() {
     return {
+      tab: 0,
       strategies: [
         {
           text: 'Moneyprinter',
           value: 'moneyprinter',
         },
       ],
+      ticks: [],
+      testMatrix: [],
       files: [],
-      result: [],
+      results: [],
       testOptions: {
         strategy: 'moneyprinter',
-        file: '',
-        startBalance: 400,
+        file: './data/BTCUSD_Test_Prints.csv',
+        ratio: 2,
         leverage: 100,
-        ratio: 3,
+        startBalance: 100,
+        risk: 100,
+        maxSteps: 10,
       },
       progress: {
         percent: 0,
@@ -220,11 +214,16 @@ export default {
       },
     }
   },
+  mounted() {
+    this.$socket.emit('files')
+  },
   methods: {
     startBacktest() {
-      this.$socket.emit('backtestStart', {
+      this.results = []
+      this.tab = 2
+      this.$socket.emit('backtestMatrix', {
         ...this.testOptions,
-        update: true,
+        matrix: this.testMatrix,
       })
     },
   },

@@ -9,7 +9,7 @@ import { MoneyPrinter } from "../strategy";
 
 export class Backtester extends Runner {
   balances = [];
-  currentBalance: number = 0;
+
   percent: number = 0;
   time: number = 0;
   ticks: any = [];
@@ -20,47 +20,119 @@ export class Backtester extends Runner {
     ratio: 2,
     leverage: 100,
     startBalance: 100,
+    risk: 100,
+    maxSteps: 10,
     file: "",
     update: false,
+    matrix: false,
   };
 
+  async startMatrix(options) {
+    function createTestMatrix(matrix) {
+      function getCombn(arr) {
+        if (arr.length == 1) {
+          return arr[0];
+        } else {
+          var ans = [];
+          var otherCases = getCombn(arr.slice(1));
+          for (var i = 0; i < otherCases.length; i++) {
+            for (var j = 0; j < arr[0].length; j++) {
+              ans.push([arr[0][j], otherCases[i]]);
+            }
+          }
+          return ans;
+        }
+      }
+      const values = getCombn(matrix.map((i) => i.steps)).map((i) =>
+        // @ts-ignore
+        Array.isArray(i) ? i.flat() : i
+      );
+      const keys = matrix.map((i) => i.key);
+      return values.map((value) =>
+        keys.reduce((acc, key, i) => {
+          acc[key] = value[i];
+          return acc;
+        }, {})
+      );
+    }
+    await this.initTicks(options.file);
+
+    const matrix = createTestMatrix(options.matrix);
+    delete options.matrix;
+    delete options.strategy;
+    console.table(options);
+
+    console.log("Starting matrix", matrix.length);
+
+    for (const option of matrix) {
+      try {
+        this.run({
+          ...options,
+          ...option,
+          update: false,
+          matrix: true,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    console.log("Stop matrix test");
+  }
+
+  async initTicks(path) {
+    if (this.currentfile !== path) this.ticks = await this.getTestTickes(path);
+    this.currentfile = path;
+  }
+
   async start(options) {
+    await this.initTicks(options.file);
+    this.run(options);
+  }
+
+  run(options) {
     this.options = {
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
       startBalance: parseFloat(options.startBalance),
+      maxSteps: parseInt(options.maxSteps),
+      risk: parseInt(options.risk),
       file: options.file,
       update: options.update,
+      matrix: options.matrix,
     };
 
     this.strategy = new MoneyPrinter(this);
-    this.percent = 0;
-    this.currentBalance = this.options.startBalance;
+    // this.strategy.maxSteps = this.options.maxSteps;
 
     this.balances = [];
-    // this.balances.push(this.currentBalance);
-    let count = 0;
-    let percentOld = 0;
-    if (this.currentfile !== options.file)
-      this.ticks = await this.getTestTickes(this.options.file);
-    this.currentfile = options.file;
 
-    this.emit("backtestUpdate", {
-      percent: this.percent,
-      text: "Loading trades",
-    });
-    this.emit("backtestUpdate", {
-      text: `Test Strategy on ${this.ticks.length} Trades`,
-    });
+    if (this.options.update) {
+      // this.emit("ticks", this.ticks);
+      this.emit("backtestUpdate", {
+        percent: 0,
+        text: "Loading trades",
+      });
+      this.emit("backtestUpdate", {
+        text: `Test Strategy on ${this.ticks.length} Trades`,
+      });
+    }
 
     const t0 = performance.now();
-    for (let tick of this.ticks) {
+    this.percent = 0;
+    let percentOld = 0;
+    this.ticks.forEach((tick, index) => {
+      if (index === 0)
+        this.balances.push({
+          time: tick.time,
+          balance: this.options.startBalance,
+        });
+
       this.onTick(tick);
 
       if (this.options.update) {
         percentOld = this.percent;
         this.percent = Math.max(
-          Math.round((count++ / this.ticks.length) * 100),
+          Math.round((index / this.ticks.length) * 100),
           this.percent
         );
         if (percentOld !== this.percent) {
@@ -70,18 +142,19 @@ export class Backtester extends Runner {
           });
         }
       }
-    }
-    this.time = performance.now() - t0;
-    console.log("Backtest took " + this.time + " milliseconds.");
-
-    this.emit("backtestUpdate", {
-      percent: 100,
-      text: `Backtest on ${this.ticks.length} trades successful`,
     });
+    this.time = performance.now() - t0;
+
+    if (this.options.update) {
+      this.emit("backtestUpdate", {
+        percent: 100,
+        text: `Backtest on ${this.ticks.length} trades successful`,
+      });
+    }
     this.onFinish();
   }
 
-  async onTick(tick) {
+  onTick(tick) {
     try {
       this.updatePositions(tick);
       this.strategy.run(tick);
@@ -92,60 +165,44 @@ export class Backtester extends Runner {
 
   updatePositions({ price, time }) {
     this.strategy.currentPositions.forEach((position) => {
-      if (position.status === "open") {
-        if (
-          (position.order.side === "buy" && position.order.price <= price) ||
-          (position.order.side === "sell" && position.order.price >= price)
-        ) {
-          position.status = "filled";
-          this.strategy.onPositionFilled(position);
-        }
+      switch (position.status) {
+        case "open":
+          if (
+            (position.order.side === "buy" && position.order.price <= price) ||
+            (position.order.side === "sell" && position.order.price >= price)
+          ) {
+            position.status = "filled";
+
+            const currencyBalance =
+              this.balance - position.order.size / position.order.leverage;
+
+            this.balances.push({
+              time,
+              balance: currencyBalance,
+            });
+            this.strategy.onPositionFilled(position);
+          }
+          break;
+        case "filled":
+          if (
+            (position.order.side === "buy" &&
+              (position.order.takeProfit <= price ||
+                position.order.stopLoss >= price)) ||
+            (position.order.side === "sell" &&
+              (position.order.takeProfit >= price ||
+                position.order.stopLoss <= price))
+          ) {
+            position.status = "done";
+            position.exit = price;
+
+            this.balances.push({
+              time,
+              balance: this.balance, // TODO: Fix Profit
+            });
+            this.strategy.onPositionDone(position, position.profit() > 0);
+          }
+          break;
       }
-      if (position.status === "filled") {
-        if (
-          (position.order.side === "buy" &&
-            (position.order.takeProfit <= price ||
-              position.order.stopLoss >= price)) ||
-          (position.order.side === "sell" &&
-            (position.order.takeProfit >= price ||
-              position.order.stopLoss <= price))
-        ) {
-          position.status = "done";
-          position.exit = price;
-
-          this.balances.push({
-            time: position.order.time,
-            balance:
-              this.currentBalance -
-              position.order.size / position.order.leverage,
-          });
-          this.currentBalance += position.profit(); // TODO: Fix Profit
-          this.balances.push({
-            time,
-            balance: this.currentBalance,
-          });
-
-          this.strategy.onPositionDone(position, position.profit() > 0);
-        }
-      }
-    });
-  }
-
-  onFinish() {
-    this.strategy.positions.push(...this.strategy.currentPositions);
-    // this.strategy.printPositions();
-    this.strategy.printProfit();
-
-    // console.log(this.strategy.stats, this.strategy.positions.length);
-    console.log(Math.min(...this.balances), Math.max(...this.balances));
-
-    this.emit("backtestFinish", {
-      positions: this.strategy.overview,
-      countMax: this.strategy.countMax,
-      profit: this.strategy.profitTotal,
-      startBalance: this.options.startBalance,
-      time: this.time,
-      balances: this.balances,
     });
   }
 
@@ -154,17 +211,45 @@ export class Backtester extends Runner {
       price,
       time,
       size: this.idealSize,
-      ratio: this.options.ratio,
       leverage: this.options.leverage,
+      ratio: this.options.ratio, // TODO: allow ratio < 2
     });
   }
 
-  // get balance() {
-  //   return this.startBalance + this.strategy.profitTotal;
-  // }
+  onFinish() {
+    this.strategy.positions.push(...this.strategy.currentPositions);
+    // this.strategy.printPositions();
+
+    if (this.options.matrix) {
+      const balances = this.balances.map((b) => b.balance);
+      this.emit("backtestFinishMatrix", {
+        profit: this.strategy.profitTotal,
+        time: this.time,
+        positionsCount: this.strategy.positions.length,
+        balanceMin: Math.min(...balances),
+        balanceMax: Math.max(...balances),
+        options: this.options,
+        ...this.strategy.stats,
+      });
+      console.log("Backtest took " + this.time + " milliseconds.");
+    } else {
+      this.emit("backtestFinish", {
+        positions: this.strategy.overview,
+        countMax: this.strategy.countMax,
+        profit: this.strategy.profitTotal,
+        startBalance: this.options.startBalance,
+        time: this.time,
+        balances: this.balances,
+      });
+    }
+  }
+
+  get balance() {
+    return this.options.startBalance + this.strategy.profitTotal;
+  }
 
   get idealSize() {
-    return Math.round((this.currentBalance / 500) * 100);
+    return Math.round((this.balance / 100) * this.options.leverage);
   }
 
   async getTestTickes(filePath) {
@@ -201,7 +286,7 @@ export class Backtester extends Runner {
 
   getFiles() {
     return new Promise((resolve) =>
-      glob("./data/*.csv", {}, (er, files) => {
+      glob("./data/**/*.csv", {}, (er, files) => {
         resolve(
           files.map((file) => ({
             text: path.parse(file).name,
