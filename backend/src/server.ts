@@ -1,42 +1,25 @@
-import { Backtester } from "./runners";
-// import { Bybit } from "./exchanges";
-require("dotenv").config();
+// import * as moduleAlias from "module-alias";
 
-const app = require("http").createServer();
-const io = require("socket.io")(app);
+// moduleAlias.addAliases({
+//   src: __dirname,
+// });
 
-app.listen(5000);
+import * as socketio from "socket.io";
+import * as http from "http";
+import { initSocket } from "./socket";
+import * as killPort from "kill-port";
+import * as cluster from "cluster";
+import { spawn } from "./clusters";
 
-(async () => {
-  const backtester = new Backtester();
-  const files = await backtester.getFiles();
+const port = 5000;
 
-  // ["backtestFinishMatrix"].forEach((event) => {
-  //   backtester.on(event, (...args) => io.sockets.emit(event, ...args));
-  // });
+if (cluster.isMaster && false) {
+  killPort(port).then(spawn);
+} else {
+  const server = http.createServer();
+  const io = initSocket(socketio(server));
 
-  io.on("connection", async (socket) => {
-    console.log("a user connected", socket.id);
-
-    // Backtester Events
-    socket.emit("files", files);
-    socket.on("files", () => socket.emit("files", files));
-    socket.on("backtestStart", (options) => backtester.start(options));
-    socket.on("backtestMatrix", (options) => backtester.startMatrix(options));
-
-    ["backtestUpdate", "backtestFinish", "backtestFinishMatrix"].forEach(
-      (event) => {
-        backtester.on(event, (...args) => socket.emit(event, ...args));
-      }
-    );
-
-    socket.on("disconnect", () => {
-      console.log("user disconnected");
-    });
+  server.listen(port, () => {
+    console.log(`Listening on port ${port}.`);
   });
-})();
-
-process.on("uncaughtException", (err) => {
-  console.log("There was an uncaught error", err);
-  process.exit(1); //mandatory (as per the Node.js docs)
-});
+}

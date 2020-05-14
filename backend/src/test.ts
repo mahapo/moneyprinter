@@ -24,8 +24,8 @@ const main = async function () {
     const backtester = new Backtester();
     backtester.start({
       ratio: 2,
-      leverage: 50,
-      file: "data/XRPUSDT_August2019_Binance_prints.csv",
+      leverage: 100,
+      file: "data/BTCUSD_Test_Prints.csv",
       startBalance: 400,
     });
   } catch (error) {
