@@ -103,6 +103,9 @@
 <script>
 export default {
   sockets: {
+    test(data) {
+      console.log(data)
+    },
     files(files) {
       this.files = Array.from(files)
     },
@@ -215,13 +218,13 @@ export default {
     }
   },
   mounted() {
-    this.$socket.emit('files')
+    this.$socket.client.emit('files')
   },
   methods: {
     startBacktest() {
       this.results = []
       this.tab = 2
-      this.$socket.emit('backtestMatrix', {
+      this.$socket.client.emit('startBacktest', {
         ...this.testOptions,
         matrix: this.testMatrix,
       })

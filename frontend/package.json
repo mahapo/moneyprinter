@@ -28,7 +28,7 @@
     "nuxt": "^2.12.2",
     "socket.io-client": "^2.3.0",
     "vue-chartjs": "^3.5.0",
-    "vue-socket.io": "^3.0.7"
+    "vue-socket.io-extended": "^4.0.2"
   },
   "devDependencies": {
     "@nuxt/typescript-build": "^0.6.5",
