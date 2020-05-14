@@ -14,7 +14,7 @@ type SocketMiddleware = (
 ) => any;
 
 const onConnection: SocketMiddleware = (socket, next) => {
-  const { id } = socket;
+  const id = "me";
 
   console.log(id);
 

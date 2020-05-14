@@ -17,7 +17,7 @@ if (cluster.isMaster && false) {
   killPort(port).then(spawn);
 } else {
   const server = http.createServer();
-  const io = initSocket(socketio(server));
+  const io = initSocket(socketio(server).of("/socket"));
 
   server.listen(port, () => {
     console.log(`Listening on port ${port}.`);
