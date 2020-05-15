@@ -1,5 +1,17 @@
 <template>
-  <v-data-table dense :headers="header" :items="results" :items-per-page="50">
+  <v-data-table
+    dense
+    :headers="header"
+    :items="filteredResults"
+    :items-per-page="50"
+  >
+    <template v-slot:top>
+      <v-switch
+        v-model="good"
+        label="Show only good results"
+        class="pa-3"
+      ></v-switch>
+    </template>
     <template v-slot:item.actions="{ item }">
       <v-icon small @click="startBacktest(item.options)">mdi-run</v-icon>
     </template>
@@ -43,11 +55,19 @@ export default {
         { text: 'Max Step', value: 'countMax' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
+      good: true,
     }
+  },
+  computed: {
+    filteredResults() {
+      return this.results.filter(
+        (result) => !this.good || (result.balanceMin > 0 && result.profit > 0)
+      )
+    },
   },
   methods: {
     startBacktest(options) {
-      this.$socket.emit('backtestStart', {
+      this.$socket.client.emit('startBacktest', {
         ...options,
         matrix: false,
       })

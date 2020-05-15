@@ -224,7 +224,7 @@ export default {
     startBacktest() {
       this.results = []
       this.tab = 2
-      this.$socket.client.emit('startBacktest', {
+      this.$socket.client.emit('startBacktesthMatrix', {
         ...this.testOptions,
         matrix: this.testMatrix,
       })
