@@ -74,7 +74,6 @@ export class MoneyPrinter extends StrategyBase {
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
     this.priceRange = rounder(this.short.changePriceLiquidation * 0.7);
-    this.priceRange = 4;
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -100,8 +99,6 @@ export class MoneyPrinter extends StrategyBase {
 
   onOrderFilled(order: OrderLeveraged) {
     order.filled = order.amount;
-
-    console.log("onOrderFilled", this.countFilled, this.currentOrders.length);
 
     if (this.countFilled === 1) {
       this.side = order.side;

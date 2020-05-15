@@ -11,6 +11,7 @@ export class TraderLeveraged extends Runner {
   options = {
     ratio: 2,
     leverage: 100,
+    risk: 100,
     symbol: "",
   };
 
@@ -19,6 +20,7 @@ export class TraderLeveraged extends Runner {
     this.options = {
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
+      risk: parseInt(options.risk),
       symbol: options.symbol,
     };
   }
@@ -48,25 +50,25 @@ export class TraderLeveraged extends Runner {
 
   async onSignal({ timestamp }) {
     try {
-      const price = await this.account.getCurrentPrice(this.options.symbol);
-      const balance = await this.account.getCurrentBalance(
-        this.options.symbol.split("/")[0]
-      );
-      const amount = Math.round(
-        (balance * price * this.options.leverage) / 100
-      );
-
-      const params = {
-        price,
-        timestamp,
-        amount,
-        leverage: this.options.leverage,
-        symbol: this.options.symbol,
-        ratio: this.options.ratio,
-      };
-      this.strategy.onSignal(params);
-      Slack.signal(params);
-      await this.updateOrders();
+      // const price = await this.account.getCurrentPrice(this.options.symbol);
+      // const balance = await this.account.getCurrentBalance(
+      //   this.options.symbol.split("/")[0]
+      // );
+      // const amount = Math.round(
+      //   (balance * price * this.options.leverage) / this.options.risk
+      // );
+      // console.log(balance);
+      // const params = {
+      //   price,
+      //   timestamp,
+      //   amount,
+      //   leverage: this.options.leverage,
+      //   symbol: this.options.symbol,
+      //   ratio: this.options.ratio,
+      // };
+      // this.strategy.onSignal(params);
+      // Slack.signal(params);
+      // await this.updateOrders();
     } catch (error) {
       console.error("Try again", error);
       this.reset();
