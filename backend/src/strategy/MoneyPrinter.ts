@@ -129,7 +129,7 @@ export class MoneyPrinter extends StrategyBase {
         position.done = "done";
         if (otherSide) otherSide.status = "closed";
       }
-    } else if (this.countFilled >= Infinity) {
+    } else if (this.countFilled > this.maxSteps) {
       this.onPositionDone(position, true);
       // TODO: Stop Trading after reach max count
     } else {

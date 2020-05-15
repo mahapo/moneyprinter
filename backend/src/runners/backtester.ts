@@ -102,7 +102,7 @@ export class Backtester extends Runner {
     };
 
     this.strategy = new MoneyPrinter(this);
-    // this.strategy.maxSteps = this.options.maxSteps;
+    this.strategy.maxSteps = this.options.maxSteps;
 
     this.balances = [];
 
@@ -249,7 +249,7 @@ export class Backtester extends Runner {
   }
 
   get idealSize() {
-    return Math.round((this.balance / 100) * this.options.leverage);
+    return Math.round((this.balance / this.options.risk) * this.options.leverage);
   }
 
   async getTestTickes(filePath) {
