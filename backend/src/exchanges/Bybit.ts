@@ -197,14 +197,14 @@ export class Bybit extends ExchangeBase {
       let orders = await this.instance.privateGetPositionList({
         symbol: symbol.replace("/", ""),
       });
-      if (orders.result.side === "Sell")
+      if (orders.result.side === "Sell" && orders.result.amount)
         await this.instance.createOrder(
           symbol,
           "market",
           "buy",
           orders.result.amount
         );
-      else if (orders.result.side === "Buy")
+      else if (orders.result.side === "Buy" && orders.result.amount)
         await this.instance.createOrder(
           symbol,
           "market",
