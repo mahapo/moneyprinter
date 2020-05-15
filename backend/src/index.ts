@@ -1,27 +1,29 @@
 import { TraderLeveraged } from "./runners";
 import { Bybit } from "./exchanges";
 require("dotenv").config();
-// import Trader from "./trader";
 
 const main = async function () {
   try {
-    const options =
-      process.env.DEMO === "false"
-        ? {
-            apiKey: process.env.BYBITID,
-            secret: process.env.BYBITSECRET,
-          }
-        : {
-            apiKey: process.env.BYBITIDDEMO,
-            secret: process.env.BYBITSECRETDEMO,
-          };
+    const isDemo = process.env.SANDBOX == "true";
+
+    const options = isDemo
+      ? {
+          apiKey: process.env.BYBIT_ID_DEMO,
+          secret: process.env.BYBIT_SECRET_DEMO,
+        }
+      : {
+          apiKey: process.env.BYBIT_ID,
+          secret: process.env.BYBIT_SECRET,
+        };
+    console.log(options, isDemo);
+
     const account = new Bybit(
       {
         ...options,
         enableRateLimit: true,
         rate_limit: 1000,
       },
-      !!process.env.DEMO
+      isDemo
     );
     await account.init();
     await account.startWebSocket();

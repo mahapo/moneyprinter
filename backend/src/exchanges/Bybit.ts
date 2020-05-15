@@ -7,7 +7,8 @@ import { Slack } from "../utils/Slack";
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
   instance: BybitCCXT;
-  constructor(options, demo) {
+
+  constructor(options, private demo) {
     super(options);
     this.instance = new BybitCCXT(options);
     this.instance.setSandboxMode(demo);
@@ -17,7 +18,9 @@ export class Bybit extends ExchangeBase {
     return new Promise((resolve, reject) => {
       try {
         this.socket = new WebSocket(
-          "wss://stream-testnet.bybit.com/realtime?" + this.getSignature()
+          this.demo
+            ? "wss://stream-testnet.bybit.com/realtime?" + this.getSignature()
+            : "wss://stream.bybit.com/realtime?" + this.getSignature()
         );
         const heartbeat = () => {
           if (!this.socket) return;

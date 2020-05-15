@@ -6,9 +6,6 @@ module.exports = {
       script: "yarn",
       args: "start",
       interpreter: "none",
-      env: {
-        NODE_ENV: "production",
-      },
       // watch: true,
       // ignore_watch: ['node_modules']
     },
