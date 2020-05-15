@@ -17,7 +17,7 @@ module.exports = {
   deploy: {
     production: {
       user: "root",
-      host: "104.248.141.30",
+      host: "165.22.109.56",
       ref: "origin/master",
       repo: "https://github.com/mahapo/decentralex-bots.git",
       path: "/var/www/decentralex-bots",
