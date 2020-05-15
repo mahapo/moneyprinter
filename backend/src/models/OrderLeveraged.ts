@@ -11,6 +11,10 @@ export class OrderLeveraged extends Order {
   stopLoss: number;
   maintenanceMargin: number = 0.005;
 
+  stopLossSet: boolean = false;
+
+  _idUser: string;
+
   constructor(options) {
     super(options);
 
@@ -22,7 +26,11 @@ export class OrderLeveraged extends Order {
   }
 
   get idUser() {
-    return `${this.id}-${this.side}`;
+    return `${this._idUser}-${this.side}`;
+  }
+
+  set idUser(id) {
+    this._idUser = id;
   }
 
   get adjustedLong(): number {

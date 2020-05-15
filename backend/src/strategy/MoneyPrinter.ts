@@ -74,6 +74,7 @@ export class MoneyPrinter extends StrategyBase {
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
     this.priceRange = rounder(this.short.changePriceLiquidation * 0.7);
+    this.priceRange = 4;
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -88,8 +89,8 @@ export class MoneyPrinter extends StrategyBase {
       this.short.price - this.priceRange * this.options.ratio
     );
 
-    this.long.id = this.createId();
-    this.short.id = this.createId();
+    this.long.idUser = this.createId();
+    this.short.idUser = this.createId();
 
     this.currentOrders.push(this.long);
     this.currentOrders.push(this.short);
@@ -114,10 +115,9 @@ export class MoneyPrinter extends StrategyBase {
           this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
         newOrder.amount =
           newOrder.amount * this.currentStep.factor + order.amount;
-        newOrder.id = this.createId();
+        newOrder.idUser = this.createId();
 
         this.currentOrders.push(newOrder);
-        order.status = "closed";
       }
 
       // } else if (this.countFilled > this.maxSteps) {
@@ -129,7 +129,7 @@ export class MoneyPrinter extends StrategyBase {
       // console.log(newOrder);
 
       newOrder.amount = order.amount * this.currentStep.factor;
-      newOrder.id = this.createId();
+      newOrder.idUser = this.createId();
 
       this.currentOrders.push(newOrder);
       this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
@@ -145,7 +145,7 @@ export class MoneyPrinter extends StrategyBase {
         if (p.status === "open") p.status = "canceled";
       });
 
-      this.options.timestamp = new Date().getTime();
+      this.options.timestamp = Math.random();
       this.orders.push(...this.currentOrders);
       this.currentOrders = [];
     }

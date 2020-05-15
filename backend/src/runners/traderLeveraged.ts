@@ -26,7 +26,7 @@ export class TraderLeveraged extends Runner {
   async start() {
     this.strategy = new MoneyPrinter(this);
     await this.account.reset(this.options.symbol);
-    await this.account.cancelAllPositions(this.options.symbol);
+    await this.account.cancelAllOrders(this.options.symbol);
     this.onTick();
     const symbol = this.options.symbol.replace("/", "");
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));
@@ -39,43 +39,45 @@ export class TraderLeveraged extends Runner {
     try {
       this.strategy.run({
         price: await this.account.getCurrentPrice(this.options.symbol),
-        time: this.account.instance.now(),
+        timestamp: this.account.instance.now(),
       });
     } catch (error) {
       console.log(error);
     }
   }
 
-  async onSignal({ time }) {
+  async onSignal({ timestamp }) {
     try {
       const price = await this.account.getCurrentPrice(this.options.symbol);
       const balance = await this.account.getCurrentBalance(
         this.options.symbol.split("/")[0]
       );
-      const size = Math.round((balance * price * this.options.leverage) / 100);
+      const amount = Math.round(
+        (balance * price * this.options.leverage) / 100
+      );
 
       const params = {
         price,
-        time,
-        size,
+        timestamp,
+        amount,
         leverage: this.options.leverage,
         symbol: this.options.symbol,
         ratio: this.options.ratio,
       };
-      this.strategy.openOrders(params);
+      this.strategy.onSignal(params);
       Slack.signal(params);
-      await this.updatePositions();
+      await this.updateOrders();
     } catch (error) {
       console.error("Try again", error);
       this.reset();
     }
   }
 
-  async onTakeProfit(order) {
+  async onTakeProfit(orderFromExchange) {
     try {
-      const position = this.strategy.searchPosition(order);
-      console.log(colors.green("onTakeProfit"), position?.order.toString());
-      await this.strategy.onPositionDone(position, true);
+      const order = this.strategy.searchOrder(orderFromExchange);
+      console.log(colors.green("onTakeProfit"), order?.toString());
+      await this.strategy.onOrderDone(order, true);
       this.account.lastTime = 0;
       await this.account.reset(this.options.symbol);
       this.onTick();
@@ -84,49 +86,50 @@ export class TraderLeveraged extends Runner {
     }
   }
 
-  async onStopLoss(order) {
+  async onStopLoss(orderFromExchange) {
     try {
-      const position = this.strategy.searchPosition(order);
-      console.log(colors.red("onStopLoss"), position?.order.toString());
-      await this.strategy.onPositionDone(position, false);
+      const order = this.strategy.searchOrder(orderFromExchange);
+      console.log(colors.red("onStopLoss"), order?.toString());
+      await this.strategy.onOrderDone(order, false);
     } catch (error) {
       console.log(error);
     }
   }
 
-  async onFilled(order) {
+  async onFilled(orderFromExchange) {
     try {
-      const position = this.strategy.searchPosition(order);
-      console.log(colors.blue("onFilled"), position?.order.toString());
-      if (position) {
-        this.strategy.onPositionFilled(position);
-        this.updatePositions();
+      const order = this.strategy.searchOrder(orderFromExchange);
+      console.log(colors.blue("onFilled"), order?.toString());
+      if (order) {
+        order.filled = order.amount;
+        this.strategy.onOrderFilled(order);
+        this.updateOrders();
       }
     } catch (error) {
       console.log(error);
     }
   }
 
-  async updatePositions() {
-    for (const status of ["closed", "open", "filled"]) {
-      for (const position of this.strategy.currentPositions.filter(
-        (position) => position.status === status
-      )) {
-        if (position.status === "closed" && position.idExchange) {
-          await this.account.cancelOrder(position);
-        } else if (position.status === "filled" && !position.stopLossSet) {
-          position.stopLossSet = await this.account.setTpSLTs(position);
-        } else if (position.status === "open") {
-          try {
-            await this.account.placeMarketStopOrder(position);
-          } catch ({ message }) {
-            if (this.strategy.countFilled === 0) this.reset();
-            else {
-              message = message.replace("bybit ", "");
-              message = JSON.parse(message);
-              console.log("Reset", message.ret_msg);
-              await this.account.placeMarketStopOrder(position);
-            }
+  async updateOrders() {
+    for (const order of this.strategy.currentOrders) {
+      if (order.status === "canceled" && order.id) {
+        await this.account.cancelOrder(order);
+      } else if (
+        order.status === "open" &&
+        order.filled > 0 &&
+        !order.stopLossSet
+      ) {
+        order.stopLossSet = await this.account.setTpSLTs(order);
+      } else if (order.status === "open" && order.filled === 0) {
+        try {
+          await this.account.placeMarketStopOrder(order);
+        } catch ({ message }) {
+          if (this.strategy.countFilled === 0) this.reset();
+          else {
+            message = message.replace("bybit ", "");
+            message = JSON.parse(message);
+            console.log("Reset", message.ret_msg);
+            await this.account.placeMarketStopOrder(order);
           }
         }
       }
@@ -135,10 +138,10 @@ export class TraderLeveraged extends Runner {
 
   async reset() {
     console.log("Reset");
-    this.strategy.currentPositions = [];
+    this.strategy.currentOrders = [];
     this.account.lastTime = 0;
     await this.account.reset(this.options.symbol);
-    await this.account.cancelAllPositions(this.options.symbol);
+    await this.account.cancelAllOrders(this.options.symbol);
     this.onTick();
   }
 
