@@ -27,37 +27,8 @@ export class Backtester extends Runner {
     matrix: false,
   };
 
-  async startMatrix(options) {
-    function createTestMatrix(matrix) {
-      function getCombn(arr) {
-        if (arr.length == 1) {
-          return arr[0];
-        } else {
-          var ans = [];
-          var otherCases = getCombn(arr.slice(1));
-          for (var i = 0; i < otherCases.length; i++) {
-            for (var j = 0; j < arr[0].length; j++) {
-              ans.push([arr[0][j], otherCases[i]]);
-            }
-          }
-          return ans;
-        }
-      }
-      const values = getCombn(matrix.map((i) => i.steps)).map((i) =>
-        // @ts-ignore
-        Array.isArray(i) ? i.flat() : i
-      );
-      const keys = matrix.map((i) => i.key);
-      return values.map((value) =>
-        keys.reduce((acc, key, i) => {
-          acc[key] = value[i];
-          return acc;
-        }, {})
-      );
-    }
+  async startMatrix(options, matrix) {
     await this.initTicks(options.file);
-
-    const matrix = createTestMatrix(options.matrix);
     delete options.matrix;
     delete options.strategy;
     console.table(options);
