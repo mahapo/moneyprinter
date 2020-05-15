@@ -2,55 +2,27 @@
 // https://antiliquidation.gitlab.io/assets/scripts/main.js
 
 import * as colors from "colors/safe";
+import { Order } from ".";
 
-function round(value, step) {
-  step || (step = 1.0);
-  var inv = 1.0 / step;
-  return Math.round(value * inv) / inv;
-}
-
-export class OrderLeveraged {
+export class OrderLeveraged extends Order {
   leverage: number;
-  price: number;
-  size: number;
   ratio: number;
   takeProfit: number;
   stopLoss: number;
-  maintenanceMargin: number;
-  time: any;
-  side: string;
-  symbol: string;
+  maintenanceMargin: number = 0.005;
 
-  constructor({
-    price,
-    time,
-    size,
-    symbol,
-    leverage = 50,
-    ratio = 2,
-    side = "buy",
-  }) {
-    this.price = price;
-    this.time = time;
-    this.size = size;
-    this.leverage = leverage;
-    this.ratio = ratio;
-    this.side = side;
-    this.symbol = symbol;
+  constructor(options) {
+    super(options);
 
-    this.maintenanceMargin = 0.005;
+    this.leverage = options.leverage;
+    this.ratio = options.ratio;
 
-    // this.takeProfit = this.takeProfitSuggestion;
-    // this.stopLoss = this.stopLossSuggestion;
+    this.takeProfit = this.takeProfitSuggestion;
+    this.stopLoss = this.stopLossSuggestion;
   }
 
-  // get basePrice(): number {
-  //   if (this.side === "buy") return this.price - 0.5;
-  //   return this.price + 0.5;
-  // }
-
-  get formatedTime(): number {
-    return this.time.toLocaleString();
+  get idUser() {
+    return `${this.id}-${this.side}`;
   }
 
   get adjustedLong(): number {
@@ -93,17 +65,9 @@ export class OrderLeveraged {
   }
 
   get takeProfitSuggestion(): number {
-    if (this.side === "buy") return round(this.price + 15, 0.00001);
-    return round(this.price - 15, 0.00001);
-    // if (this.side === "buy")
-    //   return round(
-    //     this.price + Math.abs(this.changePriceLiquidation) * this.ratio,
-    //     0.5
-    //   );
-    // return round(
-    //   this.price - Math.abs(this.changePriceLiquidation) * this.ratio,
-    //   0.5
-    // );
+    if (this.side === "buy")
+      return this.price + Math.abs(this.changePriceLiquidation) * this.ratio;
+    return this.price - Math.abs(this.changePriceLiquidation) * this.ratio;
   }
 
   get stopLossSuggestion(): number {
@@ -121,32 +85,74 @@ export class OrderLeveraged {
 
   get maxWin(): number {
     if (this.side === "buy")
-      return (this.size / this.leverage) * this.takeProfitPercent;
-    return (this.size / this.leverage) * this.takeProfitPercent * -1;
+      return (this.amount / this.leverage) * this.takeProfitPercent;
+    return (this.amount / this.leverage) * this.takeProfitPercent * -1;
   }
 
   get maxLoss(): number {
     if (this.side === "buy")
-      return (this.size / this.leverage) * this.stopLossPercent;
-    return (this.size / this.leverage) * this.stopLossPercent * -1;
+      return (this.amount / this.leverage) * this.stopLossPercent;
+    return (this.amount / this.leverage) * this.stopLossPercent * -1;
+  }
+
+  get profit(): number {
+    if (this.priceExit) {
+      if (this.side === "buy")
+        return this.priceExit > this.price ? this.maxWin : this.maxLoss;
+      else return this.priceExit < this.price ? this.maxWin : this.maxLoss;
+    }
+    return 0;
+  }
+
+  checkIfTriggersTakeProfit(price: number) {
+    return (
+      (this.side === "buy" && this.takeProfit <= price) ||
+      (this.side === "sell" && this.takeProfit >= price)
+    );
+  }
+
+  checkIfTriggersStopLoss(price: number) {
+    return (
+      (this.side === "buy" && this.stopLoss >= price) ||
+      (this.side === "sell" && this.stopLoss <= price)
+    );
   }
 
   toString(): string {
     const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.symbol} ${this.size} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
   }
 
   clone() {
     const order = new OrderLeveraged({
       price: this.price,
-      time: this.time, //Remove
-      size: this.size,
+      amount: this.amount,
       leverage: this.leverage,
       side: this.side,
       symbol: this.symbol,
+      timestamp: this.timestamp,
+      ratio: this.ratio,
     });
     order.takeProfit = this.takeProfit;
     order.stopLoss = this.stopLoss;
     return order;
+  }
+
+  print() {
+    var profit = "";
+    if (this.profit !== 0) {
+      const prof = `${this.profitString()}`;
+      const colored = this.profit > 0 ? colors.green(prof) : colors.red(prof);
+      profit = `| Profit: ${colored}`;
+    }
+    console.log(
+      `${this.toString()} - ${this.status} (${this.filled} of ${
+        this.amount
+      }) ${profit}`
+    );
+  }
+
+  profitString() {
+    return this.profit.toFixed(2);
   }
 }

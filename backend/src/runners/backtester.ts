@@ -1,4 +1,5 @@
 import { Runner } from "./runner";
+import { OrderLeveraged } from "../models";
 import { performance } from "perf_hooks";
 
 import * as fs from "fs";
@@ -126,77 +127,71 @@ export class Backtester extends Runner {
   }
 
   onTick(tick) {
+    console.log(tick);
+    // this.strategy.printOrders();
+    this.strategy.printActiveOrders();
+
     try {
-      this.updatePositions(tick);
+      this.updateOrders(tick);
       this.strategy.run(tick);
     } catch (error) {
       console.log(error);
     }
   }
 
-  updatePositions({ price, time }) {
-    this.strategy.currentPositions.forEach((position) => {
-      switch (position.status) {
-        case "open":
-          if (
-            (position.order.side === "buy" && position.order.price <= price) ||
-            (position.order.side === "sell" && position.order.price >= price)
-          ) {
-            position.status = "filled";
+  updateOrders({ price, timestamp }) {
+    this.strategy.currentOrders.forEach((order: OrderLeveraged) => {
+      if (order.status === "open" && order.filled === 0) {
+        if (order.checkIfFilled(price)) {
+          order.filled = order.amount;
+          const currencyBalance = this.balance - order.amount / order.leverage;
 
-            const currencyBalance =
-              this.balance - position.order.size / position.order.leverage;
+          this.balances.push({
+            timestamp,
+            balance: currencyBalance,
+          });
+          this.strategy.onOrderFilled(order, price);
+        }
+      } else if (order.status === "open" && order.filled > 0) {
+        if (
+          order.checkIfTriggersTakeProfit(price) ||
+          order.checkIfTriggersStopLoss(price)
+        ) {
+          order.status = "closed";
+          order.priceExit = price;
 
-            this.balances.push({
-              time,
-              balance: currencyBalance,
-            });
-            this.strategy.onPositionFilled(position);
-          }
-          break;
-        case "filled":
-          if (
-            (position.order.side === "buy" &&
-              (position.order.takeProfit <= price ||
-                position.order.stopLoss >= price)) ||
-            (position.order.side === "sell" &&
-              (position.order.takeProfit >= price ||
-                position.order.stopLoss <= price))
-          ) {
-            position.status = "done";
-            position.exit = price;
+          this.balances.push({
+            timestamp,
+            balance: this.balance, // TODO: Fix Profit
+          });
+          console.log(order.profit > 0);
 
-            this.balances.push({
-              time,
-              balance: this.balance, // TODO: Fix Profit
-            });
-            this.strategy.onPositionDone(position, position.profit() > 0);
-          }
-          break;
+          this.strategy.onOrderDone(order, order.profit > 0);
+        }
       }
     });
   }
 
-  onSignal({ price, time }) {
-    this.strategy.openOrders({
+  onSignal({ price, timestamp }) {
+    this.strategy.onSignal({
       price,
-      time,
-      size: this.idealSize,
+      timestamp,
+      amount: this.idealSize,
       leverage: this.options.leverage,
       ratio: this.options.ratio, // TODO: allow ratio < 2
     });
   }
 
   onFinish() {
-    this.strategy.positions.push(...this.strategy.currentPositions);
-    // this.strategy.printPositions();
+    this.strategy.orders.push(...this.strategy.currentOrders);
+    this.strategy.printProfit();
 
     if (this.options.matrix) {
       const balances = this.balances.map((b) => b.balance);
       this.emit("backtestFinishMatrix", {
         profit: this.strategy.profitTotal,
         time: this.time,
-        positionsCount: this.strategy.positions.length,
+        ordersCount: this.strategy.orders.length,
         balanceMin: Math.min(...balances),
         balanceMax: Math.max(...balances),
         options: this.options,
@@ -205,7 +200,7 @@ export class Backtester extends Runner {
       console.log("Backtest took " + this.time + " milliseconds.");
     } else {
       this.emit("backtestFinish", {
-        positions: this.strategy.overview,
+        orders: this.strategy.overview,
         countMax: this.strategy.countMax,
         profit: this.strategy.profitTotal,
         startBalance: this.options.startBalance,
@@ -220,7 +215,9 @@ export class Backtester extends Runner {
   }
 
   get idealSize() {
-    return Math.round((this.balance / this.options.risk) * this.options.leverage);
+    return Math.round(
+      (this.balance / this.options.risk) * this.options.leverage
+    );
   }
 
   async getTestTickes(filePath) {
@@ -228,19 +225,18 @@ export class Backtester extends Runner {
 
     // @ts-ignore
     return results.map((tick) => {
-      let time;
+      let timestamp;
+      timestamp = tick.unix;
       if (tick.unix.includes("+")) {
-        time = new Date(parseFloat(tick.unix));
-        // @ts-ignore
-        time.setHours(...tick.date.split(":").join(".").split("."));
-      } else {
-        time = new Date(parseInt(tick.unix));
+        timestamp = new Date(parseFloat(tick.unix)).setHours(
+          // @ts-ignore
+          ...tick.date.split(":").join(".").split(".").getTime()
+        );
       }
 
       return {
-        time,
+        timestamp: parseInt(timestamp),
         price: parseFloat(tick.price),
-        volume: parseFloat(tick.amount),
       };
     });
   }

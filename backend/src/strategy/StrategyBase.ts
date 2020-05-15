@@ -1,42 +1,39 @@
-const EventEmitter = require("events");
 const colors = require("colors/safe");
 export class StrategyBase {
   static id: string = "aa";
-  positions = [];
+  orders = [];
 
   async run({ sticks = [], time, price }) {}
 
-  get activePositions() {
-    return this.positions.filter(
-      (position) => position.status === "open" || position.status === "filled"
-    );
+  get activeOrders() {
+    return this.orders.filter((order) => order.status === "open");
   }
 
-  get openPositions() {
-    return this.positions.filter((position) => position.status === "open");
+  get openOrders() {
+    return this.orders.filter((order) => order.status === "open");
   }
 
   get overview() {
-    return this.positions.map((position) => ({
-      profit: position.profit(),
-      ...position,
+    return this.orders.map((order) => ({
+      profit: order.profit,
+      ...order,
     }));
   }
 
   get profitTotal() {
-    return this.positions.reduce((r, p) => {
-      return r + p.profit();
+    return this.orders.reduce((r, p) => {
+      return r + p.profit;
     }, 0);
   }
 
-  printPositions() {
-    this.positions.forEach((p) => {
+  printOrders() {
+    this.orders.forEach((p) => {
       p.print();
     });
   }
 
-  printActivePositions() {
-    this.activePositions.forEach((p) => {
+  printActiveOrders() {
+    this.activeOrders.forEach((p) => {
       p.print();
     });
   }

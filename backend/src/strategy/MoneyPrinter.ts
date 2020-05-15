@@ -1,5 +1,5 @@
 import { StrategyBase } from "./StrategyBase";
-import { PositionLeveraged, OrderLeveraged } from "../models";
+import { OrderLeveraged } from "../models";
 import * as configuration from "../configuration";
 
 export class MoneyPrinter extends StrategyBase {
@@ -9,7 +9,7 @@ export class MoneyPrinter extends StrategyBase {
     "price",
     "priceTop",
     "priceBottom",
-    "size",
+    "amount",
     "leverage",
     "count",
     "ratio",
@@ -17,8 +17,8 @@ export class MoneyPrinter extends StrategyBase {
 
   options = {
     price: 0,
-    time: new Date(),
-    size: 0,
+    timestamp: 0,
+    amount: 0,
     leverage: 100,
     symbol: "",
     ratio: 2,
@@ -26,7 +26,7 @@ export class MoneyPrinter extends StrategyBase {
 
   stats = {
     countMax: 0,
-    sizeMax: 0,
+    amountMax: 0,
   };
 
   side: string;
@@ -38,8 +38,8 @@ export class MoneyPrinter extends StrategyBase {
   priceTop: number;
   priceBottom: number;
 
-  currentPositions = [];
-  currentPosition: PositionLeveraged;
+  currentOrders = [];
+  currentOrder: OrderLeveraged;
 
   maxSteps: number = 20;
 
@@ -48,16 +48,16 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   async run(tick) {
-    if (!this.currentPositions.length) {
+    if (!this.currentOrders.length) {
       this.runner.onSignal(tick);
     }
   }
 
-  openOrders({ price, time, size, leverage, symbol, ratio = 2 }) {
+  onSignal({ price, timestamp, amount, leverage, symbol, ratio = 2 }) {
     this.options = {
       price,
-      time: new Date(time),
-      size: Math.round(size),
+      timestamp,
+      amount,
       leverage,
       symbol,
       ratio,
@@ -88,90 +88,78 @@ export class MoneyPrinter extends StrategyBase {
       this.short.price - this.priceRange * this.options.ratio
     );
 
-    this.currentPositions.push(
-      // @ts-ignore
-      new PositionLeveraged({
-        order: this.long,
-        id: this.createId(),
-      })
-    );
-    this.currentPositions.push(
-      // @ts-ignore
-      new PositionLeveraged({
-        order: this.short,
-        id: this.createId(),
-      })
-    );
-    return this.currentPositions;
+    this.long.id = this.createId();
+    this.short.id = this.createId();
+
+    this.currentOrders.push(this.long);
+    this.currentOrders.push(this.short);
+
+    return this.currentOrders;
   }
 
-  onPositionFilled(position) {
-    position.status = "filled";
+  onOrderFilled(order: OrderLeveraged) {
+    order.filled = order.amount;
+
+    console.log("onOrderFilled", this.countFilled, this.currentOrders.length);
 
     if (this.countFilled === 1) {
-      this.side = position.order.side;
+      this.side = order.side;
+
       if (this.isLive) {
-        let otherSide: PositionLeveraged = this.currentPositions.find(
-          (position: PositionLeveraged) => position.order.side !== this.side
+        let otherSide: OrderLeveraged = this.currentOrders.find(
+          (order: OrderLeveraged) => order.side !== this.side
         );
-
-        let order =
+        if (otherSide) otherSide.status = "canceled";
+        let newOrder =
           this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-        order.size = order.size * this.currentStep.factor + position.order.size;
+        newOrder.amount =
+          newOrder.amount * this.currentStep.factor + order.amount;
+        newOrder.id = this.createId();
 
-        this.currentPositions.push(
-          // @ts-ignore
-          new PositionLeveraged({
-            order,
-            id: this.createId(),
-          })
-        );
-        position.done = "done";
-        if (otherSide) otherSide.status = "closed";
+        this.currentOrders.push(newOrder);
+        order.status = "closed";
       }
-    } else if (this.countFilled > this.maxSteps) {
-      this.onPositionDone(position, true);
-      // TODO: Stop Trading after reach max count
-    } else {
-      let order =
-        this.nextSide === "buy" ? this.long.clone() : this.short.clone();
-      order.size = order.size * this.currentStep.factor;
 
-      this.currentPositions.push(
-        // @ts-ignore
-        new PositionLeveraged({
-          order,
-          id: this.createId(),
-        })
-      );
-      this.stats.sizeMax = Math.max(this.stats.sizeMax, order.size);
+      // } else if (this.countFilled > this.maxSteps) {
+      //   this.onOrderDone(order, true);
+      //   // TODO: Stop Trading after reach max count
+    } else {
+      let newOrder =
+        this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
+      // console.log(newOrder);
+
+      newOrder.amount = order.amount * this.currentStep.factor;
+      newOrder.id = this.createId();
+
+      this.currentOrders.push(newOrder);
+      this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
     }
 
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
   }
 
-  onPositionDone(position, win) {
-    position.status = "done";
+  onOrderDone(order: OrderLeveraged, win) {
+    order.status = "closed";
     if (win) {
-      this.currentPositions.forEach((p: PositionLeveraged) => {
-        if (p.status === "open") p.status = "closed";
+      this.currentOrders.forEach((p: OrderLeveraged) => {
+        if (p.status === "open") p.status = "canceled";
       });
 
-      this.options.time = new Date();
-      this.positions.push(...this.currentPositions);
-      this.currentPositions = [];
+      this.options.timestamp = new Date().getTime();
+      this.orders.push(...this.currentOrders);
+      this.currentOrders = [];
     }
   }
 
   createId(): string {
     let options = [
       configuration.get("KEY"),
-      this.options.time.getTime(),
+      this.options.timestamp,
 
       this.options.price,
       this.priceRange,
 
-      this.options.size,
+      this.options.amount,
       this.options.leverage,
       this.options.ratio,
 
@@ -180,13 +168,13 @@ export class MoneyPrinter extends StrategyBase {
     return Object.values(options).join("-");
   }
 
-  searchPosition(order) {
-    return this.currentPositions.find(
-      (position: PositionLeveraged) =>
-        position.id === order.id ||
-        position.idExchange === order.idExchange ||
-        (position.order.side === order.side &&
-          position.order.size === order.size)
+  searchOrder(orderFromExchange) {
+    return this.currentOrders.find(
+      (order: OrderLeveraged) =>
+        order.id === orderFromExchange.id ||
+        order.idUser === orderFromExchange.idUser ||
+        (order.side === orderFromExchange.side &&
+          order.amount === orderFromExchange.amount)
     );
   }
 
@@ -215,16 +203,21 @@ export class MoneyPrinter extends StrategyBase {
     );
   }
 
+  printActiveOrders() {
+    this.currentOrders.forEach((p) => {
+      p.print();
+    });
+  }
+
   get profitTotal() {
-    return [...this.currentPositions, ...this.positions].reduce((r, p) => {
-      return r + p.profit();
+    return [...this.currentOrders, ...this.orders].reduce((r, p) => {
+      return r + p.profit;
     }, 0);
   }
 
   get countFilled(): number {
-    return this.currentPositions.filter(
-      (position: PositionLeveraged) =>
-        position.status === "filled" || position.status === "done"
+    return this.currentOrders.filter(
+      (order: OrderLeveraged) => order.filled > 0
     ).length;
   }
 
@@ -260,7 +253,7 @@ export class MoneyPrinter extends StrategyBase {
   //   this.options = {
   //     price: parseFloat(options.price),
   //     time: new Date(options.time),
-  //     size: parseFloat(options.size),
+  //     amount: parseFloat(options.amount),
   //     leverage: parseFloat(options.leverage),
   //     ratio: parseFloat(options.ratio),
   //   };
@@ -280,8 +273,8 @@ export class MoneyPrinter extends StrategyBase {
   //     order.stopLoss = this.priceTop;
   //   }
 
-  //   this.positions.push(
-  //     new PositionLeveraged({
+  //   this.orders.push(
+  //     new OrderLeveraged({
   //       order,
   //       id: options.oldId.replace("-" + options.side, ""),
   //     })

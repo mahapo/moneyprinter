@@ -25,8 +25,10 @@ const main = async function () {
     backtester.start({
       ratio: 2,
       leverage: 100,
-      file: "data/BTCUSD_Test_Prints.csv",
+      risk: 100,
+      file: "data/BTCUSD_Test.csv",
       startBalance: 400,
+      symbol: "BTC/USD",
     });
   } catch (error) {
     console.debug("Main failed", error.message);
