@@ -179,8 +179,6 @@ export class Backtester extends Runner {
 
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders);
-    this.strategy.printProfit();
-
     if (this.options.matrix) {
       const balances = this.balances.map((b) => b.balance);
       this.emit("backtestFinishMatrix", {

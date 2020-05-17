@@ -10,7 +10,9 @@ interface Handlers {
 
 const handlers: Handlers = {
   startBacktest: async ({ id, args }) => {
-    const process = await startProcess("../workers/backtester.ts", args);
+    const process = await startProcess("../workers/backtester.ts", {
+      options: args,
+    });
     process.on("message", (result) => {
       socketsState.emit({
         event: "backtestFinish",
@@ -20,14 +22,28 @@ const handlers: Handlers = {
     });
   },
   startBacktesthMatrix: async ({ id, args }) => {
-    // TODO: Multi Core Process
-    const numWorkes = os.cpus().length;
-    let matrix = Matrix.createTestMatrix(args.matrix, numWorkes);
+    if (args.multi) {
+      const numWorkes = os.cpus().length;
+      let matrix = Matrix.createTestMatrix(args.matrix, numWorkes);
 
-    for (let i = 0; i < numWorkes; i += 1) {
+      for (let i = 0; i < numWorkes; i += 1) {
+        const process = await startProcess("../workers/backtester.ts", {
+          options: args,
+          matrix: matrix[i],
+        });
+        process.on("message", (result) => {
+          socketsState.emit({
+            event: "backtestFinishMatrix",
+            id,
+            args: result,
+          });
+        });
+      }
+    } else {
+      let matrix = Matrix.createTestMatrix(args.matrix);
       const process = await startProcess("../workers/backtester.ts", {
         options: args,
-        matrix: matrix[i],
+        matrix: matrix,
       });
       process.on("message", (result) => {
         socketsState.emit({
