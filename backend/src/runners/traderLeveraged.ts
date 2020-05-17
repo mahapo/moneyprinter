@@ -1,7 +1,7 @@
 import { OrderLeveraged } from "../models";
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
-import { Slack } from "../utils/Slack";
+import { Slack as Logger } from "../utils/Slack";
 
 import * as colors from "colors/safe";
 
@@ -28,19 +28,28 @@ export class TraderLeveraged extends Runner {
 
   async start() {
     this.strategy = new MoneyPrinter(this);
-    const reset = false;
+    const reset = true;
     if (reset) {
-      await this.account.reset(this.options.symbol);
-      await this.account.cancelAllOrders(this.options.symbol);
+      await this.account.resetAll(this.options.symbol);
+      await this.account.setLeverage(this.options.symbol, 33);
       this.onTick();
       const symbol = this.options.symbol.replace("/", "");
       this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));
-      this.account.on(`${symbol}:Liquidation`, this.onStopLoss.bind(this));
+      this.account.on(`${symbol}:Liquidation`, this.onLiquidation.bind(this));
       this.account.on(`${symbol}:StopLoss`, this.onStopLoss.bind(this));
       this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this));
+      this.healthchecker();
     } else {
+      // TODO: import after bot restarts
       await this.importFromOpenOrders();
     }
+  }
+
+  healthchecker() {
+    setTimeout(() => {
+      // TODO: check if all Orders are valid
+      this.onTick();
+    }, 10000);
   }
 
   async importFromOpenOrders() {
@@ -48,8 +57,6 @@ export class TraderLeveraged extends Runner {
       this.options.symbol
     );
     const id = orders?.reverse()[0]?.clientOrderId;
-    console.log(id);
-
     if (id) {
       console.table(orders[0].clientOrderId);
       orders = orders
@@ -57,8 +64,9 @@ export class TraderLeveraged extends Runner {
         .filter((order) => !!order.clientOrderId)
         .filter((order) => order.clientOrderId.includes(id.split("-")[1]));
       console.table(orders);
+      // TODO: orders to this.strategy.currentOrders
     } else {
-      console.log("tag", "");
+      // TODO: reset all not bot orders
     }
   }
 
@@ -69,7 +77,7 @@ export class TraderLeveraged extends Runner {
         timestamp: this.account.instance.now(),
       });
     } catch (error) {
-      console.log(error);
+      Logger.error(error);
     }
   }
 
@@ -92,7 +100,7 @@ export class TraderLeveraged extends Runner {
         ratio: this.options.ratio,
       };
       this.strategy.onSignal(params);
-      Slack.signal(params);
+      Logger.signal(params);
       await this.updateOrders();
     } catch (error) {
       console.error("Try again", error);
@@ -103,7 +111,7 @@ export class TraderLeveraged extends Runner {
   async onTakeProfit(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      console.log(colors.green("onTakeProfit"), order?.toString());
+      Logger.log(colors.green("onTakeProfit"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, true);
         this.account.lastTime = 0;
@@ -113,28 +121,42 @@ export class TraderLeveraged extends Runner {
         console.table(orderFromExchange);
       }
     } catch (error) {
-      console.log(error);
+      Logger.error(error);
     }
   }
 
-  async onStopLoss(orderFromExchange) {
+  async onLiquidation(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      console.log(colors.red("onStopLoss"), order?.toString());
+      console.log(colors.red("onLiquidation"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, false);
       } else {
         console.table(orderFromExchange);
       }
     } catch (error) {
-      console.log(error);
+      Logger.error(error);
+    }
+  }
+
+  async onStopLoss(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange);
+      Logger.log(colors.red("onStopLoss"), order?.toString());
+      if (order) {
+        await this.strategy.onOrderDone(order, false);
+      } else {
+        console.table(orderFromExchange);
+      }
+    } catch (error) {
+      Logger.error(error);
     }
   }
 
   async onFilled(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      console.log(colors.blue("onFilled"), order?.toString());
+      Logger.log(colors.blue("onFilled"), order?.toString());
       if (order) {
         this.strategy.onOrderFilled(order);
         this.updateOrders();
@@ -142,7 +164,7 @@ export class TraderLeveraged extends Runner {
         console.table(orderFromExchange);
       }
     } catch (error) {
-      console.log(error);
+      Logger.error(error);
     }
   }
 
