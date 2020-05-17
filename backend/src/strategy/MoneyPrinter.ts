@@ -78,8 +78,7 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    if (configuration.get("SANDBOX")) this.priceRange = 10;
-    else this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
+    this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);

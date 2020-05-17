@@ -195,11 +195,9 @@ export class TraderLeveraged extends Runner {
   }
 
   async reset() {
-    console.log("Reset");
     this.strategy.currentOrders = [];
     this.account.lastTime = 0;
-    await this.account.reset(this.options.symbol);
-    await this.account.cancelAllOrders(this.options.symbol);
+    await this.account.resetAll(this.options.symbol);
     this.onTick();
   }
 
