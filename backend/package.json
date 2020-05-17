@@ -9,9 +9,11 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
     "server": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
-    "test": "ts-node-dev --respawn --transpileOnly ./src/test.ts",
+    "backtest": "ts-node-dev --respawn --transpileOnly ./src/backtest.ts",
     "build": "tsc",
     "start": "node ./dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --coverage --watchAll",
     "ping": "curl -o /dev/null -s -w 'Total: %{time_total}s\n' https://api.bybit.com/v2/public/orderBook/L2?symbol=BTCUSD"
   },
   "dependencies": {
@@ -29,7 +31,6 @@
     "socket.io": "^2.3.0",
     "socketio-wildcard": "^2.0.0",
     "tulind": "^0.8.18",
-    "typescript": "^3.8.3",
     "ws": "^7.2.5"
   },
   "devDependencies": {
@@ -38,11 +39,20 @@
     "@babel/preset-env": "^7.9.6",
     "@types/consola": "^2.2.5",
     "@types/graphql": "^14.5.0",
+    "@types/jest": "^25.2.2",
     "@types/koa": "^2.11.3",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.4.0",
+    "@types/node": "^14.0.1",
+    "@types/source-map-support": "^0.5.1",
     "csv-writer": "^1.6.0",
-    "ts-node-dev": "^1.0.0-pre.44"
+    "jest": "^26.0.1",
+    "onchange": "^7.0.2",
+    "serve": "^11.3.0",
+    "source-map-support": "^0.5.19",
+    "ts-jest": "^26.0.0",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.9.2"
   },
   "babel": {
     "presets": [
