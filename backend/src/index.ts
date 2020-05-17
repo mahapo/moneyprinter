@@ -33,13 +33,13 @@ const main = async function () {
         symbol: "BTC/USD",
         leverage: 100,
         ratio: 4,
-        risk: 50,
+        risk: 40,
       },
       {
         symbol: "ETH/USD",
         leverage: 50,
         ratio: 4,
-        risk: 50,
+        risk: 80,
       },
       // {
       //   symbol: "EOS/USD",
