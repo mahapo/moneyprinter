@@ -63,3 +63,7 @@ typings/
 
 lib/
 data/
+
+src/**/*.js
+src/**/*.map
+coverage
