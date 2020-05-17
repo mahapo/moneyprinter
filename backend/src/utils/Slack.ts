@@ -8,31 +8,52 @@ export class Slack {
     this.channelId = String(process.env.SLACK_CHANNEL);
   }
 
-  static send(text, options = {}) {
+  static send(text, options = {}, cannelId = null) {
     this.auth();
     console.log(text);
 
     return Slack.client.chat.postMessage({
-      channel: Slack.channelId,
+      channel: cannelId || Slack.channelId,
       text,
       ...options,
     });
   }
 
   static log(...text) {
-    return Slack.send(text.join(" "));
+    return Slack.send(text.join(" "), {}, "C013RQZS693");
   }
 
   static debug(...text) {
     return Slack.send(text.join(" "));
   }
 
-  static error(...text) {
-    return Slack.send(text.join(" "));
+  static error(error) {
+    console.table(error.message);
+    return Slack.send(
+      error.name,
+      {
+        blocks: [
+          {
+            type: "section",
+            fields: Object.keys(error.message).map((key) => ({
+              type: "mrkdwn",
+              text: `*${key.toUpperCase()}:*\n${error.message[key]}`,
+            })),
+          },
+        ],
+      },
+      "C014H1Q14RE"
+    );
   }
 
   static info(...text) {
     return Slack.send(text.join(" "));
+  }
+
+  static table(...text) {
+    console.table(text);
+
+    // return Slack.send(text.join(" "));
   }
 
   static signal(signal) {

@@ -2,7 +2,7 @@ import { ExchangeBase } from ".";
 import { bybit as BybitCCXT } from "ccxt";
 import * as WebSocket from "ws";
 import * as crypto from "crypto";
-import { Slack } from "../utils/Slack";
+import { Slack as Logger } from "../utils/Slack";
 
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
@@ -31,14 +31,12 @@ export class Bybit extends ExchangeBase {
 
         this.socket.on("message", (message) => {
           const { topic, data } = JSON.parse(message);
-          if (topic) {
-            if (topic === "order") this.onOrder(data);
-            else if (topic === "stop_order") this.onOrderStop(data);
-          }
+          if (topic === "order") this.onOrder(data);
+          else if (topic === "stop_order") this.onOrderStop(data);
         });
 
         this.socket.on("open", () => {
-          Slack.log("Websocket open");
+          // Logger.log("Websocket open");
           resolve();
           this.socket.send(
             '{"op": "subscribe", "args": ["order", "stop_order"]}'
@@ -47,11 +45,11 @@ export class Bybit extends ExchangeBase {
         });
 
         this.socket.on("close", () => {
-          Slack.log("ws disconnected");
-          reject("ws disconnected");
-          throw new Error("socket error");
+          this.emit("disconnected");
         });
       } catch (error) {
+        this.emit("disconnected");
+        Logger.error(error);
         reject(error);
       }
     });
@@ -91,23 +89,40 @@ export class Bybit extends ExchangeBase {
           this.emit(`${order.symbol}:StopLoss`, this.formatedOrder(order));
         else if (order.order_type === "Market")
           this.emit(`${order.symbol}:Filled`, this.formatedOrder(order));
-        else Slack.log(order);
+        else Logger.log(order);
       }
     }
   }
 
-  async reset(symbol) {
-    await this.instance.loadMarkets();
-    const market = this.instance.market(symbol);
-    const request = {
-      symbol: market["id"],
-    };
-    await this.instance.privatePostStopOrderCancelAll(request);
+  async resetAll(symbol) {
+    try {
+      await this.instance.loadMarkets();
+      const market = this.instance.market(symbol);
+      const request = {
+        symbol: market["id"],
+      };
+      await this.instance.privatePostStopOrderCancelAll(request);
+      await this.cancelAllPositions(symbol);
+    } catch (error) {
+      Logger.error(this.formatError(error));
+    }
+  }
+
+  async setLeverage(symbol, leverage) {
+    try {
+      await this.instance.userPostLeverageSave({
+        symbol: symbol.replace("/", ""),
+        leverage,
+      });
+    } catch (error) {
+      if (!error.message.includes("old leverage"))
+        Logger.error(this.formatError(error));
+    }
   }
 
   async placeMarketStopOrder(order, newPosition = true) {
     try {
-      Slack.log(`New Order: ${order.toString()}`, order.idUser);
+      Logger.log(`New Order: ${order.toString()}`, order.idUser);
       if (newPosition) this.lastTime = order.timestamp;
       const { precision } = this.markets.find(
         (market) => market.base === order.symbol.split("/")[0]
@@ -146,14 +161,15 @@ export class Bybit extends ExchangeBase {
       this._orders.push(newOrder);
       return newOrder;
     } catch (error) {
+      // TODO: Handel error: expect Rising, but trigger_price[9745.5] <= current[9745.5]??LastPrice
+      // TODO: Handel error: expect Falling, but trigger_price[9745.5] >= current[9745.5]??LastPrice
+      Logger.error(this.formatError(error));
       if (
         error.message.includes("expect Rising") ||
         error.message.includes("expect Falling")
       )
         throw error;
       else {
-        Slack.send(JSON.stringify(error.message));
-        // console.table(order);
         throw error;
       }
     }
@@ -164,7 +180,7 @@ export class Bybit extends ExchangeBase {
       const { precision } = this.markets.find(
         (market) => market.base === order.symbol.split("/")[0]
       );
-      Slack.log(`Set trailing: ${order.toString()}`);
+      Logger.log(`Set trailing: ${order.toString()}`);
       let request = await this.instance.openapiPostPositionTradingStop({
         // take_profit: order.order.takeProfit,
         // stop_loss: order.order.stopLoss,
@@ -175,14 +191,15 @@ export class Bybit extends ExchangeBase {
 
       return true;
     } catch (error) {
-      Slack.log(error.message);
+      // TODO: Handel error: TrailingProfit:201.95 set for Sell position should be less than entry_price:194.05??LastPrice and last_price:195.65
+      Logger.error(this.formatError(error));
       return false;
     }
   }
 
   async cancelOrder(order) {
     try {
-      Slack.log(`Delete: ${order.toString()}`);
+      Logger.log(`Delete: ${order.toString()}`);
       let request = await this.instance.openapiPostStopOrderCancel({
         order_link_id: order.idUser,
         symbol: order.symbol.replace("/", ""),
@@ -190,12 +207,12 @@ export class Bybit extends ExchangeBase {
       order.id = "";
       return true;
     } catch (error) {
-      Slack.log(error.message);
+      Logger.error(this.formatError(error));
       return false;
     }
   }
 
-  async cancelAllOrders(symbol) {
+  async cancelAllPositions(symbol) {
     try {
       let orders = await this.instance.privateGetPositionList({
         symbol: symbol.replace("/", ""),
@@ -217,9 +234,17 @@ export class Bybit extends ExchangeBase {
 
       return true;
     } catch (error) {
-      Slack.log(error.message);
+      Logger.error(this.formatError(error));
       return false;
     }
+  }
+
+  async getCurrentOrdersAndPosition(symbol) {
+    let positions = await this.instance.privateGetPositionList({
+      symbol: symbol.replace("/", ""),
+    });
+    let orders = await this.instance.fetchOrders(symbol);
+    return [orders, positions];
   }
 
   formatedOrder(orderFromExchange) {
@@ -231,7 +256,14 @@ export class Bybit extends ExchangeBase {
       price: parseFloat(orderFromExchange.trigger_price),
       takeProfit: parseFloat(orderFromExchange.take_profit),
       stopLoss: parseFloat(orderFromExchange.stop_loss),
-      info: orderFromExchange,
+      raw: JSON.stringify(orderFromExchange),
+    };
+  }
+
+  formatError(error) {
+    return {
+      ...error,
+      message: JSON.parse(error.message.replace("bybit ", "")),
     };
   }
 }
