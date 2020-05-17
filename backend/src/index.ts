@@ -31,28 +31,28 @@ const main = async function () {
     const traderSettings = [
       {
         symbol: "BTC/USD",
-        leverage: 100,
+        leverage: 70,
         ratio: 4,
-        risk: 40,
+        risk: 60,
       },
-      // {
-      //   symbol: "ETH/USD",
-      //   leverage: 50,
-      //   ratio: 4,
-      //   risk: 80,
-      // },
-      // {
-      //   symbol: "EOS/USD",
-      //   leverage: 50,
-      //   ratio: 4,
-      //   risk: 80,
-      // },
-      // {
-      //   symbol: "XRP/USD",
-      //   leverage: 50,
-      //   ratio: 4,
-      //   risk: 80,
-      // },
+      {
+        symbol: "ETH/USD",
+        leverage: 50,
+        ratio: 4,
+        risk: 80,
+      },
+      {
+        symbol: "EOS/USD",
+        leverage: 50,
+        ratio: 4,
+        risk: 80,
+      },
+      {
+        symbol: "XRP/USD",
+        leverage: 50,
+        ratio: 4,
+        risk: 80,
+      },
     ];
 
     for (let setting of traderSettings) {
