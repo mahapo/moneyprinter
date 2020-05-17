@@ -47,7 +47,7 @@ export default {
         },
         {
           text: 'Total Trades',
-          value: 'positionsCount',
+          value: 'ordersCount',
         },
         { text: 'Profit', value: 'profit' },
         { text: 'Balance Min', value: 'balanceMin' },

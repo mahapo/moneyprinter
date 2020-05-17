@@ -19,13 +19,13 @@ export default {
       header: [
         {
           text: 'Time',
-          value: 'order.time',
+          value: 'timestamp',
         },
         // { text: 'Symbol', value: 'symbol' },
-        { text: 'Side', value: 'order.side' },
-        { text: 'Pos', value: 'order.size' },
-        { text: 'Entry Price', value: 'order.price' },
-        { text: 'Exit Price', value: 'exit' },
+        { text: 'Side', value: 'side' },
+        { text: 'Amount', value: 'amount' },
+        { text: 'Entry Price', value: 'price' },
+        { text: 'Exit Price', value: 'priceExit' },
         { text: 'Profit', value: 'profit' },
         // { text: 'Liquidation Price', value: 'liquidationPriceEp' },
         // { text: 'markPriceEp', value: 'markPriceEp' },

@@ -83,7 +83,7 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
-                <trade-table :trades="positions"></trade-table>
+                <trade-table :trades="orders"></trade-table>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -112,14 +112,16 @@ export default {
     ticks(ticks) {
       this.ticks = ticks
     },
-    backtestFinish({ positions, balances }) {
+    backtestFinish({ orders, balances }) {
       balances = balances
         .sort(function (a, b) {
-          return new Date(a.time) - new Date(b.time)
+          return new Date(a.timestamp) - new Date(b.timestamp)
         })
-        .filter((balance) => !!balance.time)
-      const labels = balances.map((balance) => balance.time)
-      this.positions = positions
+        .filter((balance) => !!balance.timestamp)
+      const labels = balances.map((balance) => balance.timestamp)
+      console.log(orders)
+
+      this.orders = orders
 
       this.datacollection = {
         labels,
@@ -159,18 +161,18 @@ export default {
       results: [],
       testOptions: {
         strategy: 'moneyprinter',
-        file: './data/BTCUSD_Test_Prints.csv',
+        file: './data/BTCUSD_Test.csv',
         ratio: 2,
         leverage: 100,
         startBalance: 100,
         risk: 100,
-        maxSteps: 10,
+        maxSteps: 5,
       },
       progress: {
         percent: 0,
         text: 'Start test',
       },
-      positions: [],
+      orders: [],
       datacollection: {
         labels: [],
         datasets: [],
