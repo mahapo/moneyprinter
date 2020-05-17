@@ -139,12 +139,9 @@ export class Backtester extends Runner {
     this.strategy.currentOrders.forEach((order: OrderLeveraged) => {
       if (order.status === "open" && order.filled === 0) {
         if (order.checkIfFilled(price)) {
-          order.filled = order.amount;
-          const currencyBalance = this.balance - order.amount / order.leverage;
-
           this.balances.push({
             timestamp,
-            balance: currencyBalance,
+            balance: this.balance - order.amount / order.leverage,
           });
           this.strategy.onOrderFilled(order, price);
         }

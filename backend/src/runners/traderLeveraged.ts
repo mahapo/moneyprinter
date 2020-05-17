@@ -79,10 +79,14 @@ export class TraderLeveraged extends Runner {
     try {
       const order = this.strategy.searchOrder(orderFromExchange);
       console.log(colors.green("onTakeProfit"), order?.toString());
-      await this.strategy.onOrderDone(order, true);
-      this.account.lastTime = 0;
-      await this.account.reset(this.options.symbol);
-      this.onTick();
+      if (order) {
+        await this.strategy.onOrderDone(order, true);
+        this.account.lastTime = 0;
+        await this.account.reset(this.options.symbol);
+        this.onTick();
+      } else {
+        console.table(orderFromExchange);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -92,7 +96,11 @@ export class TraderLeveraged extends Runner {
     try {
       const order = this.strategy.searchOrder(orderFromExchange);
       console.log(colors.red("onStopLoss"), order?.toString());
-      await this.strategy.onOrderDone(order, false);
+      if (order) {
+        await this.strategy.onOrderDone(order, false);
+      } else {
+        console.table(orderFromExchange);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -103,9 +111,10 @@ export class TraderLeveraged extends Runner {
       const order = this.strategy.searchOrder(orderFromExchange);
       console.log(colors.blue("onFilled"), order?.toString());
       if (order) {
-        order.filled = order.amount;
         this.strategy.onOrderFilled(order);
         this.updateOrders();
+      } else {
+        console.table(orderFromExchange);
       }
     } catch (error) {
       console.log(error);

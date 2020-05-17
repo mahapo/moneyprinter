@@ -43,8 +43,11 @@ export class MoneyPrinter extends StrategyBase {
 
   maxSteps: number = 20;
 
+  isLive: boolean;
+
   constructor(private runner) {
     super();
+    this.isLive = !!this.runner?.account;
   }
 
   async run(tick) {
@@ -54,6 +57,8 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   onSignal({ price, timestamp, amount, leverage, symbol, ratio = 2 }) {
+    if (this.currentOrders.length) return;
+
     this.options = {
       price,
       timestamp,
@@ -110,24 +115,25 @@ export class MoneyPrinter extends StrategyBase {
         if (otherSide) otherSide.status = "canceled";
         let newOrder =
           this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-        newOrder.amount = newOrder.amount * this.currentStep.total;
+        newOrder.amount =
+          this.options.amount * this.currentStep.factor + order.amount;
         newOrder.idUser = this.createId();
 
         this.currentOrders.push(newOrder);
       }
-
-      // } else if (this.countFilled > this.maxSteps) {
-      //   this.onOrderDone(order, true);
-      //   // TODO: Stop Trading after reach max count
+    } else if (this.countFilled > this.maxSteps) {
+      this.onOrderDone(order, true);
+      // TODO: Stop Trading after reach max count
     } else {
       let newOrder =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
 
       if (this.isLive) {
-        newOrder.amount = newOrder.amount * this.currentStep.total;
+        newOrder.amount =
+          this.options.amount * this.currentStep.factor + order.amount;
         newOrder.idUser = this.createId();
       } else {
-        newOrder.amount = newOrder.amount * this.currentStep.factor;
+        newOrder.amount = this.options.amount * this.currentStep.factor;
       }
 
       this.currentOrders.push(newOrder);
@@ -204,11 +210,9 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get currentStep() {
-    return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
-  }
-
-  get isLive() {
-    return !!this.runner.account;
+    if (this.isLive)
+      return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
+    return ZoneRecovery.calcStep(this.countFilled - 1, this.options.ratio);
   }
 
   // optionsFromId(id) {
