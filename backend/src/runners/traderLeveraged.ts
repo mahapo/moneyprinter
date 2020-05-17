@@ -31,7 +31,10 @@ export class TraderLeveraged extends Runner {
     const reset = true;
     if (reset) {
       await this.account.resetAll(this.options.symbol);
-      await this.account.setLeverage(this.options.symbol, 33);
+      await this.account.setLeverage(
+        this.options.symbol,
+        this.options.leverage
+      );
       this.onTick();
       const symbol = this.options.symbol.replace("/", "");
       this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));

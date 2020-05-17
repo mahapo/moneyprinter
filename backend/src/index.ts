@@ -15,7 +15,6 @@ const main = async function () {
           apiKey: process.env.BYBIT_ID,
           secret: process.env.BYBIT_SECRET,
         };
-    console.log(options, isDemo);
 
     const account = new Bybit(
       {
