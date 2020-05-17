@@ -41,18 +41,18 @@ const main = async function () {
         ratio: 4,
         risk: 80,
       },
-      // {
-      //   symbol: "EOS/USD",
-      //   leverage: 50,
-      //   ratio: 4,
-      //   risk: 50,
-      // },
-      // {
-      //   symbol: "XRP/USD",
-      //   leverage: 50,
-      //   ratio: 4,
-      //   risk: 50,
-      // },
+      {
+        symbol: "EOS/USD",
+        leverage: 50,
+        ratio: 4,
+        risk: 80,
+      },
+      {
+        symbol: "XRP/USD",
+        leverage: 50,
+        ratio: 4,
+        risk: 80,
+      },
     ];
 
     for (let setting of traderSettings) {
