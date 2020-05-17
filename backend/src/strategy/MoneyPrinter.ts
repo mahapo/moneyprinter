@@ -1,5 +1,5 @@
 import { StrategyBase } from "./StrategyBase";
-import { OrderLeveraged } from "../models";
+import { OrderLeveraged, ZoneRecovery } from "../models";
 import * as configuration from "../configuration";
 
 export class MoneyPrinter extends StrategyBase {
@@ -73,7 +73,7 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = rounder(this.short.changePriceLiquidation * 0.7);
+    this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -110,8 +110,7 @@ export class MoneyPrinter extends StrategyBase {
         if (otherSide) otherSide.status = "canceled";
         let newOrder =
           this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-        newOrder.amount =
-          newOrder.amount * this.currentStep.factor + order.amount;
+        newOrder.amount = newOrder.amount * this.currentStep.total;
         newOrder.idUser = this.createId();
 
         this.currentOrders.push(newOrder);
@@ -123,10 +122,13 @@ export class MoneyPrinter extends StrategyBase {
     } else {
       let newOrder =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
-      // console.log(newOrder);
 
-      newOrder.amount = order.amount * this.currentStep.factor;
-      newOrder.idUser = this.createId();
+      if (this.isLive) {
+        newOrder.amount = newOrder.amount * this.currentStep.total;
+        newOrder.idUser = this.createId();
+      } else {
+        newOrder.amount = newOrder.amount * this.currentStep.factor;
+      }
 
       this.currentOrders.push(newOrder);
       this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
@@ -175,31 +177,6 @@ export class MoneyPrinter extends StrategyBase {
     );
   }
 
-  calcStep(index) {
-    return [...Array(index)].reduce(
-      (step, _, i) => {
-        if (i > 0) {
-          do {
-            step.factor += 1;
-            step.profit = step.factor * (this.options.ratio - 1);
-            step.profitTotal = step.profit - step.total;
-          } while (step.profitTotal < 0);
-        } else {
-          step.profit = step.factor * (this.options.ratio - 1);
-          step.profitTotal = step.profit - step.total;
-        }
-        step.total += step.factor;
-        return step;
-      },
-      {
-        factor: 1,
-        total: 1,
-        profit: 1,
-        profitTotal: 1,
-      }
-    );
-  }
-
   printActiveOrders() {
     this.currentOrders.forEach((p) => {
       p.print();
@@ -227,8 +204,7 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get currentStep() {
-    if (this.countFilled === 0) return this.calcStep(this.countFilled);
-    return this.calcStep(this.countFilled);
+    return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
   }
 
   get isLive() {

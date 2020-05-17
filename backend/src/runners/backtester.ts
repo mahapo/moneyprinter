@@ -95,7 +95,7 @@ export class Backtester extends Runner {
     this.ticks.forEach((tick, index) => {
       if (index === 0)
         this.balances.push({
-          time: tick.time,
+          timestamp: tick.timestamp,
           balance: this.options.startBalance,
         });
 
@@ -127,10 +127,6 @@ export class Backtester extends Runner {
   }
 
   onTick(tick) {
-    console.log(tick);
-    // this.strategy.printOrders();
-    this.strategy.printActiveOrders();
-
     try {
       this.updateOrders(tick);
       this.strategy.run(tick);
@@ -164,7 +160,6 @@ export class Backtester extends Runner {
             timestamp,
             balance: this.balance, // TODO: Fix Profit
           });
-          console.log(order.profit > 0);
 
           this.strategy.onOrderDone(order, order.profit > 0);
         }
@@ -207,6 +202,7 @@ export class Backtester extends Runner {
         time: this.time,
         balances: this.balances,
       });
+      console.log("Backtest took " + this.time + " milliseconds.");
     }
   }
 
@@ -228,10 +224,12 @@ export class Backtester extends Runner {
       let timestamp;
       timestamp = tick.unix;
       if (tick.unix.includes("+")) {
-        timestamp = new Date(parseFloat(tick.unix)).setHours(
+        timestamp = new Date(parseFloat(tick.unix));
+        timestamp = timestamp.setHours(
           // @ts-ignore
-          ...tick.date.split(":").join(".").split(".").getTime()
+          ...tick.date.split(":").join(".").split(".")
         );
+        timestamp = timestamp.getTime();
       }
 
       return {
@@ -253,7 +251,7 @@ export class Backtester extends Runner {
 
   getFiles() {
     return new Promise((resolve) =>
-      glob("./data/**/*.csv", {}, (er, files) => {
+      glob("./data/*.csv", {}, (er, files) => {
         resolve(
           files.map((file) => ({
             text: path.parse(file).name,
