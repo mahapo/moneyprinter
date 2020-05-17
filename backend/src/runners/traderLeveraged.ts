@@ -1,3 +1,4 @@
+import { OrderLeveraged } from "../models";
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
 import { Slack } from "../utils/Slack";
@@ -27,14 +28,38 @@ export class TraderLeveraged extends Runner {
 
   async start() {
     this.strategy = new MoneyPrinter(this);
-    await this.account.reset(this.options.symbol);
-    await this.account.cancelAllOrders(this.options.symbol);
-    this.onTick();
-    const symbol = this.options.symbol.replace("/", "");
-    this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));
-    this.account.on(`${symbol}:Liquidation`, this.onStopLoss.bind(this));
-    this.account.on(`${symbol}:StopLoss`, this.onStopLoss.bind(this));
-    this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this));
+    const reset = false;
+    if (reset) {
+      await this.account.reset(this.options.symbol);
+      await this.account.cancelAllOrders(this.options.symbol);
+      this.onTick();
+      const symbol = this.options.symbol.replace("/", "");
+      this.account.on(`${symbol}:Filled`, this.onFilled.bind(this));
+      this.account.on(`${symbol}:Liquidation`, this.onStopLoss.bind(this));
+      this.account.on(`${symbol}:StopLoss`, this.onStopLoss.bind(this));
+      this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this));
+    } else {
+      await this.importFromOpenOrders();
+    }
+  }
+
+  async importFromOpenOrders() {
+    let [orders, position] = await this.account.getCurrentOrdersAndPosition(
+      this.options.symbol
+    );
+    const id = orders?.reverse()[0]?.clientOrderId;
+    console.log(id);
+
+    if (id) {
+      console.table(orders[0].clientOrderId);
+      orders = orders
+        .filter((order) => order.status === "filled" || order.status === "open")
+        .filter((order) => !!order.clientOrderId)
+        .filter((order) => order.clientOrderId.includes(id.split("-")[1]));
+      console.table(orders);
+    } else {
+      console.log("tag", "");
+    }
   }
 
   async onTick() {
@@ -77,7 +102,7 @@ export class TraderLeveraged extends Runner {
 
   async onTakeProfit(orderFromExchange) {
     try {
-      const order = this.strategy.searchOrder(orderFromExchange);
+      const order = this.searchOrder(orderFromExchange);
       console.log(colors.green("onTakeProfit"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, true);
@@ -94,7 +119,7 @@ export class TraderLeveraged extends Runner {
 
   async onStopLoss(orderFromExchange) {
     try {
-      const order = this.strategy.searchOrder(orderFromExchange);
+      const order = this.searchOrder(orderFromExchange);
       console.log(colors.red("onStopLoss"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, false);
@@ -108,7 +133,7 @@ export class TraderLeveraged extends Runner {
 
   async onFilled(orderFromExchange) {
     try {
-      const order = this.strategy.searchOrder(orderFromExchange);
+      const order = this.searchOrder(orderFromExchange);
       console.log(colors.blue("onFilled"), order?.toString());
       if (order) {
         this.strategy.onOrderFilled(order);
@@ -160,4 +185,65 @@ export class TraderLeveraged extends Runner {
     this.strategy.printProfit();
     process.exit(0);
   }
+
+  searchOrder(orderFromExchange) {
+    return this.strategy.currentOrders.find((order: OrderLeveraged) => {
+      if (
+        order.id === orderFromExchange.id ||
+        order.idUser === orderFromExchange.idUser
+      )
+        return true;
+      if (
+        order.side === orderFromExchange.side &&
+        order.amount === orderFromExchange.amount
+      )
+        return true;
+      return false;
+    });
+  }
+
+  // optionsFromId(id) {
+  //   let options = id.split("-");
+  //   return MoneyPrinter.idKeys.reduce(
+  //     (accumulator, key, index) => {
+  //       accumulator[key] = options[index];
+  //       return accumulator;
+  //     },
+  //     { oldId: id, side: options[options.length - 1] }
+  //   );
+  // }
+
+  // createFromOptions(options) {
+  //   this.options = {
+  //     price: parseFloat(options.price),
+  //     time: new Date(options.time),
+  //     amount: parseFloat(options.amount),
+  //     leverage: parseFloat(options.leverage),
+  //     ratio: parseFloat(options.ratio),
+  //   };
+  //   const order = new OrderLeveraged({
+  //     ...this.options,
+  //     side: options.side,
+  //   });
+  //   this.priceTop = parseFloat(options.priceTop);
+  //   this.priceBottom = parseFloat(options.priceBottom);
+  //   this.count = parseInt(options.count);
+
+  //   if (options.side === "buy") {
+  //     order.stopLoss = this.priceBottom;
+  //     order.takeProfit = this.priceTop;
+  //   } else {
+  //     order.takeProfit = this.priceBottom;
+  //     order.stopLoss = this.priceTop;
+  //   }
+
+  //   this.orders.push(
+  //     new OrderLeveraged({
+  //       order,
+  //       id: options.oldId.replace("-" + options.side, ""),
+  //     })
+  //   );
+
+  //   return order;
+  // }
 }

@@ -56,7 +56,7 @@ export class MoneyPrinter extends StrategyBase {
     }
   }
 
-  onSignal({ price, timestamp, amount, leverage, symbol, ratio = 2 }) {
+  onSignal({ price, timestamp, amount, leverage, symbol, ratio }) {
     if (this.currentOrders.length) return;
 
     this.options = {
@@ -78,7 +78,8 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
+    if (configuration.get("SANDBOX")) this.priceRange = 10;
+    else this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -173,16 +174,6 @@ export class MoneyPrinter extends StrategyBase {
     return Object.values(options).join("-");
   }
 
-  searchOrder(orderFromExchange) {
-    return this.currentOrders.find(
-      (order: OrderLeveraged) =>
-        order.id === orderFromExchange.id ||
-        order.idUser === orderFromExchange.idUser ||
-        (order.side === orderFromExchange.side &&
-          order.amount === orderFromExchange.amount)
-    );
-  }
-
   printActiveOrders() {
     this.currentOrders.forEach((p) => {
       p.print();
@@ -214,49 +205,4 @@ export class MoneyPrinter extends StrategyBase {
       return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
     return ZoneRecovery.calcStep(this.countFilled - 1, this.options.ratio);
   }
-
-  // optionsFromId(id) {
-  //   let options = id.split("-");
-  //   return MoneyPrinter.idKeys.reduce(
-  //     (accumulator, key, index) => {
-  //       accumulator[key] = options[index];
-  //       return accumulator;
-  //     },
-  //     { oldId: id, side: options[options.length - 1] }
-  //   );
-  // }
-
-  // createFromOptions(options) {
-  //   this.options = {
-  //     price: parseFloat(options.price),
-  //     time: new Date(options.time),
-  //     amount: parseFloat(options.amount),
-  //     leverage: parseFloat(options.leverage),
-  //     ratio: parseFloat(options.ratio),
-  //   };
-  //   const order = new OrderLeveraged({
-  //     ...this.options,
-  //     side: options.side,
-  //   });
-  //   this.priceTop = parseFloat(options.priceTop);
-  //   this.priceBottom = parseFloat(options.priceBottom);
-  //   this.count = parseInt(options.count);
-
-  //   if (options.side === "buy") {
-  //     order.stopLoss = this.priceBottom;
-  //     order.takeProfit = this.priceTop;
-  //   } else {
-  //     order.takeProfit = this.priceBottom;
-  //     order.stopLoss = this.priceTop;
-  //   }
-
-  //   this.orders.push(
-  //     new OrderLeveraged({
-  //       order,
-  //       id: options.oldId.replace("-" + options.side, ""),
-  //     })
-  //   );
-
-  //   return order;
-  // }
 }
