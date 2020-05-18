@@ -1,9 +1,9 @@
 export class ZoneRecovery {
-  static calcSteps(count: number, ratio) {
+  static calcSteps(count: number, ratio: number) {
     return [...Array(count)].map((_, i) => ZoneRecovery.calcStep(i, ratio));
   }
 
-  static calcStep(index, ratio) {
+  static calcStep(index: number, ratio: number) {
     return [...Array(index)].reduce(
       (step, _, i) => {
         if (i != 0) {

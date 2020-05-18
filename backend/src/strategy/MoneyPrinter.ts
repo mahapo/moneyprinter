@@ -123,7 +123,6 @@ export class MoneyPrinter extends StrategyBase {
       }
     } else if (this.countFilled > this.maxSteps) {
       this.onOrderDone(order, true);
-      // TODO: Stop Trading after reach max count
     } else {
       let newOrder =
         this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
@@ -200,8 +199,6 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get currentStep() {
-    if (this.isLive)
-      return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
-    return ZoneRecovery.calcStep(this.countFilled - 1, this.options.ratio);
+    return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
   }
 }
