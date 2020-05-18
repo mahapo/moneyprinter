@@ -1,4 +1,4 @@
-import { OrderLeveraged } from "../models";
+import { OrderLeveraged, ZoneRecovery } from "../models";
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
 import { Slack as Logger } from "../utils/Slack";
@@ -14,6 +14,7 @@ export class TraderLeveraged extends Runner {
     leverage: 100,
     risk: 100,
     symbol: "",
+    maxSteps: 5,
   };
 
   constructor(public account, options) {
@@ -22,6 +23,7 @@ export class TraderLeveraged extends Runner {
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
       risk: parseInt(options.risk),
+      maxSteps: parseInt(options.maxSteps),
       symbol: options.symbol,
     };
   }
@@ -29,6 +31,14 @@ export class TraderLeveraged extends Runner {
   async start() {
     this.strategy = new MoneyPrinter(this);
     const reset = true;
+
+    const lastStep = ZoneRecovery.calcStep(
+      this.options.maxSteps + 1,
+      this.options.ratio
+    );
+
+    this.options.risk = Math.round(lastStep.total);
+
     if (reset) {
       await this.account.resetAll(this.options.symbol);
       await this.account.setLeverage(
@@ -117,9 +127,7 @@ export class TraderLeveraged extends Runner {
       Logger.log(colors.green("onTakeProfit"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, true);
-        this.account.lastTime = 0;
-        await this.account.reset(this.options.symbol);
-        this.onTick();
+        await this.account.reset();
       } else {
         console.table(orderFromExchange);
       }

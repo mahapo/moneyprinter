@@ -1,5 +1,5 @@
 import { Runner } from "./runner";
-import { OrderLeveraged } from "../models";
+import { OrderLeveraged, ZoneRecovery } from "../models";
 import { performance } from "perf_hooks";
 
 import * as fs from "fs";
@@ -32,8 +32,6 @@ export class Backtester extends Runner {
     await this.initTicks(options.file);
     delete options.matrix;
     delete options.strategy;
-    console.table(options);
-
     console.log("Starting matrix", matrix.length);
 
     for (const option of matrix) {
@@ -72,6 +70,15 @@ export class Backtester extends Runner {
       update: options.update,
       matrix: options.matrix,
     };
+
+    //TODO: Ratio: 6 Leverage: 50 MaxSteps: 4: Check why timeout
+
+    const lastStep = ZoneRecovery.calcStep(
+      this.options.maxSteps + 1,
+      this.options.ratio
+    );
+
+    this.options.risk = Math.round(lastStep.total);
 
     this.strategy = new MoneyPrinter(this);
     this.strategy.maxSteps = this.options.maxSteps;
@@ -187,7 +194,10 @@ export class Backtester extends Runner {
         options: this.options,
         ...this.strategy.stats,
       });
-      console.log("Backtest took " + this.time + " milliseconds.");
+      console.log(
+        "Finish " + this.time + " ms.",
+        `Ratio: ${this.options.ratio} Leverage: ${this.options.leverage} MaxSteps: ${this.options.maxSteps} Risk: ${this.options.risk}`
+      );
     } else {
       this.emit("backtestFinish", {
         orders: this.strategy.overview,

@@ -33,24 +33,28 @@ const main = async function () {
         leverage: 70,
         ratio: 4,
         risk: 60,
+        maxSteps: 5,
       },
       {
         symbol: "ETH/USD",
         leverage: 50,
         ratio: 4,
         risk: 80,
+        maxSteps: 5,
       },
       {
         symbol: "EOS/USD",
         leverage: 50,
         ratio: 4,
         risk: 80,
+        maxSteps: 5,
       },
       {
         symbol: "XRP/USD",
         leverage: 50,
         ratio: 4,
         risk: 80,
+        maxSteps: 5,
       },
     ];
 
