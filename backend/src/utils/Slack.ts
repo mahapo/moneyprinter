@@ -35,10 +35,12 @@ export class Slack {
         blocks: [
           {
             type: "section",
-            fields: Object.keys(error.message).map((key) => ({
-              type: "mrkdwn",
-              text: `*${key.toUpperCase()}:*\n${error.message[key]}`,
-            })),
+            fields: Object.keys(error.message)
+              .slice(0, 9)
+              .map((key) => ({
+                type: "mrkdwn",
+                text: `*${key.toUpperCase()}:*\n${error.message[key]}`,
+              })),
           },
         ],
       },
