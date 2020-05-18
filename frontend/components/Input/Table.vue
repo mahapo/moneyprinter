@@ -95,16 +95,16 @@ export default {
         {
           name: 'Leverage',
           key: 'leverage',
-          start: 30,
+          start: 50,
           end: 50,
-          step: 5,
+          step: 10,
         },
         {
           name: 'Ratio',
           key: 'ratio',
           start: 3,
-          end: 5,
-          step: 0.5,
+          end: 10,
+          step: 1,
         },
         {
           name: 'Risk',

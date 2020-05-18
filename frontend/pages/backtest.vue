@@ -103,11 +103,8 @@
 <script>
 export default {
   sockets: {
-    test(data) {
-      console.log(data)
-    },
     files(files) {
-      this.files = Array.from(files)
+      if (!this.files.length) this.files = Array.from(files)
     },
     ticks(ticks) {
       this.ticks = ticks
@@ -119,7 +116,6 @@ export default {
         })
         .filter((balance) => !!balance.timestamp)
       const labels = balances.map((balance) => balance.timestamp)
-      console.log(orders)
 
       this.orders = orders
 
@@ -206,6 +202,7 @@ export default {
           yAxes: [
             {
               display: true,
+              type: 'logarithmic',
               scaleLabel: {
                 display: true,
                 labelString: 'Value',
@@ -226,6 +223,7 @@ export default {
     startBacktest() {
       this.results = []
       this.tab = 2
+
       this.$socket.client.emit('startBacktesthMatrix', {
         ...this.testOptions,
         matrix: this.testMatrix,

@@ -17,7 +17,7 @@ export default {
     },
     leverage: {
       type: Number,
-      default: 100,
+      default: 50,
     },
     price: {
       type: Number,
