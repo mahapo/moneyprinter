@@ -7,6 +7,16 @@
           <v-row>
             <v-col md="4">
               <v-text-field
+                v-model="options.amount"
+                label="Amount"
+                type="number"
+              ></v-text-field>
+              <v-text-field
+                v-model="options.price"
+                label="Price"
+                type="number"
+              ></v-text-field>
+              <v-text-field
                 v-model="options.leverage"
                 label="Leverage"
                 type="number"
@@ -16,13 +26,25 @@
                 label="Ratio"
                 type="number"
               ></v-text-field>
-              <strong>{{ tick }}</strong>
+              <v-text-field
+                v-model="options.maxSteps"
+                label="Max Steps"
+                type="number"
+              ></v-text-field>
+              <v-radio-group v-model="options.startSide">
+                <v-radio label="Long first" value="buy"></v-radio>
+                <v-radio label="Short first" value="sell"></v-radio>
+              </v-radio-group>
             </v-col>
             <v-col md="8">
-              <Trade-Stepper
-                :ratio="botOptions.ratio"
-                :leverage="botOptions.leverage"
-              ></Trade-Stepper>
+              <TradeStepper
+                :ratio="options.ratio"
+                :leverage="options.leverage"
+                :price="options.price"
+                :amount="options.amount"
+                :start-side="options.startSide"
+                :max-steps="options.maxSteps"
+              ></TradeStepper>
             </v-col>
           </v-row>
         </v-card-text>
@@ -32,7 +54,7 @@
         </v-card-actions>
       </v-card>
     </v-col>
-    <v-col md="12">
+    <v-col v-if="false" md="12">
       <v-card>
         <v-card-text>
           <v-data-table
@@ -54,10 +76,7 @@
 <script>
 export default {
   sockets: {
-    connect() {
-      this.$socket.emit('orders', { symbol: 'BTCUSD' })
-      this.$socket.emit('positions', { symbol: 'BTCUSD' })
-    },
+    connect() {},
     // tick(tick) {
     //   this.tick = tick
     // },
@@ -108,8 +127,11 @@ export default {
       orders: [],
       positions: [],
       options: {
-        ratio: 2,
+        ratio: 4,
         leverage: 100,
+        amount: 100,
+        price: 10000,
+        maxSteps: 5,
       },
     }
   },
@@ -122,9 +144,7 @@ export default {
     },
   },
   methods: {
-    startBot() {
-      this.$socket.emit('botStart', this.botOptions)
-    },
+    startBot() {},
   },
 }
 </script>
