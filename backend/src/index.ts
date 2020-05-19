@@ -27,36 +27,45 @@ const main = async function () {
     await account.init();
     await account.startWebSocket();
 
-    const traderSettings = [
+    const traderSettings = isDemo ? [
       {
         symbol: "BTC/USD",
         leverage: 70,
         ratio: 4,
-        risk: 60,
-        maxSteps: 5,
+        maxSteps: 4,
       },
       {
         symbol: "ETH/USD",
         leverage: 50,
         ratio: 4,
-        risk: 80,
-        maxSteps: 5,
+        maxSteps: 4,
       },
       {
         symbol: "EOS/USD",
         leverage: 50,
         ratio: 4,
-        risk: 80,
-        maxSteps: 5,
+        maxSteps: 4,
       },
       {
         symbol: "XRP/USD",
         leverage: 50,
         ratio: 4,
-        risk: 80,
-        maxSteps: 5,
+        maxSteps: 4,
       },
-    ];
+    ] : [
+      {
+        symbol: "BTC/USD",
+        leverage: 70,
+        ratio: 4,
+        maxSteps: 5
+      },
+      {
+        symbol: "ETH/USD",
+        leverage: 50,
+        ratio: 4,
+        maxSteps: 5
+      }
+    ]
 
     for (let setting of traderSettings) {
       const trader = new TraderLeveraged(account, setting);
