@@ -62,8 +62,6 @@ typings/
 .next
 
 lib/
-data/
-
 src/**/*.js
 src/**/*.map
 coverage
