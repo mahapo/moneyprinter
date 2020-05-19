@@ -18,7 +18,7 @@ Zone Recovery is your tool to turn losing trades into winning trades by using a 
 5. run `$ yarn dev` to start frontend and server for backtesting
 6. run `cd backend && yarn trader` to run bot
 
-## ToDO
+## ToDo
 
 - Import orders and positions after websocket reconnect
 - Use packages to share code between frontend and backend
