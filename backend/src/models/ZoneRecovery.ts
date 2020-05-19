@@ -4,8 +4,9 @@ export class ZoneRecovery {
   }
   
   // TODO: Better implementation
-  static calcStep(index: number, ratio: number, breakevent: boolean = false): number {
-    if(ratio < 2 || ratio > 7) return [] // Currenty not possible
+  static calcStep(index: number, ratio: number, breakevent: boolean = false) {
+    // @ts-ignore
+    if(ratio < 2 || ratio > 7) return {} // Currenty not possible
     return [...Array(index)].reduce(
       (step, _, i) => {
         if (i != 0) {
