@@ -71,5 +71,8 @@ export default {
     Logo,
     VuetifyLogo,
   },
+  middleware({ redirect }) {
+    return redirect('/backtest')
+  },
 }
 </script>
