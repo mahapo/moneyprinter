@@ -96,7 +96,7 @@ export default {
   },
   methods: {
     isActive(index, side) {
-      if (this.startSide) {
+      if (this.startSide !== 'none') {
         return side === this.startSide ? index % 2 === 0 : index % 2 !== 0
       }
       return index === 0

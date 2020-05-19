@@ -32,18 +32,19 @@
                 type="number"
               ></v-text-field>
               <v-radio-group v-model="options.startSide">
+                <v-radio label="None" value="none"></v-radio>
                 <v-radio label="Long first" value="buy"></v-radio>
                 <v-radio label="Short first" value="sell"></v-radio>
               </v-radio-group>
             </v-col>
             <v-col md="8">
               <TradeStepper
-                :ratio="options.ratio"
-                :leverage="options.leverage"
-                :price="options.price"
-                :amount="options.amount"
-                :start-side="options.startSide"
-                :max-steps="options.maxSteps"
+                :ratio="botOptions.ratio"
+                :leverage="botOptions.leverage"
+                :price="botOptions.price"
+                :amount="botOptions.amount"
+                :start-side="botOptions.startSide"
+                :max-steps="botOptions.maxSteps"
               ></TradeStepper>
             </v-col>
           </v-row>
@@ -132,14 +133,19 @@ export default {
         amount: 100,
         price: 10000,
         maxSteps: 5,
+        startSide: '',
       },
     }
   },
   computed: {
     botOptions() {
       return {
+        ...this.options,
         ratio: parseInt(this.options.ratio),
         leverage: parseInt(this.options.leverage),
+        price: parseFloat(this.options.price),
+        maxSteps: parseInt(this.options.maxSteps),
+        amount: parseInt(this.options.amount),
       }
     },
   },
