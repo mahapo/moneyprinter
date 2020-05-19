@@ -2,8 +2,10 @@ export class ZoneRecovery {
   static calcSteps(count: number, ratio: number) {
     return [...Array(count)].map((_, i) => ZoneRecovery.calcStep(i, ratio));
   }
-
+  
+  // TODO: Better implementation
   static calcStep(index: number, ratio: number) {
+    if(ratio < 2 || ratio > 5) return [] // Currenty not possible
     return [...Array(index)].reduce(
       (step, _, i) => {
         if (i != 0) {
