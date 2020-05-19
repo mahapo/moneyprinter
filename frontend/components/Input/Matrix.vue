@@ -91,11 +91,18 @@ export default {
     result() {
       return this.formatedInputs.map((input) => {
         if (input.enabled)
-          return {
-            key: input.key,
-            steps: [...Array(input.total)].map((_step, index) =>
-              parseFloat((input.start + input.step * index).toFixed(1))
-            ),
+          try {
+            return {
+              key: input.key,
+              steps: [...Array(input.total)].map((_step, index) =>
+                parseFloat((input.start + input.step * index).toFixed(1))
+              ),
+            }
+          } catch (error) {
+            return {
+              key: input.key,
+              steps: [input.start],
+            }
           }
         else
           return {
