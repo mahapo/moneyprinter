@@ -33,6 +33,7 @@
     "vue-socket.io-extended": "^4.0.2"
   },
   "devDependencies": {
+    "@nuxt/components": "^0.2.3",
     "@nuxt/typescript-build": "^0.6.5",
     "@nuxtjs/eslint-config-typescript": "^1.0.2",
     "@nuxtjs/eslint-module": "^1.1.0",

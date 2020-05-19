@@ -30,16 +30,39 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['@/plugins/vue-components', '@/plugins/vue-socket.client'],
+  plugins: ['@/plugins/vue-socket.client'],
   /*
    ** Nuxt.js dev-modules
    */
   buildModules: [
+    '@nuxt/components',
     '@nuxt/typescript-build',
     // Doc: https://github.com/nuxt-community/stylelint-module
     '@nuxtjs/stylelint-module',
     '@nuxtjs/vuetify',
   ],
+
+  components: {
+    dirs: [
+      '~/components',
+      {
+        path: '~/components/Chart/',
+        prefix: 'Chart',
+      },
+      {
+        path: '~/components/Result/',
+        prefix: 'Result',
+      },
+      {
+        path: '~/components/Input/',
+        prefix: 'Input',
+      },
+      {
+        path: '~/components/Trade/',
+        prefix: 'Trade',
+      },
+    ],
+  },
   /*
    ** Nuxt.js modules
    */
