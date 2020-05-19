@@ -7,8 +7,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
-    "server": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
+    "trader": "ts-node-dev --respawn --transpileOnly ./src/trader.ts",
     "backtest": "ts-node-dev --respawn --transpileOnly ./src/backtest.ts",
     "build": "tsc",
     "start": "node ./dist/index.js",

@@ -6,9 +6,11 @@
   ],
   "scripts": {
     "build": "lerna run build",
-    "deploy": "pm2 deploy production"
+    "deploy": "pm2 deploy production",
+    "dev": "concurrently --kill-others \"cd frontend && yarn dev\" \"cd backend && yarn dev\""
   },
   "devDependencies": {
+    "concurrently": "^5.2.0",
     "lerna": "^3.20.2",
     "pm2": "^4.4.0"
   }
