@@ -202,6 +202,7 @@ export class Bybit extends ExchangeBase {
       return true;
     } catch (error) {
       // TODO: Handel error: TrailingProfit:201.95 set for Sell position should be less than entry_price:194.05??LastPrice and last_price:195.65
+      // TODO: Handel 'StopLoss:211.5 set for Buy position should be between liq_price:212 and base_price:214.1??LastPrice'
       Logger.error(this.formatError(error));
       return false;
     }
