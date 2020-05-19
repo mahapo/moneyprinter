@@ -20,14 +20,16 @@ Zone Recovery is your tool to turn losing trades into winning trades by using a 
 
 ## ToDO
 
-[] Import orders and positions after websocket reconnect
-[] Use packages to share code between frontend and backend
-[] Write more tests
-[] Add Binance
-[] Add Two Stange Recovery [https://c.mql5.com/31/152/cap-zone-recovery-ea-pro-mt5-screen-6524.png]
-[] Print Money
-[] Add AI
-[] Forex ?
+- Import orders and positions after websocket reconnect
+- Use packages to share code between frontend and backend
+- Write more tests
+- Add Binance
+- Add Two Stange Recovery [https://c.mql5.com/31/152/cap-zone-recovery-ea-pro-mt5-screen-6524.png]
+- Print Money
+- Save backtest results
+- Better logger
+- Add AI
+- Forex ?
 
 ## Resources
 
