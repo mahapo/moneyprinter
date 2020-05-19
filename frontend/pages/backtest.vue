@@ -8,6 +8,7 @@
             :chart-data="datacollection"
             :options="chartOptions"
           ></ChartLine>
+          <v-switch v-model="logarithmic" :label="`Logarithmic`"></v-switch>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -144,6 +145,7 @@ export default {
   },
   data() {
     return {
+      logarithmic: true,
       tab: 0,
       strategies: [
         {
@@ -173,7 +175,11 @@ export default {
         labels: [],
         datasets: [],
       },
-      chartOptions: {
+    }
+  },
+  computed: {
+    chartOptions() {
+      return {
         responsive: true,
         maintainAspectRatio: false,
         legend: {
@@ -202,7 +208,7 @@ export default {
           yAxes: [
             {
               display: true,
-              type: 'logarithmic',
+              type: this.logarithmic ? 'logarithmic' : 'linear',
               scaleLabel: {
                 display: true,
                 labelString: 'Value',
@@ -213,8 +219,8 @@ export default {
             },
           ],
         },
-      },
-    }
+      }
+    },
   },
   mounted() {
     this.$socket.client.emit('files')
