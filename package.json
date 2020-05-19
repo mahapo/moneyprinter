@@ -2,13 +2,12 @@
   "private": true,
   "workspaces": [
     "backend",
-    "packages/*",
-    "frontend"
+    "packages/*"
   ],
   "scripts": {
     "build": "lerna run build",
     "deploy": "pm2 deploy production",
-    "dev": "concurrently --kill-others \"cd frontend && yarn dev\" \"cd backend && yarn dev\""
+    "dev": "concurrently --kill-others \"cd frontend && yarn && yarn dev\" \"cd backend && yarn dev\""
   },
   "devDependencies": {
     "concurrently": "^5.2.0",
