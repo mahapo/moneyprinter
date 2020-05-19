@@ -21,7 +21,11 @@
         :style="stylesOrder"
         :class="{ active: isActive(index, 'buy') }"
       >
-        <span v-if="isActive(index, 'buy')"> {{ step.factor * amount }}</span>
+        <span
+          v-if="isActive(index, 'buy')"
+          v-html="backtest ? step.factor * amount : step.total * amount"
+        >
+        </span>
       </div>
       <div class="range" :style="stylesRange">{{ step.factor }}</div>
       <div
@@ -29,7 +33,10 @@
         :style="stylesOrder"
         :class="{ active: isActive(index, 'sell') }"
       >
-        <span v-if="isActive(index, 'sell')"> {{ step.factor * amount }}</span>
+        <span
+          v-if="isActive(index, 'sell')"
+          v-html="backtest ? step.factor * amount : step.total * amount"
+        ></span>
       </div>
     </div>
   </div>
@@ -64,6 +71,14 @@ export default {
       type: Number,
       default: 4,
     },
+    backtest: {
+      type: Boolean,
+      default: true,
+    },
+    breakeven: {
+      type: Boolean,
+      default: true,
+    },
   },
   computed: {
     partPercent() {
@@ -80,7 +95,7 @@ export default {
       }
     },
     steps() {
-      return ZoneRecovery.calcSteps(this.maxSteps, this.ratio)
+      return ZoneRecovery.calcSteps(this.maxSteps, this.ratio, this.breakeven)
     },
     prices() {
       const prices = {

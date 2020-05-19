@@ -4,8 +4,8 @@ export class ZoneRecovery {
   }
   
   // TODO: Better implementation
-  static calcStep(index: number, ratio: number) {
-    if(ratio < 2 || ratio > 5) return [] // Currenty not possible
+  static calcStep(index: number, ratio: number, breakevent: boolean = false): number {
+    if(ratio < 2 || ratio > 7) return [] // Currenty not possible
     return [...Array(index)].reduce(
       (step, _, i) => {
         if (i != 0) {
@@ -14,7 +14,7 @@ export class ZoneRecovery {
             //@ts-ignore
             step.profit = parseFloat((step.factor * (ratio - 1)).toFixed(4));
             step.profitTotal = step.profit - step.total;
-          } while (step.profitTotal < ratio - 1);
+          } while (step.profitTotal < (breakevent ? 0 : ratio - 1));
         } else {
           step.factor += 1;
           step.profit = step.factor * (ratio - 1);

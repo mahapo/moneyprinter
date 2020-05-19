@@ -36,6 +36,14 @@
                 <v-radio label="Long first" value="buy"></v-radio>
                 <v-radio label="Short first" value="sell"></v-radio>
               </v-radio-group>
+              <v-radio-group v-model="options.backtest">
+                <v-radio label="Backtester" :value="true"></v-radio>
+                <v-radio label="Trader" :value="false"></v-radio>
+              </v-radio-group>
+              <v-radio-group v-model="options.breakeven">
+                <v-radio label="Breakeven" :value="true"></v-radio>
+                <v-radio label="With fixed Profit" :value="false"></v-radio>
+              </v-radio-group>
             </v-col>
             <v-col md="8">
               <TradeStepper
@@ -45,11 +53,12 @@
                 :amount="botOptions.amount"
                 :start-side="botOptions.startSide"
                 :max-steps="botOptions.maxSteps"
+                :backtest="botOptions.backtest"
               ></TradeStepper>
             </v-col>
           </v-row>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions v-if="false">
           <v-spacer />
           <v-btn color="primary" @click="startBot">Start Bot</v-btn>
         </v-card-actions>
@@ -133,7 +142,9 @@ export default {
         amount: 100,
         price: 10000,
         maxSteps: 5,
-        startSide: '',
+        startSide: 'none',
+        backtest: true,
+        breakeven: true,
       },
     }
   },
@@ -146,6 +157,8 @@ export default {
         price: parseFloat(this.options.price),
         maxSteps: parseInt(this.options.maxSteps),
         amount: parseInt(this.options.amount),
+        backtest: this.options.backtest === 'true',
+        breakeven: this.options.breakeven === 'true',
       }
     },
   },
