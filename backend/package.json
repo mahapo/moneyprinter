@@ -14,7 +14,9 @@
     "start": "node ./dist/index.js",
     "test": "jest",
     "test:watch": "jest --watchAll",
-    "ping": "curl -o /dev/null -s -w 'Total: %{time_total}s\n' https://api.bybit.com/v2/public/orderBook/L2?symbol=BTCUSD"
+    "ping": "curl -o /dev/null -s -w 'Total: %{time_total}s\n' https://api.bybit.com/v2/public/orderBook/L2?symbol=BTCUSD",
+    "pm2": "pm2 start npm --name \"bybit\" -- run \"trader\"",
+    "pm2:demo": "SANDBOX=true pm2 start npm --name \"bybit:testnet\" -- run \"trader\""
   },
   "dependencies": {
     "@slack/events-api": "^2.3.2",
