@@ -56,7 +56,7 @@
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <input-table v-model="testMatrix"></input-table>
+                    <input-matrix v-model="testMatrix"></input-matrix>
                   </v-col>
                 </v-row>
 
