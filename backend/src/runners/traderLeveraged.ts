@@ -32,6 +32,8 @@ export class TraderLeveraged extends Runner {
     this.strategy = new MoneyPrinter(this);
     const reset = true;
 
+    this.strategy.maxSteps = this.options.maxSteps;
+
     const lastStep = ZoneRecovery.calcStep(
       this.options.maxSteps + 1,
       this.options.ratio
@@ -127,12 +129,13 @@ export class TraderLeveraged extends Runner {
       Logger.log(colors.green("onTakeProfit"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, true);
-        await this.account.reset();
+        await this.reset();
       } else {
         console.table(orderFromExchange);
       }
     } catch (error) {
       Logger.error(error);
+      await this.reset();
     }
   }
 
@@ -142,6 +145,7 @@ export class TraderLeveraged extends Runner {
       console.log(colors.red("onLiquidation"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, false);
+        this.onTick();
       } else {
         console.table(orderFromExchange);
       }
@@ -161,6 +165,8 @@ export class TraderLeveraged extends Runner {
       }
     } catch (error) {
       Logger.error(error);
+    } finally {
+      this.onTick();
     }
   }
 
@@ -180,29 +186,36 @@ export class TraderLeveraged extends Runner {
   }
 
   async updateOrders() {
-    for (const order of this.strategy.currentOrders) {
-      if (order.status === "canceled" && order.id) {
-        await this.account.cancelOrder(order);
-      } else if (
-        order.status === "open" &&
-        order.filled > 0 &&
-        !order.stopLossSet
-      ) {
-        order.stopLossSet = await this.account.setTpSLTs(order);
-      } else if (order.status === "open" && order.filled === 0) {
-        try {
-          await this.account.placeMarketStopOrder(order);
-        } catch ({ message }) {
-          if (this.strategy.countFilled === 0) this.reset();
-          else {
-            message = message.replace("bybit ", "");
-            message = JSON.parse(message);
-            console.log("Reset", message.ret_msg);
+    // Order => Create Order, Delete Order, set Takeprofit / StopLoss
+    try {
+      for (const order of this.strategy.currentOrders.reverse()) {
+        // Close orders
+        if (order.status === "canceled" && order.id) {
+          await this.account.cancelOrder(order);
+
+          // Set Takeprofit / StopLoss
+        } else if (
+          order.isPositon &&
+          (!order.stopLossSet || !order.takeProfitSet)
+        ) {
+          await this.account.setTpSLTs(order);
+
+          // Set new Orders
+        } else if (order.status === "open" && order.filled === 0) {
+          try {
             await this.account.placeMarketStopOrder(order);
+          } catch ({ message }) {
+            if (this.strategy.countFilled === 0) this.reset();
+            else {
+              message = message.replace("bybit ", "");
+              message = JSON.parse(message);
+              console.log("Reset", message.ret_msg);
+              await this.account.placeMarketStopOrder(order);
+            }
           }
         }
       }
-    }
+    } catch (error) {}
   }
 
   async reset() {

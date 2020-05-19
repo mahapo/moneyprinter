@@ -12,6 +12,7 @@ export class OrderLeveraged extends Order {
   maintenanceMargin: number = 0.005;
 
   stopLossSet: boolean = false;
+  takeProfitSet: boolean = false;
 
   _idUser: string;
 
@@ -31,6 +32,10 @@ export class OrderLeveraged extends Order {
 
   set idUser(id) {
     this._idUser = id;
+  }
+
+  get isPositon() {
+    return this.status === "open" && this.filled > 0;
   }
 
   get adjustedLong(): number {
@@ -128,7 +133,7 @@ export class OrderLeveraged extends Order {
 
   toString(): string {
     const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss}`;
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.idUser}`;
   }
 
   clone() {

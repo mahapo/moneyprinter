@@ -15,6 +15,8 @@ export class MoneyPrinter extends StrategyBase {
     "ratio",
   ];
 
+  static percentOfMaxRange: number = 80;
+
   options = {
     price: 0,
     timestamp: 0,
@@ -33,6 +35,7 @@ export class MoneyPrinter extends StrategyBase {
 
   long: OrderLeveraged;
   short: OrderLeveraged;
+  lastOrder: OrderLeveraged;
 
   priceRange: number;
   priceTop: number;
@@ -48,6 +51,9 @@ export class MoneyPrinter extends StrategyBase {
   constructor(private runner) {
     super();
     this.isLive = !!this.runner?.account;
+
+    if (configuration.get("SANDBOX") === "true")
+      MoneyPrinter.percentOfMaxRange = 10; // Faster trades
   }
 
   async run(tick) {
@@ -78,7 +84,9 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = rounder(this.short.changePriceLiquidation * 0.8);
+    this.priceRange = rounder(
+      this.short.changePriceLiquidation * (MoneyPrinter.percentOfMaxRange / 100)
+    );
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -113,38 +121,51 @@ export class MoneyPrinter extends StrategyBase {
           (order: OrderLeveraged) => order.side !== this.side
         );
         if (otherSide) otherSide.status = "canceled";
-        let newOrder =
-          this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
+      }
+
+      if (this.isLive && this.countFilled !== this.maxSteps) {
+        order.stopLossSet = true;
+
+        // This order is close current open order and place order on other side
+        // No stop loss needed
+        let newOrder = this.createHedgOrder();
         newOrder.amount =
           this.options.amount * this.currentStep.factor + order.amount;
-        newOrder.idUser = this.createId();
 
+        newOrder.idUser = this.createId();
         this.currentOrders.push(newOrder);
       }
     } else if (this.countFilled > this.maxSteps) {
       this.onOrderDone(order, true);
     } else {
-      let newOrder =
-        this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
+      let newOrder = this.createHedgOrder();
+      newOrder.idUser = this.createId();
 
       if (this.isLive) {
-        newOrder.amount =
-          this.options.amount * this.currentStep.factor + order.amount;
-        newOrder.idUser = this.createId();
+        if (this.countFilled === this.maxSteps) {
+          order.stopLossSet = false;
+        } else {
+          // This order is close current open order and place order on other side
+          // No stop loss needed
+          newOrder.amount =
+            this.options.amount * this.currentStep.factor + order.amount;
+          this.onOrderDone(this.lastOrder, false);
+          this.currentOrders.push(newOrder);
+        }
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor;
+        this.currentOrders.push(newOrder);
       }
 
-      this.currentOrders.push(newOrder);
       this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
     }
-
+    this.lastOrder = order;
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
   }
 
-  onOrderDone(order: OrderLeveraged, win) {
+  onOrderDone(order: OrderLeveraged, win = false) {
     order.status = "closed";
-    if (win) {
+    if (win || this.countFilled === this.maxSteps) {
       this.currentOrders.forEach((p: OrderLeveraged) => {
         if (p.status === "open") p.status = "canceled";
       });
@@ -152,6 +173,8 @@ export class MoneyPrinter extends StrategyBase {
       this.options.timestamp = Math.random();
       this.orders.push(...this.currentOrders);
       this.currentOrders = [];
+      if (!win && this.isLive)
+        console.log("Max steps reached", this.countFilled);
     }
   }
 
@@ -176,6 +199,10 @@ export class MoneyPrinter extends StrategyBase {
     this.currentOrders.forEach((p) => {
       p.print();
     });
+  }
+
+  createHedgOrder() {
+    return this.nextSide !== "buy" ? this.long.clone() : this.short.clone();
   }
 
   get profitTotal() {

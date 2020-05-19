@@ -122,7 +122,7 @@ export class Bybit extends ExchangeBase {
 
   async placeMarketStopOrder(order, newPosition = true) {
     try {
-      Logger.log(`New Order: ${order.toString()}`, order.idUser);
+      Logger.log(`New Order: ${order.toString()}`);
       if (newPosition) this.lastTime = order.timestamp;
       const { precision } = this.markets.find(
         (market) => market.base === order.symbol.split("/")[0]
@@ -180,14 +180,24 @@ export class Bybit extends ExchangeBase {
       const { precision } = this.markets.find(
         (market) => market.base === order.symbol.split("/")[0]
       );
-      Logger.log(`Set trailing: ${order.toString()}`);
-      let request = await this.instance.openapiPostPositionTradingStop({
-        // take_profit: order.order.takeProfit,
-        // stop_loss: order.order.stopLoss,
-        trailing_stop: precision.price * 10,
-        new_trailing_active: order.takeProfit,
-        symbol: order.symbol.replace("/", ""),
-      });
+      let options = { symbol: order.symbol.replace("/", "") };
+
+      if (!order.takeProfitSet) {
+        Logger.log(`Set trailing: ${order.toString()}`);
+        //options["take_profit"] = order.takeProfit
+        options["trailing_stop"] = precision.price * 5; // Creates more Profit as take_profit
+        options["new_trailing_active"] = order.takeProfit;
+
+        order.takeProfitSet = true;
+      }
+
+      if (!order.stopLossSet) {
+        Logger.log(`Set stop loss: ${order.toString()}`);
+        options["stop_loss"] = order.stopLoss;
+        order.stopLossSet = true;
+      }
+
+      let request = await this.instance.openapiPostPositionTradingStop(options);
 
       return true;
     } catch (error) {
@@ -217,19 +227,19 @@ export class Bybit extends ExchangeBase {
       let orders = await this.instance.privateGetPositionList({
         symbol: symbol.replace("/", ""),
       });
-      if (orders.result.side === "Sell" && orders.result.amount)
+      if (orders.result.side === "Sell" && orders.result.size)
         await this.instance.createOrder(
           symbol,
           "market",
           "buy",
-          orders.result.amount
+          orders.result.size
         );
-      else if (orders.result.side === "Buy" && orders.result.amount)
+      else if (orders.result.side === "Buy" && orders.result.size)
         await this.instance.createOrder(
           symbol,
           "market",
           "sell",
-          orders.result.amount
+          orders.result.size
         );
 
       return true;
