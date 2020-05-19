@@ -1,5 +1,5 @@
 {
-  "name": "decentralex-bots",
+  "name": "@moneyprinter/backend",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/mahapo/decentralex-bots.git",
@@ -51,8 +51,7 @@
     "serve": "^11.3.0",
     "source-map-support": "^0.5.19",
     "ts-jest": "^26.0.0",
-    "ts-node-dev": "^1.0.0-pre.44",
-    "typescript": "^3.9.2"
+    "ts-node-dev": "^1.0.0-pre.44"
   },
   "babel": {
     "presets": [

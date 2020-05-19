@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@moneyprinter/frontend",
   "version": "1.0.0",
   "description": "My geometric Nuxt.js project",
   "author": "Manuel Haller Polo",
@@ -24,6 +24,7 @@
     "@nuxtjs/axios": "^5.9.7",
     "@nuxtjs/dotenv": "^1.4.1",
     "chart.js": "^2.9.3",
+    "core-js": "2",
     "cross-env": "^7.0.2",
     "nuxt": "^2.12.2",
     "socket.io-client": "^2.3.0",
