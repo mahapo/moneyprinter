@@ -4,10 +4,10 @@
       <v-card>
         <v-card-title class="headline">Strategy Backtester</v-card-title>
         <v-card-text>
-          <chart-line
+          <ChartLine
             :chart-data="datacollection"
             :options="chartOptions"
-          ></chart-line>
+          ></ChartLine>
         </v-card-text>
         <v-card-actions>
           <v-spacer />

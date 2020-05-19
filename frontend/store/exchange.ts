@@ -7,6 +7,4 @@ export const state = () => ({
 
 export const mutations = {}
 
-export const actions = {
-  async startWebSocket({ dispatch }) {},
-}
+export const actions = {}
