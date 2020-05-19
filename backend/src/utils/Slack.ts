@@ -1,4 +1,5 @@
 import { WebClient } from "@slack/web-api";
+import { get } from "../configuration";
 export class Slack {
   static channelId: string;
   static client: WebClient;
@@ -11,7 +12,7 @@ export class Slack {
   static send(text, options = {}, cannelId = null) {
     this.auth();
     console.log(text);
-
+    if (get("SANDBOX") === "true") return;
     return Slack.client.chat.postMessage({
       channel: cannelId || Slack.channelId,
       text,
