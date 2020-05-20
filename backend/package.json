@@ -19,6 +19,7 @@
     "pm2:demo": "SANDBOX=true pm2 start npm --name \"bybit:testnet\" -- run \"trader\""
   },
   "dependencies": {
+    "@sentry/node": "5.15.5",
     "@slack/events-api": "^2.3.2",
     "@slack/web-api": "^5.8.1",
     "ccxt": "^1.27.29",
@@ -53,7 +54,9 @@
     "serve": "^11.3.0",
     "source-map-support": "^0.5.19",
     "ts-jest": "^26.0.0",
-    "ts-node-dev": "^1.0.0-pre.44"
+    "ts-node-dev": "^1.0.0-pre.44",
+    "winston": "^3.2.1",
+    "winston-transport-sentry-node": "^0.3.0"
   },
   "babel": {
     "presets": [
