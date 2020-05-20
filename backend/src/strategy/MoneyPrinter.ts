@@ -53,7 +53,7 @@ export class MoneyPrinter extends StrategyBase {
     this.isLive = !!this.runner?.account;
 
     if (configuration.get("SANDBOX") === "true")
-      MoneyPrinter.percentOfMaxRange = 10; // Faster trades
+      MoneyPrinter.percentOfMaxRange = 20; // Faster trades
   }
 
   async run(tick) {
@@ -131,6 +131,7 @@ export class MoneyPrinter extends StrategyBase {
         let newOrder = this.createHedgOrder();
         newOrder.amount =
           this.options.amount * this.currentStep.factor + order.amount;
+        newOrder.stopLossSet = true;
 
         newOrder.idUser = this.createId();
         this.currentOrders.push(newOrder);
@@ -151,6 +152,7 @@ export class MoneyPrinter extends StrategyBase {
             this.options.amount * this.currentStep.factor + order.amount;
           this.onOrderDone(this.lastOrder, false);
           this.currentOrders.push(newOrder);
+          newOrder.stopLossSet = true;
         }
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor;
