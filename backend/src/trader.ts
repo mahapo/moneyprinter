@@ -61,15 +61,10 @@ const main = async function () {
     ] : [
       {
         symbol: "BTC/USD",
-        leverage: 70,
-        ratio: 4,
-        maxSteps: 5
-      },
-      {
-        symbol: "ETH/USD",
-        leverage: 50,
-        ratio: 4,
-        maxSteps: 5
+        leverage: 75,
+        ratio: 5,
+        maxSteps: 4,
+        percentOfMaxRange: 20
       }
     ]
 
