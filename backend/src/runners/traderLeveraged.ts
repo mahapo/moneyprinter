@@ -15,6 +15,7 @@ export class TraderLeveraged extends Runner {
     risk: 100,
     symbol: "",
     maxSteps: 5,
+    percentOfMaxRange: 80
   };
 
   constructor(public account, options) {
@@ -25,6 +26,7 @@ export class TraderLeveraged extends Runner {
       risk: parseInt(options.risk),
       maxSteps: parseInt(options.maxSteps),
       symbol: options.symbol,
+      percentOfMaxRange: parseInt(options.percentOfMaxRange)
     };
   }
 
@@ -33,6 +35,7 @@ export class TraderLeveraged extends Runner {
     const reset = true;
 
     this.strategy.maxSteps = this.options.maxSteps;
+    this.strategy.percentOfMaxRange = this.options.percentOfMaxRange;
 
     const lastStep = ZoneRecovery.calcStep(
       this.options.maxSteps + 1,

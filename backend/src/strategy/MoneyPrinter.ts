@@ -15,7 +15,7 @@ export class MoneyPrinter extends StrategyBase {
     "ratio",
   ];
 
-  static percentOfMaxRange: number = 80;
+  percentOfMaxRange: number = 80;
 
   options = {
     price: 0,
@@ -53,7 +53,7 @@ export class MoneyPrinter extends StrategyBase {
     this.isLive = !!this.runner?.account;
 
     if (configuration.get("SANDBOX") === "true")
-      MoneyPrinter.percentOfMaxRange = 20; // Faster trades
+      this.percentOfMaxRange = 20; // Faster trades
   }
 
   async run(tick) {
@@ -85,7 +85,7 @@ export class MoneyPrinter extends StrategyBase {
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
     this.priceRange = rounder(
-      this.short.changePriceLiquidation * (MoneyPrinter.percentOfMaxRange / 100)
+      this.short.changePriceLiquidation * (this.percentOfMaxRange / 100)
     );
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);

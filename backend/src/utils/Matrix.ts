@@ -17,6 +17,9 @@ export class Matrix {
     const values = getCombn(matrix.map((i) => i.steps)).map((i) =>
       // @ts-ignore
       Array.isArray(i) ? i.flat() : i
+    ).map((i) =>
+      // @ts-ignore
+      Array.isArray(i) ? i.flat() : i
     );
     const keys = matrix.map((i) => i.key);
     const result = values.map((value) =>
@@ -25,6 +28,7 @@ export class Matrix {
         return acc;
       }, {})
     );
+    
     if (parts) return Matrix.splitToChunks(result, parts);
     return result;
   }

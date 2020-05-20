@@ -26,6 +26,7 @@ export class Backtester extends Runner {
     file: "",
     update: false,
     matrix: false,
+    percentOfMaxRange: 80
   };
 
   async startMatrix(options, matrix) {
@@ -65,6 +66,7 @@ export class Backtester extends Runner {
       leverage: parseFloat(options.leverage),
       startBalance: parseFloat(options.startBalance),
       maxSteps: parseInt(options.maxSteps),
+      percentOfMaxRange: parseInt(options.percentOfMaxRange),
       risk: parseInt(options.risk),
       file: options.file,
       update: options.update,
@@ -82,6 +84,7 @@ export class Backtester extends Runner {
 
     this.strategy = new MoneyPrinter(this);
     this.strategy.maxSteps = this.options.maxSteps;
+    this.strategy.percentOfMaxRange = this.options.percentOfMaxRange;
 
     this.balances = [];
 
@@ -196,7 +199,7 @@ export class Backtester extends Runner {
       });
       console.log(
         "Finish " + this.time + " ms.",
-        `Ratio: ${this.options.ratio} Leverage: ${this.options.leverage} MaxSteps: ${this.options.maxSteps} Risk: ${this.options.risk}`
+        `Ratio: ${this.options.ratio} Leverage: ${this.options.leverage} MaxSteps: ${this.options.maxSteps} Risk: ${this.options.risk} percentOfMaxRange: ${this.options.percentOfMaxRange}`
       );
     } else {
       this.emit("backtestFinish", {

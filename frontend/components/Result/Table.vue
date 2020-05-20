@@ -46,6 +46,10 @@ export default {
           value: 'options.maxSteps',
         },
         {
+          text: 'Percent Of max range',
+          value: 'options.percentOfMaxRange',
+        },
+        {
           text: 'Total Trades',
           value: 'ordersCount',
         },

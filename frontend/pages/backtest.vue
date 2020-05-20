@@ -159,12 +159,13 @@ export default {
       results: [],
       testOptions: {
         strategy: 'moneyprinter',
-        file: './data/BTCUSD_Test.csv',
+        file: './data/BTCUSDT_August2019_January2020.csv',
         ratio: 2,
         leverage: 100,
         startBalance: 100,
         risk: 100,
         maxSteps: 5,
+        percentOfMaxRange: 80,
       },
       progress: {
         percent: 0,
