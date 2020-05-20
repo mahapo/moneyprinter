@@ -1,6 +1,8 @@
 import { TraderLeveraged } from "./runners";
 import { Bybit } from "./exchanges";
 require("dotenv").config();
+import * as Sentry from '@sentry/node';
+Sentry.init({ dsn: 'https://4a350580542f46bdb422be3fe3db3901@o395422.ingest.sentry.io/5247177' });
 
 const main = async function () {
   try {

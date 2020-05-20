@@ -1,7 +1,7 @@
 import { OrderLeveraged, ZoneRecovery } from "../models";
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
-import { Slack as Logger } from "../utils/Slack";
+import { Logger } from "../utils/Logger";
 
 import * as colors from "colors/safe";
 
@@ -115,7 +115,7 @@ export class TraderLeveraged extends Runner {
         ratio: this.options.ratio,
       };
       this.strategy.onSignal(params);
-      Logger.signal(params);
+      Logger.info(`New Signal: ${this.options.symbol}`);
       await this.updateOrders();
     } catch (error) {
       console.error("Try again", error);
@@ -126,7 +126,7 @@ export class TraderLeveraged extends Runner {
   async onTakeProfit(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      Logger.log(colors.green("onTakeProfit"), order?.toString());
+      Logger.info(colors.green("onTakeProfit"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, true);
         await this.reset();
@@ -157,7 +157,7 @@ export class TraderLeveraged extends Runner {
   async onStopLoss(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      Logger.log(colors.red("onStopLoss"), order?.toString());
+      Logger.info(colors.red("onStopLoss"), order?.toString());
       if (order) {
         await this.strategy.onOrderDone(order, false);
       } else {
@@ -173,7 +173,7 @@ export class TraderLeveraged extends Runner {
   async onFilled(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange);
-      Logger.log(colors.blue("onFilled"), order?.toString());
+      Logger.info(colors.blue("onFilled"), order?.toString());
       if (order) {
         this.strategy.onOrderFilled(order);
         this.updateOrders();

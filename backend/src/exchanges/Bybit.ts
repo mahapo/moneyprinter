@@ -2,7 +2,7 @@ import { ExchangeBase } from ".";
 import { bybit as BybitCCXT } from "ccxt";
 import * as WebSocket from "ws";
 import * as crypto from "crypto";
-import { Slack as Logger } from "../utils/Slack";
+import { Logger } from "../utils/Logger";
 
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {
@@ -36,7 +36,7 @@ export class Bybit extends ExchangeBase {
         });
 
         this.socket.on("open", () => {
-          // Logger.log("Websocket open");
+          // Logger.info("Websocket open");
           resolve();
           this.socket.send(
             '{"op": "subscribe", "args": ["order", "stop_order"]}'
@@ -89,7 +89,7 @@ export class Bybit extends ExchangeBase {
           this.emit(`${order.symbol}:StopLoss`, this.formatedOrder(order));
         else if (order.order_type === "Market")
           this.emit(`${order.symbol}:Filled`, this.formatedOrder(order));
-        else Logger.log(order);
+        else Logger.info(order);
       }
     }
   }
@@ -122,7 +122,7 @@ export class Bybit extends ExchangeBase {
 
   async placeMarketStopOrder(order, newPosition = true) {
     try {
-      Logger.log(`New Order: ${order.toString()}`);
+      Logger.info(`New Order: ${order.toString()}`);
       if (newPosition) this.lastTime = order.timestamp;
       const { precision } = this.markets.find(
         (market) => market.base === order.symbol.split("/")[0]
@@ -183,7 +183,7 @@ export class Bybit extends ExchangeBase {
       let options = { symbol: order.symbol.replace("/", "") };
 
       if (!order.takeProfitSet) {
-        Logger.log(`Set trailing: ${order.toString()}`);
+        Logger.info(`Set trailing: ${order.toString()}`);
         //options["take_profit"] = order.takeProfit
         options["trailing_stop"] = precision.price * 5; // Creates more Profit as take_profit
         options["new_trailing_active"] = order.takeProfit;
@@ -192,7 +192,7 @@ export class Bybit extends ExchangeBase {
       }
 
       if (!order.stopLossSet) {
-        Logger.log(`Set stop loss: ${order.toString()}`);
+        Logger.info(`Set stop loss: ${order.toString()}`);
         options["stop_loss"] = order.stopLoss;
         order.stopLossSet = true;
       }
@@ -210,7 +210,7 @@ export class Bybit extends ExchangeBase {
 
   async cancelOrder(order) {
     try {
-      Logger.log(`Delete: ${order.toString()}`);
+      Logger.info(`Delete: ${order.toString()}`);
       let request = await this.instance.openapiPostStopOrderCancel({
         order_link_id: order.idUser,
         symbol: order.symbol.replace("/", ""),
