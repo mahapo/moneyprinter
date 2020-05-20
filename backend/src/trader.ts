@@ -22,7 +22,7 @@ const main = async function () {
       {
         ...options,
         enableRateLimit: true,
-        rate_limit: 1000,
+        rate_limit: 2000,
       },
       isDemo
     );
