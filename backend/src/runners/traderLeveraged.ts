@@ -131,7 +131,8 @@ export class TraderLeveraged extends Runner {
         await this.strategy.onOrderDone(order, true);
         await this.reset();
       } else {
-        console.table(orderFromExchange);
+        Logger.warn(orderFromExchange);
+        await this.reset();
       }
     } catch (error) {
       Logger.error(error);
@@ -147,7 +148,8 @@ export class TraderLeveraged extends Runner {
         await this.strategy.onOrderDone(order, false);
         this.onTick();
       } else {
-        console.table(orderFromExchange);
+        Logger.warn(orderFromExchange);
+        await this.reset();
       }
     } catch (error) {
       Logger.error(error);
@@ -161,7 +163,8 @@ export class TraderLeveraged extends Runner {
       if (order) {
         await this.strategy.onOrderDone(order, false);
       } else {
-        console.table(orderFromExchange);
+        Logger.warn(orderFromExchange);
+        await this.reset();
       }
     } catch (error) {
       Logger.error(error);
@@ -178,7 +181,8 @@ export class TraderLeveraged extends Runner {
         this.strategy.onOrderFilled(order);
         this.updateOrders();
       } else {
-        console.table(orderFromExchange);
+        Logger.warn(orderFromExchange);
+        await this.reset();
       }
     } catch (error) {
       Logger.error(error);

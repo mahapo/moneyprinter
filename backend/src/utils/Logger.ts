@@ -1,6 +1,3 @@
-import { WebClient } from "@slack/web-api";
-import { get } from "../configuration";
-
 import * as winston from 'winston'
 import Sentry from 'winston-transport-sentry-node'
 
@@ -8,7 +5,7 @@ const options = {
   sentry: {
     dsn: 'https://4a350580542f46bdb422be3fe3db3901@o395422.ingest.sentry.io/5247177',
   },
-  level: 'error'
+  level: 'warn'
 };
 
 //
