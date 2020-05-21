@@ -26,7 +26,7 @@ export class Backtester extends Runner {
     file: "",
     update: false,
     matrix: false,
-    percentOfMaxRange: 80
+    percentOfMaxRange: 80,
   };
 
   async startMatrix(options, matrix) {
@@ -259,7 +259,7 @@ export class Backtester extends Runner {
 
   getFiles() {
     return new Promise((resolve) =>
-      glob("./data/*.csv", {}, (er, files) => {
+      glob("./data/**/*.csv", {}, (er, files) => {
         resolve(
           files.map((file) => ({
             text: path.parse(file).name,
