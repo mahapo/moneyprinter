@@ -1,6 +1,7 @@
 import { StrategyBase } from "./StrategyBase";
 import { OrderLeveraged, ZoneRecovery } from "../models";
 import * as configuration from "../configuration";
+import * as packageJson from "../../package.json";
 
 export class MoneyPrinter extends StrategyBase {
   static idKeys = [
@@ -182,7 +183,7 @@ export class MoneyPrinter extends StrategyBase {
 
   createId(): string {
     let options = [
-      configuration.get("KEY"),
+      packageJson.version,
       this.options.timestamp,
 
       this.options.price,
