@@ -1,3 +1,4 @@
+// https://www.cryptodatadownload.com/data/binance/
 const fs = require("fs");
 const csv = require("csv-parser");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
@@ -13,12 +14,12 @@ const loadCSV = (filePath) => {
 };
 
 const btcFiles = [
-  "./data/LTCUSDT_August2019_Binance_prints.csv",
-  "./data/LTCUSDT_September2019_Binance_prints.csv",
-  "./data/LTCUSDT_October2019_Binance_prints.csv",
-  "./data/LTCUSDT_November2019_Binance_prints.csv",
-  "./data/LTCUSDT_December2019_Binance_prints.csv",
-  "./data/LTCUSDT_January2020_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_August2019_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_September2019_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_October2019_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_November2019_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_December2019_Binance_prints.csv",
+  "./data/LTC/LTCUSDT_January2020_Binance_prints.csv",
 ];
 
 (async () => {
@@ -46,7 +47,7 @@ const btcFiles = [
   }, []);
   console.log(result[0]);
   const csvWriter = createCsvWriter({
-    path: "LTCUSDT_August2019_January2020.csv",
+    path: "./data/LTCUSDT_August2019_January2020.csv",
     header: [
       { id: "unix", title: "unix" },
       { id: "price", title: "price" },
