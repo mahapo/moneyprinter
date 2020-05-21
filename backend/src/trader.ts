@@ -32,8 +32,8 @@ const main = async function () {
     const traderSettings = isDemo ? [
       {
         symbol: "BTC/USD",
-        leverage: 75,
-        ratio: 5,
+        leverage: 50,
+        ratio: 4.5,
         maxSteps: 4,
         percentOfMaxRange: 40
       },
@@ -61,8 +61,8 @@ const main = async function () {
     ] : [
       {
         symbol: "BTC/USD",
-        leverage: 75,
-        ratio: 5,
+        leverage: 50,
+        ratio: 4.5,
         maxSteps: 4,
         percentOfMaxRange: 40
       }
