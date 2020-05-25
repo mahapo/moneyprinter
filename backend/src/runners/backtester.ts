@@ -79,7 +79,7 @@ export class Backtester extends Runner {
     const lastStep = ZoneRecovery.calcStep(
       this.options.maxSteps,
       this.options.ratio
-    )
+    );
 
     this.options.risk = Math.round(lastStep.total) * 4;
 
@@ -201,6 +201,7 @@ export class Backtester extends Runner {
         drawdownMax: Math.min(...drawdowns).toFixed(2),
         options: this.options,
         ...this.strategy.stats,
+        ...this.calcOrderStats,
       });
       console.log(
         "Finish " + this.time + " ms.",
@@ -214,9 +215,40 @@ export class Backtester extends Runner {
         startBalance: this.options.startBalance,
         time: this.time,
         balances: this.formatedBalances,
+        ...this.strategy.stats,
+        ...this.calcOrderStats,
       });
       console.log("Backtest took " + this.time + " milliseconds.");
     }
+  }
+
+  get calcOrderStats() {
+    let lossLast;
+    let lossSerie = 0;
+    let winLast;
+    let winSerie = 0;
+    return {
+      countWin: this.strategy.overview.filter((o) => o.profit > 0).length,
+      countLoss: this.strategy.overview.filter((o) => o.profit < 0).length,
+      countWinSerieMax: this.strategy.overview
+        .filter((o) => o.status === "closed" && o.filled > 0)
+        .reduce((acc, o) => {
+          const isWin = o.profit > 0;
+          if (isWin && winLast) acc = Math.max(acc, ++winSerie);
+          else winSerie = 0;
+          winLast = isWin;
+          return acc;
+        }, 0),
+      countLossSerieMax: this.strategy.overview
+        .filter((o) => o.status === "closed" && o.filled > 0)
+        .reduce((acc, o) => {
+          const isLoss = o.profit < 0;
+          if (isLoss && lossLast) acc = Math.max(acc, ++lossSerie);
+          else lossSerie = 0;
+          lossLast = isLoss;
+          return acc;
+        }, 0),
+    };
   }
 
   get formatedBalances() {

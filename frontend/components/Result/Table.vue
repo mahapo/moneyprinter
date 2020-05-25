@@ -3,6 +3,8 @@
     <template v-slot:top>
       <v-switch v-model="good" label="Show only good results" class="pa-3"></v-switch>
     </template>
+    <template v-slot:item.countWin="{ item }">{{ item.countWin }} ({{ item.countWinSerieMax }})</template>
+    <template v-slot:item.countLoss="{ item }">{{ item.countLoss }} ({{ item.countLossSerieMax }})</template>
     <template v-slot:item.actions="{ item }">
       <v-icon small @click="startBacktest(item.options)">mdi-run</v-icon>
     </template>
@@ -44,10 +46,20 @@ export default {
           text: 'Total Trades',
           value: 'ordersCount',
         },
+        {
+          text: 'Win Trades (in row)',
+          value: 'countWin',
+        },
+        {
+          text: 'Loss Trades (in row)',
+          value: 'countLoss',
+        },
         { text: 'Profit', value: 'profit' },
         { text: 'Balance Min', value: 'balanceMin' },
         { text: 'Balance Max', value: 'balanceMax' },
         { text: 'Max Drawdown (%)', value: 'drawdownMax' },
+        { text: 'Min Amount', value: 'amountMin' },
+        { text: 'Max Amount', value: 'amountMax' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
       good: true,

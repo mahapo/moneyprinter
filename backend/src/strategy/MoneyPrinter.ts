@@ -30,6 +30,7 @@ export class MoneyPrinter extends StrategyBase {
   stats = {
     countMax: 0,
     amountMax: 0,
+    amountMin: Infinity,
   };
 
   side: string;
@@ -162,6 +163,7 @@ export class MoneyPrinter extends StrategyBase {
       }
 
       this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
+      this.stats.amountMin = Math.min(this.stats.amountMin, order.amount);
     }
     this.lastOrder = order;
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
