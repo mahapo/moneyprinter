@@ -5,12 +5,12 @@ const main = async function () {
   try {
     const backtester = new Backtester();
     backtester.start({
-      ratio: 2,
-      leverage: 100,
-      risk: 100,
-      file: "data/TRXUSDT_August2019_Binance_prints.csv",
-      startBalance: 400,
+      file: "data/trades/BTC/BTCUSDT_September2019_Binance_prints.csv",
       symbol: "BTC/USD",
+      leverage: 50,
+      ratio: 4.5,
+      maxSteps: 4,
+      percentOfMaxRange: 40
     });
   } catch (error) {
     console.debug("Main failed", error.message);
