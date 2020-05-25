@@ -52,6 +52,7 @@ export class Backtester extends Runner {
 
   async initTicks(path) {
     if (this.currentfile !== path) this.ticks = await this.getTestTickes(path);
+    // this.ticks = this.ticks.slice(0, 20000);
     this.currentfile = path;
   }
 
@@ -187,13 +188,17 @@ export class Backtester extends Runner {
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders);
     if (this.options.matrix) {
-      const balances = this.balances.map((b) => b.balance);
+      const balances = this.formatedBalances.map((b) => b.balance);
+      const drawdowns = this.formatedBalances
+        .filter((b) => !!b.drawdown)
+        .map((b) => b.drawdown);
       this.emit("backtestFinishMatrix", {
-        profit: this.strategy.profitTotal,
+        profit: this.strategy.profitTotal.toFixed(2),
         time: this.time,
         ordersCount: this.strategy.orders.length,
-        balanceMin: Math.min(...balances),
-        balanceMax: Math.max(...balances),
+        balanceMin: Math.min(...balances).toFixed(2),
+        balanceMax: Math.max(...balances).toFixed(2),
+        drawdownMax: Math.min(...drawdowns).toFixed(2),
         options: this.options,
         ...this.strategy.stats,
       });
@@ -208,10 +213,38 @@ export class Backtester extends Runner {
         profit: this.strategy.profitTotal,
         startBalance: this.options.startBalance,
         time: this.time,
-        balances: this.balances,
+        balances: this.formatedBalances,
       });
       console.log("Backtest took " + this.time + " milliseconds.");
     }
+  }
+
+  get formatedBalances() {
+    let lastBalance = null;
+    let lastChange = null;
+    return this.balances
+      .filter((balance) => !!balance.timestamp)
+      .sort(function (a, b) {
+        return a.timestamp - b.timestamp;
+      })
+      .map((balance, index) => {
+        if (!index) {
+          lastBalance = balance.balance;
+          return balance;
+        }
+        const change = (1 - balance.balance / lastBalance) * 100;
+        lastBalance = balance.balance;
+        return { ...balance, change };
+      })
+      .map((balance, index) => {
+        if (index < 2) {
+          lastChange = balance.change;
+          return balance;
+        }
+        const drawdown = balance.change + lastChange;
+        lastChange = balance.change;
+        return { ...balance, drawdown };
+      });
   }
 
   get balance() {
@@ -219,6 +252,10 @@ export class Backtester extends Runner {
   }
 
   get idealSize() {
+    const maxSize = 10000;
+    if (this.balance / this.options.risk > maxSize)
+      return Math.round((maxSize / this.options.risk) * this.options.leverage);
+
     return Math.round(
       (this.balance / this.options.risk) * this.options.leverage
     );
@@ -237,7 +274,6 @@ export class Backtester extends Runner {
           // @ts-ignore
           ...tick.date.split(":").join(".").split(".")
         );
-        timestamp = timestamp.getTime();
       }
 
       return {
