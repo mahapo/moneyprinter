@@ -144,7 +144,7 @@ export class Bybit extends ExchangeBase {
         stop_px: order.price,
         trigger_price: basePrice,
         price: order.price,
-        trigger_by: "LastPrice",
+        trigger_by: "MarkPrice",
         // time_in_force: "FillOrKill",
         ordertype: "Conditions",
       };
@@ -263,7 +263,7 @@ export class Bybit extends ExchangeBase {
     try {
       let { info } = await this.instance.fetchTicker(symbol, {});
       let { last_price, mark_price, index_price } = info;
-      return parseFloat(last_price);
+      return parseFloat(mark_price);
     } catch (error) {}
   }
 
