@@ -1,5 +1,5 @@
 <template>
-  <v-data-table dense :headers="header" :items="filteredResults" :items-per-page="50">
+  <v-data-table dense :headers="header" :items="filteredResults" :items-per-page="100" multi-sort>
     <template v-slot:top>
       <v-switch v-model="good" label="Show only good results" class="pa-3"></v-switch>
     </template>
