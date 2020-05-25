@@ -16,47 +16,43 @@ export class Bybit extends ExchangeBase {
 
   startWebSocket() {
     return new Promise((resolve, reject) => {
-      try {
-        this.socket = new WebSocket(
-          this.demo
-            ? "wss://stream-testnet.bybit.com/realtime?" + this.getSignature()
-            : "wss://stream.bybit.com/realtime?" + this.getSignature()
+      this.socket = new WebSocket(
+        this.demo
+          ? "wss://stream-testnet.bybit.com/realtime?" + this.getSignature()
+          : "wss://stream.bybit.com/realtime?" + this.getSignature()
+      );
+      const heartbeat = () => {
+        if (!this.socket) return;
+        if (this.socket.readyState !== 1) return;
+        this.socket.send('{"op":"ping"}');
+        setTimeout(heartbeat, 10000);
+      };
+
+      this.socket.on("message", (message) => {
+        const { topic, data } = JSON.parse(message);
+        if (topic === "order") this.onOrder(data);
+        else if (topic === "stop_order") this.onOrderStop(data);
+      });
+
+      this.socket.on("open", () => {
+        // Logger.info("Websocket open");
+        resolve();
+        this.socket.send(
+          '{"op": "subscribe", "args": ["order", "stop_order"]}'
         );
-        const heartbeat = () => {
-          if (!this.socket) return;
-          if (this.socket.readyState !== 1) return;
-          this.socket.send('{"op":"ping"}');
-          setTimeout(heartbeat, 10000);
-        };
+        heartbeat();
+      });
 
-        this.socket.on("message", (message) => {
-          const { topic, data } = JSON.parse(message);
-          if (topic === "order") this.onOrder(data);
-          else if (topic === "stop_order") this.onOrderStop(data);
-        });
-
-        this.socket.on("open", () => {
-          // Logger.info("Websocket open");
-          resolve();
-          this.socket.send(
-            '{"op": "subscribe", "args": ["order", "stop_order"]}'
-          );
-          heartbeat();
-        });
-
-        this.socket.on("error", (error) => {
-          Logger.error(error);
-          reject(error);
-        });
-
-        this.socket.on("close", () => {
-          this.emit("disconnected");
-        });
-      } catch (error) {
-        this.emit("disconnected");
-        Logger.error(error);
+      this.socket.on("error", (error) => {
         reject(error);
-      }
+        throw new Error(error);
+      });
+
+      this.socket.on("close", (error) => {
+        this.emit("disconnected");
+        reject(error);
+        throw new Error(error);
+      });
     });
   }
 

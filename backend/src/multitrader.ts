@@ -34,6 +34,7 @@ const main = async function () {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   } catch (error) {
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     throw new Error(error);
   }
 };
