@@ -274,13 +274,14 @@ export class Bybit extends ExchangeBase {
   formatedOrder(orderFromExchange) {
     return {
       id: orderFromExchange.order_link_id,
-      idExchange: orderFromExchange.order_id,
+      idUser: orderFromExchange.order_id,
       side: orderFromExchange.side.toLowerCase(),
       amount: orderFromExchange.qty,
       price: parseFloat(orderFromExchange.trigger_price),
       takeProfit: parseFloat(orderFromExchange.take_profit),
       stopLoss: parseFloat(orderFromExchange.stop_loss),
       raw: JSON.stringify(orderFromExchange),
+      symbol: orderFromExchange.symbol,
     };
   }
 
