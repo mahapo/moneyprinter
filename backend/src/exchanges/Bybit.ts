@@ -144,7 +144,7 @@ export class Bybit extends ExchangeBase {
         stop_px: order.price,
         trigger_price: basePrice,
         price: order.price,
-        trigger_by: "MarkPrice",
+        trigger_by: "LastPrice",
         // time_in_force: "FillOrKill",
         ordertype: "Conditions",
       };
