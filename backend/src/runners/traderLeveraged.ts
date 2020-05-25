@@ -15,7 +15,7 @@ export class TraderLeveraged extends Runner {
     risk: 100,
     symbol: "",
     maxSteps: 5,
-    percentOfMaxRange: 80
+    percentOfMaxRange: 80,
   };
 
   constructor(public account, options) {
@@ -26,7 +26,7 @@ export class TraderLeveraged extends Runner {
       risk: parseInt(options.risk),
       maxSteps: parseInt(options.maxSteps),
       symbol: options.symbol,
-      percentOfMaxRange: parseInt(options.percentOfMaxRange)
+      percentOfMaxRange: parseInt(options.percentOfMaxRange),
     };
   }
 
@@ -38,11 +38,11 @@ export class TraderLeveraged extends Runner {
     this.strategy.percentOfMaxRange = this.options.percentOfMaxRange;
 
     const lastStep = ZoneRecovery.calcStep(
-      this.options.maxSteps + 1,
+      this.options.maxSteps,
       this.options.ratio
     );
 
-    this.options.risk = Math.round(lastStep.total);
+    this.options.risk = Math.round(lastStep.total) * 4;
 
     if (reset) {
       await this.account.resetAll(this.options.symbol);
@@ -91,7 +91,7 @@ export class TraderLeveraged extends Runner {
   async onTick() {
     try {
       this.strategy.run({
-        price: await this.account.getCurrentPrice(this.options.symbol),
+        price: await this.account.getLastPrice(this.options.symbol),
         timestamp: this.account.instance.now(),
       });
     } catch (error) {
@@ -99,9 +99,8 @@ export class TraderLeveraged extends Runner {
     }
   }
 
-  async onSignal({ timestamp }) {
+  async onSignal({ timestamp, price }) {
     try {
-      const price = await this.account.getCurrentPrice(this.options.symbol);
       const balance = await this.account.getCurrentBalance(
         this.options.symbol.split("/")[0]
       );
@@ -209,20 +208,14 @@ export class TraderLeveraged extends Runner {
 
           // Set new Orders
         } else if (order.status === "open" && order.filled === 0) {
-          try {
-            await this.account.placeMarketStopOrder(order);
-          } catch ({ message }) {
-            if (this.strategy.countFilled === 0) this.reset();
-            else {
-              message = message.replace("bybit ", "");
-              message = JSON.parse(message);
-              console.log("Reset", message.ret_msg);
-              await this.account.placeMarketStopOrder(order);
-            }
-          }
+          await this.account.placeMarketStopOrder(order);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      this.reset();
+      Logger.error(error);
+    }
   }
 
   async reset() {

@@ -44,10 +44,10 @@ export class Bybit extends ExchangeBase {
           heartbeat();
         });
 
-        this.socket.on('error', (error) =>{
+        this.socket.on("error", (error) => {
           Logger.error(error);
           reject(error);
-      });
+        });
 
         this.socket.on("close", () => {
           this.emit("disconnected");
@@ -261,6 +261,14 @@ export class Bybit extends ExchangeBase {
     });
     let orders = await this.instance.fetchOrders(symbol);
     return [orders, positions];
+  }
+
+  async getLastPrice(symbol) {
+    try {
+      let { info } = await this.instance.fetchTicker(symbol, {});
+      let { last_price, mark_price, index_price } = info;
+      return parseFloat(last_price);
+    } catch (error) {}
   }
 
   formatedOrder(orderFromExchange) {

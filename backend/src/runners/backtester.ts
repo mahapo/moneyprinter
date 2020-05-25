@@ -77,11 +77,11 @@ export class Backtester extends Runner {
     //TODO: Ratio: 6 Leverage: 50 MaxSteps: 4: Check why timeout
 
     const lastStep = ZoneRecovery.calcStep(
-      this.options.maxSteps + 1,
+      this.options.maxSteps,
       this.options.ratio
-    );
+    )
 
-    this.options.risk = Math.round(lastStep.total);
+    this.options.risk = Math.round(lastStep.total) * 4;
 
     this.strategy = new MoneyPrinter(this);
     this.strategy.maxSteps = this.options.maxSteps;
