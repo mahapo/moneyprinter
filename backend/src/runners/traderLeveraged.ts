@@ -242,6 +242,11 @@ export class TraderLeveraged extends Runner {
         order.amount === orderFromExchange.amount
       )
         return true;
+      if (
+        order.symbol.replace("/", "") === orderFromExchange.symbol &&
+        order.amount === orderFromExchange.amount
+      )
+        return true;
       return false;
     });
   }
