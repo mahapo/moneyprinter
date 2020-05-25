@@ -74,7 +74,7 @@ const main = async function () {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   } catch (error) {
-    console.debug("Main failed", error.message);
+    throw new Error(error);
   }
 };
 
