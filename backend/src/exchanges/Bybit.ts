@@ -168,10 +168,9 @@ export class Bybit extends ExchangeBase {
         error.message.includes("expect Rising") ||
         error.message.includes("expect Falling")
       )
-        throw error;
+        throw new Error(this.formatError(error).message);
       else {
-        Logger.error(this.formatError(error));
-        throw error;
+        throw new Error(this.formatError(error).message);
       }
     }
   }

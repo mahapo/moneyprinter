@@ -212,8 +212,8 @@ export class TraderLeveraged extends Runner {
         }
       }
     } catch (error) {
+      Logger.error(error.message);
       this.reset();
-      Logger.error(error);
     }
   }
 
@@ -221,7 +221,7 @@ export class TraderLeveraged extends Runner {
     this.strategy.currentOrders = [];
     this.account.lastTime = 0;
     await this.account.resetAll(this.options.symbol);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     this.onTick();
   }
 
