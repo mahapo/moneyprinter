@@ -12,11 +12,9 @@ const main = async function () {
   try {
     const index = parseInt(process.env.INDEX);
 
-    const options = accounts[index].account;
-
     const account = new Bybit(
       {
-        ...options,
+        ...accounts[index].account,
         enableRateLimit: true,
         rate_limit: 2000,
       },
@@ -29,8 +27,6 @@ const main = async function () {
       symbol,
       ...accounts[index].settings,
     }));
-
-    console.log(traderSettings);
 
     for (let setting of traderSettings) {
       const trader = new TraderLeveraged(account, setting);
