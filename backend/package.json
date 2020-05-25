@@ -31,6 +31,7 @@
     "kill-port": "^1.6.0",
     "module-alias": "^2.2.2",
     "request": "^2.88.2",
+    "slackbots": "^1.2.0",
     "socket.io": "^2.3.0",
     "socketio-wildcard": "^2.0.0",
     "tulind": "^0.8.18",
