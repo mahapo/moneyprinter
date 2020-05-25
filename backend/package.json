@@ -1,6 +1,6 @@
 {
   "name": "@moneyprinter/backend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "index.js",
   "repository": "https://github.com/mahapo/decentralex-bots.git",
   "author": "Manuel Haller Polo <manuel@wondrous.ch>",
