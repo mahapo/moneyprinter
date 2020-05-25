@@ -164,13 +164,13 @@ export class Bybit extends ExchangeBase {
     } catch (error) {
       // TODO: Handel error: expect Rising, but trigger_price[9745.5] <= current[9745.5]??LastPrice
       // TODO: Handel error: expect Falling, but trigger_price[9745.5] >= current[9745.5]??LastPrice
-      Logger.error(this.formatError(error));
       if (
         error.message.includes("expect Rising") ||
         error.message.includes("expect Falling")
       )
         throw error;
       else {
+        Logger.error(this.formatError(error));
         throw error;
       }
     }
