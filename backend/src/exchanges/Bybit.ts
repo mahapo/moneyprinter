@@ -44,6 +44,11 @@ export class Bybit extends ExchangeBase {
           heartbeat();
         });
 
+        this.socket.on('error', (error) =>{
+          Logger.error(error);
+          reject(error);
+      });
+
         this.socket.on("close", () => {
           this.emit("disconnected");
         });
