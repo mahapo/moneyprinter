@@ -4,10 +4,7 @@
       <v-card>
         <v-card-title class="headline">Strategy Backtester</v-card-title>
         <v-card-text>
-          <ChartLine
-            :chart-data="datacollection"
-            :options="chartOptions"
-          ></ChartLine>
+          <ResultBalanceChart :balances="balances" :logarithmic="logarithmic"></ResultBalanceChart>
           <v-switch v-model="logarithmic" :label="`Logarithmic`"></v-switch>
         </v-card-text>
         <v-card-actions>
@@ -18,9 +15,15 @@
     <v-col md="12">
       <v-card>
         <v-tabs v-model="tab">
-          <v-tab> <v-icon left>mdi-account</v-icon>Settings </v-tab>
-          <v-tab> <v-icon left>mdi-account</v-icon>Trades </v-tab>
-          <v-tab> <v-icon left>mdi-money</v-icon>Results </v-tab>
+          <v-tab>
+            <v-icon left>mdi-account</v-icon>Settings
+          </v-tab>
+          <v-tab>
+            <v-icon left>mdi-account</v-icon>Trades
+          </v-tab>
+          <v-tab>
+            <v-icon left>mdi-money</v-icon>Results
+          </v-tab>
 
           <v-tab-item>
             <v-card flat>
@@ -33,11 +36,7 @@
                       :items="strategies"
                       label="Strategy"
                     ></v-select>
-                    <v-select
-                      v-model="testOptions.file"
-                      :items="files"
-                      label="Testfile"
-                    ></v-select>
+                    <v-select v-model="testOptions.file" :items="files" label="Testfile"></v-select>
                     <v-text-field
                       v-model="testOptions.startBalance"
                       label="Startbalance"
@@ -45,16 +44,8 @@
                     ></v-text-field>
                   </v-col>
                   <v-col v-if="false" cols="12">
-                    <v-text-field
-                      v-model="testOptions.leverage"
-                      label="Leverage"
-                      type="number"
-                    ></v-text-field>
-                    <v-text-field
-                      v-model="testOptions.ratio"
-                      label="Ratio"
-                      type="number"
-                    ></v-text-field>
+                    <v-text-field v-model="testOptions.leverage" label="Leverage" type="number"></v-text-field>
+                    <v-text-field v-model="testOptions.ratio" label="Ratio" type="number"></v-text-field>
                   </v-col>
                   <v-col cols="12">
                     <input-matrix v-model="testMatrix"></input-matrix>
@@ -63,11 +54,7 @@
 
                 <v-row>
                   <v-col md="10">
-                    <v-progress-linear
-                      v-model="progress.percent"
-                      height="36"
-                      reactive
-                    >
+                    <v-progress-linear v-model="progress.percent" height="36" reactive>
                       <template v-slot="{ value }">
                         {{ progress.text }}:
                         <strong>{{ value }}%</strong>
@@ -111,27 +98,11 @@ export default {
       this.ticks = ticks
     },
     backtestFinish({ orders, balances }) {
-      balances = balances
+      this.balances = balances
         .sort(function (a, b) {
           return new Date(a.timestamp) - new Date(b.timestamp)
         })
         .filter((balance) => !!balance.timestamp)
-      const labels = balances.map((balance) => balance.timestamp)
-
-      this.orders = orders
-
-      this.datacollection = {
-        labels,
-        datasets: [
-          {
-            label: 'Balance',
-            borderColor: 'green',
-            data: balances.map((balance) => balance.balance),
-            fill: false,
-            pointRadius: 0,
-          },
-        ],
-      }
     },
     backtestFinishMatrix(update) {
       this.results.push(update)
@@ -159,7 +130,7 @@ export default {
       results: [],
       testOptions: {
         strategy: 'moneyprinter',
-        file: './data/BTCUSDT_August2019_January2020.csv',
+        file: './data/trades/BTCUSDT_August2019_January2020.csv',
         ratio: 2,
         leverage: 100,
         startBalance: 100,
@@ -172,56 +143,8 @@ export default {
         text: 'Start test',
       },
       orders: [],
-      datacollection: {
-        labels: [],
-        datasets: [],
-      },
+      balances: [],
     }
-  },
-  computed: {
-    chartOptions() {
-      return {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          display: false,
-        },
-        tooltips: {
-          mode: 'index',
-          intersect: false,
-        },
-        hover: {
-          mode: 'nearest',
-          intersect: true,
-        },
-        scales: {
-          xAxes: [
-            {
-              type: 'time',
-              time: { displayFormats: { minute: 'HH:mm' } },
-              display: true,
-              scaleLabel: {
-                display: true,
-                labelString: 'Point',
-              },
-            },
-          ],
-          yAxes: [
-            {
-              display: true,
-              type: this.logarithmic ? 'logarithmic' : 'linear',
-              scaleLabel: {
-                display: true,
-                labelString: 'Value',
-              },
-              ticks: {
-                suggestedMin: 0,
-              },
-            },
-          ],
-        },
-      }
-    },
   },
   mounted() {
     this.$socket.client.emit('files')

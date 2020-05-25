@@ -1,16 +1,7 @@
 <template>
-  <v-data-table
-    dense
-    :headers="header"
-    :items="filteredResults"
-    :items-per-page="50"
-  >
+  <v-data-table dense :headers="header" :items="filteredResults" :items-per-page="50">
     <template v-slot:top>
-      <v-switch
-        v-model="good"
-        label="Show only good results"
-        class="pa-3"
-      ></v-switch>
+      <v-switch v-model="good" label="Show only good results" class="pa-3"></v-switch>
     </template>
     <template v-slot:item.actions="{ item }">
       <v-icon small @click="startBacktest(item.options)">mdi-run</v-icon>
@@ -56,7 +47,7 @@ export default {
         { text: 'Profit', value: 'profit' },
         { text: 'Balance Min', value: 'balanceMin' },
         { text: 'Balance Max', value: 'balanceMax' },
-        { text: 'Max Step', value: 'countMax' },
+        { text: 'Max Drawdown (%)', value: 'drawdownMax' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
       good: true,
