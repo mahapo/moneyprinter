@@ -281,9 +281,13 @@ export class Bybit extends ExchangeBase {
   }
 
   formatError(error) {
-    return {
-      ...error,
-      message: JSON.parse(error.message.replace("bybit ", "")),
-    };
+    try {
+      return {
+        ...error,
+        message: JSON.parse(error.message.replace("bybit ", "")),
+      };
+    } catch {
+      return error;
+    }
   }
 }
