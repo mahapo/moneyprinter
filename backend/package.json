@@ -16,9 +16,9 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "ping": "curl -o /dev/null -s -w 'Total: %{time_total}s\n' https://api.bybit.com/v2/public/orderBook/L2?symbol=BTCUSD",
-    "pm2": "pm2 start npm --name \"bybit\" -- run \"trader\"",
-    "pm2:demo": "SANDBOX=true pm2 start npm --name \"bybit:testnet\" -- run \"trader\"",
-    "pm2:multi": "SANDBOX=true pm2 start npm --name \"bybit:${INDEX}multi\" -- run \"multitrader\""
+    "pm2": "pm2 start npm --name \"bybit\" -- run \"trader\" --watch",
+    "pm2:demo": "SANDBOX=true pm2 start npm --name \"bybit:testnet\" -- run \"trader\" --watch",
+    "pm2:multi": "SANDBOX=true pm2 start npm --name \"bybit:${INDEX}multi\" -- run \"multitrader\" --watch"
   },
   "dependencies": {
     "@sentry/node": "5.15.5",
