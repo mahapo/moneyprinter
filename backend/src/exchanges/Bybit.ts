@@ -105,7 +105,7 @@ export class Bybit extends ExchangeBase {
       await this.instance.privatePostStopOrderCancelAll(request);
       await this.cancelAllPositions(symbol);
     } catch (error) {
-      Logger.error(this.formatError(error));
+      throw Logger.error(this.formatError(error));
     }
   }
 
@@ -117,7 +117,7 @@ export class Bybit extends ExchangeBase {
       });
     } catch (error) {
       if (!error.message.includes("old leverage"))
-        Logger.error(this.formatError(error));
+        throw Logger.error(this.formatError(error));
     }
   }
 
@@ -204,7 +204,7 @@ export class Bybit extends ExchangeBase {
       // TODO: Handel error: TrailingProfit:201.95 set for Sell position should be less than entry_price:194.05??LastPrice and last_price:195.65
       // TODO: Handel 'StopLoss:211.5 set for Buy position should be between liq_price:212 and base_price:214.1??LastPrice'
       Logger.error(this.formatError(error));
-      return false;
+      throw this.formatError(error);
     }
   }
 
@@ -218,8 +218,7 @@ export class Bybit extends ExchangeBase {
       order.id = "";
       return true;
     } catch (error) {
-      Logger.error(this.formatError(error));
-      return false;
+      throw this.formatError(error);
     }
   }
 
@@ -245,8 +244,7 @@ export class Bybit extends ExchangeBase {
 
       return true;
     } catch (error) {
-      Logger.error(this.formatError(error));
-      return false;
+      throw this.formatError(error);
     }
   }
 
@@ -263,7 +261,9 @@ export class Bybit extends ExchangeBase {
       let { info } = await this.instance.fetchTicker(symbol, {});
       let { last_price, mark_price, index_price } = info;
       return parseFloat(mark_price);
-    } catch (error) {}
+    } catch (error) {
+      throw this.formatError(error);
+    }
   }
 
   formatedOrder(orderFromExchange) {
