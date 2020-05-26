@@ -27,7 +27,7 @@ export class OrderLeveraged extends Order {
   }
 
   get idUser() {
-    return `${this._idUser}-${this.side}`;
+    return `${this._idUser}-${this.side.charAt(0)}`;
   }
 
   set idUser(id) {

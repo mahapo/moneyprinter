@@ -1,8 +1,7 @@
 import { StrategyBase } from "./StrategyBase";
 import { OrderLeveraged, ZoneRecovery } from "../models";
-import * as configuration from "../configuration";
+import * as LZW from "../utils/LZW";
 import * as packageJson from "../../package.json";
-
 export class MoneyPrinter extends StrategyBase {
   static idKeys = [
     "id",
@@ -185,20 +184,17 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   createId(): string {
+    if (!this.isLive) return "";
     let options = [
-      packageJson.version,
       this.options.timestamp,
-
       this.options.price,
-      this.priceRange,
-
-      this.options.amount,
-      this.options.leverage,
+      this.percentOfMaxRange,
+      // this.options.amount,
+      // this.options.leverage,
       this.options.ratio,
-
       this.countFilled,
-    ];
-    return Object.values(options).join("-");
+    ].map((n) => n.toString(32));
+    return LZW.lzw_encode(Object.values(options).join("-"));
   }
 
   printActiveOrders() {
