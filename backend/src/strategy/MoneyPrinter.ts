@@ -16,6 +16,7 @@ export class MoneyPrinter extends StrategyBase {
   ];
 
   percentOfMaxRange: number = 80;
+  percentSlipperage: number = 0.01;
 
   options = {
     price: 0,
@@ -95,10 +96,12 @@ export class MoneyPrinter extends StrategyBase {
     this.short.price = this.long.stopLoss = this.priceBottom;
 
     this.long.takeProfit = rounder(
-      this.short.price + this.priceRange * this.options.ratio
+      this.short.price +
+        this.priceRange * this.options.ratio * (this.percentSlipperage / 100)
     );
     this.short.takeProfit = rounder(
-      this.short.price - this.priceRange * this.options.ratio
+      this.short.price -
+        this.priceRange * this.options.ratio * (this.percentSlipperage / 100)
     );
 
     this.long.idUser = this.createId();
@@ -209,7 +212,7 @@ export class MoneyPrinter extends StrategyBase {
 
   get profitTotal() {
     return [...this.currentOrders, ...this.orders].reduce((r, p) => {
-      return r + p.profit;
+      return r + p.closedProfit;
     }, 0);
   }
 
@@ -228,7 +231,8 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get currentStep() {
-    if(this.isLive) return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
-    return ZoneRecovery.calcStep(this.countFilled - 1, this.options.ratio);
+    if (this.isLive)
+      return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
+    return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
   }
 }
