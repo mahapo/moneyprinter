@@ -1,6 +1,8 @@
 // https://phemex.com/references/articles/liquidation-price
 // https://antiliquidation.gitlab.io/assets/scripts/main.js
 
+// https://help.bybit.com/hc/en-us/articles/360039260694-Unrealized-Profit-Loss-Calculation-Inverse-Contract-
+
 import * as colors from "colors/safe";
 import { Order } from ".";
 
@@ -38,39 +40,117 @@ export class OrderLeveraged extends Order {
     return this.status === "open" && this.filled > 0;
   }
 
-  get adjustedLong(): number {
-    return (
-      this.maintenanceMargin - (1 / this.leverage) * this.maintenanceMargin
-    );
-  }
+  // get adjustedLong(): number {
+  //   return (
+  //     this.maintenanceMargin - (1 / this.leverage) * this.maintenanceMargin
+  //   );
+  // }
 
-  get adjustedShort(): number {
-    return (
-      this.maintenanceMargin + (1 / this.leverage) * this.maintenanceMargin
-    );
-  }
+  // get adjustedShort(): number {
+  //   return (
+  //     this.maintenanceMargin + (1 / this.leverage) * this.maintenanceMargin
+  //   );
+  // }
 
-  // Change in Price to Bankruptcy (%)
-  get changePriceBankruptcyPercent(): number {
-    if (this.side === "buy") return (1 / (this.leverage + 1)) * -1 * 100;
-    return (1 / (this.leverage - 1)) * 100;
-  }
+  // // Change in Price to Bankruptcy (%)
+  // get changePriceBankruptcyPercent(): number {
+  //   if (this.side === "buy") return (1 / (this.leverage + 1)) * -1 * 100;
+  //   return (1 / (this.leverage - 1)) * 100;
+  // }
 
-  // Change in Price to Liquidation (%)
-  get changePriceLiquidationPercent(): number {
-    if (this.side === "buy")
-      return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
-    return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
-  }
+  // // Change in Price to Liquidation (%)
+  // get changePriceLiquidationPercent(): number {
+  //   if (this.side === "buy")
+  //     return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
+  //   return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
+  // }
 
   // Liquidation Price
   get liquidationPrice(): number {
     if (this.side === "buy")
       return (
-        this.price + (this.price * this.changePriceLiquidationPercent) / 100
+        (this.price * this.leverage) /
+        (this.leverage + 1 - this.maintenanceMargin * this.leverage)
       );
-    return this.price + (this.price * this.changePriceLiquidationPercent) / 100;
+    return (
+      (this.price * this.leverage) /
+      (this.leverage - 1 + this.maintenanceMargin * this.leverage)
+    );
   }
+
+  get realAmount() {
+    return this.amount / this.leverage;
+  }
+
+  get amountValue() {
+    return this.amount / this.price;
+  }
+
+  get feeRate() {
+    return this.type === "market" ? -0.075 : 0.025;
+  }
+
+  get feeValue() {
+    return this.amountValue * this.feeRate;
+  }
+
+  get profitLossPercentage() {
+    return (1 - this.price / this.priceExit) * 100;
+  }
+
+  get profitLossValue() {
+    return (this.profitLossPercentage / 100) * this.amountValue;
+  }
+
+  get profit() {
+    return (this.profitLossPercentage / 100) * this.amount;
+  }
+
+  get roe() {
+    return this.profitLossPercentage * this.leverage;
+  }
+
+  get uPNLValue() {
+    if (this.side === "buy")
+      return this.amount * (1 / this.price - 1 / this.priceExit);
+    return this.amount * (1 / this.priceExit - 1 / this.price);
+  }
+
+  get initialMarginRate() {
+    return 1 / this.leverage;
+  }
+
+  // https://help.bybit.com/hc/en-us/articles/900000181066-Bankruptcy-Price-USDT-Contract-
+  get bankruptcyPrice() {
+    if (this.side === "buy") return this.price * (1 - this.initialMarginRate);
+    return this.price * (1 + this.initialMarginRate);
+  }
+
+  get initialMargin() {
+    return this.amount / this.leverage;
+  }
+
+  get positionMargin() {
+    return this.initialMargin + this.closingTradingFee;
+  }
+
+  get closingTradingFee() {
+    return (this.amount / this.bankruptcyPrice) * 0.00075;
+  }
+
+  get feeToOpen() {
+    return this.amount * (1 / this.price) * 0.00075;
+  }
+
+  get feeToClose() {
+    return this.amount * (1 / this.priceExit) * 0.00075;
+  }
+
+  get closedProfit() {
+    return this.uPNLValue - (this.feeToOpen + this.feeToClose);
+  }
+
+  // =================================================================
 
   // Change in Price to Liquidation ($)
   get changePriceLiquidation(): number {
@@ -108,14 +188,14 @@ export class OrderLeveraged extends Order {
     return (this.amount / this.leverage) * this.stopLossPercent * -1;
   }
 
-  get profit(): number {
-    if (this.priceExit) {
-      if (this.side === "buy")
-        return this.priceExit > this.price ? this.maxWin : this.maxLoss;
-      else return this.priceExit < this.price ? this.maxWin : this.maxLoss;
-    }
-    return 0;
-  }
+  // get profit(): number {
+  //   if (this.priceExit) {
+  //     if (this.side === "buy")
+  //       return this.priceExit > this.price ? this.maxWin : this.maxLoss;
+  //     else return this.priceExit < this.price ? this.maxWin : this.maxLoss;
+  //   }
+  //   return 0;
+  // }
 
   checkIfTriggersTakeProfit(price: number) {
     return (
