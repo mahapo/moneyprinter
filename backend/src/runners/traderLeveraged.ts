@@ -212,11 +212,11 @@ export class TraderLeveraged extends Runner {
         }
       }
     } catch (error) {
-      if (
-        !error.message.includes("expect Rising") &&
-        !error.message.includes("expect Falling")
-      )
-        Logger.error(error.message);
+      // if (
+      //   !error.message.includes("expect Rising") &&
+      //   !error.message.includes("expect Falling")
+      // )
+      Logger.error(error);
       this.reset();
     }
   }
