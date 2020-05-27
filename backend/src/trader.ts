@@ -39,28 +39,28 @@ const main = async function () {
             leverage: 50,
             ratio: 4.5,
             maxSteps: 4,
-            percentOfMaxRange: 40,
+            percentOfMaxRange: 10,
           },
           {
             symbol: "ETH/USD",
             leverage: 50,
             ratio: 4.5,
             maxSteps: 4,
-            percentOfMaxRange: 40,
+            percentOfMaxRange: 10,
           },
           {
             symbol: "EOS/USD",
             leverage: 50,
             ratio: 4.5,
             maxSteps: 4,
-            percentOfMaxRange: 40,
+            percentOfMaxRange: 10,
           },
           {
             symbol: "XRP/USD",
             leverage: 50,
             ratio: 4.5,
             maxSteps: 4,
-            percentOfMaxRange: 40,
+            percentOfMaxRange: 10,
           },
         ]
       : [
