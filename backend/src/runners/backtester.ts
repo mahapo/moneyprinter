@@ -81,7 +81,7 @@ export class Backtester extends Runner {
       this.options.ratio
     );
 
-    this.options.risk = Math.round(lastStep.total) * 4;
+    this.options.risk = Math.round(lastStep.total) * 2;
 
     this.strategy = new MoneyPrinter(this);
     this.strategy.maxSteps = this.options.maxSteps;
@@ -150,6 +150,7 @@ export class Backtester extends Runner {
     this.strategy.currentOrders.forEach((order: OrderLeveraged) => {
       if (order.status === "open" && order.filled === 0) {
         if (order.checkIfFilled(price)) {
+          order.timestampFilled = timestamp;
           this.balances.push({
             timestamp,
             balance: this.balance - order.amount / order.leverage,
@@ -163,13 +164,14 @@ export class Backtester extends Runner {
         ) {
           order.status = "closed";
           order.priceExit = price;
+          order.timestampExit = timestamp;
 
           this.balances.push({
             timestamp,
-            balance: this.balance, // TODO: Fix Profit
+            balance: this.balance,
           });
 
-          this.strategy.onOrderDone(order, order.profit > 0);
+          this.strategy.onOrderDone(order, order.closedProfit > 0);
         }
       }
     });
