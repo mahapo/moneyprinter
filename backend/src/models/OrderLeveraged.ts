@@ -24,8 +24,8 @@ export class OrderLeveraged extends Order {
     this.leverage = options.leverage;
     this.ratio = options.ratio;
 
-    this.takeProfit = this.takeProfitSuggestion;
-    this.stopLoss = this.stopLossSuggestion;
+    // this.takeProfit = this.takeProfitSuggestion;
+    // this.stopLoss = this.stopLossSuggestion;
   }
 
   get idUser() {
@@ -146,15 +146,22 @@ export class OrderLeveraged extends Order {
     return this.amount * (1 / this.priceExit) * 0.00075;
   }
 
+  get closedProfitValue() {
+    if (this.priceExit)
+      return this.uPNLValue - (this.feeToOpen + this.feeToClose);
+    return 0;
+  }
+
   get closedProfit() {
-    return this.uPNLValue - (this.feeToOpen + this.feeToClose);
+    if (this.priceExit) return this.closedProfitValue * this.priceExit;
+    return 0;
   }
 
   // =================================================================
 
   // Change in Price to Liquidation ($)
   get changePriceLiquidation(): number {
-    return (this.price - this.liquidationPrice) * -1;
+    return Math.abs(this.price - this.liquidationPrice);
   }
 
   get takeProfitSuggestion(): number {
@@ -233,9 +240,10 @@ export class OrderLeveraged extends Order {
 
   print() {
     var profit = "";
-    if (this.profit !== 0) {
+    if (this.closedProfit !== 0) {
       const prof = `${this.profitString()}`;
-      const colored = this.profit > 0 ? colors.green(prof) : colors.red(prof);
+      const colored =
+        this.closedProfit > 0 ? colors.green(prof) : colors.red(prof);
       profit = `| Profit: ${colored}`;
     }
     console.log(
@@ -246,6 +254,6 @@ export class OrderLeveraged extends Order {
   }
 
   profitString() {
-    return this.profit.toFixed(2);
+    return this.closedProfit.toFixed(2);
   }
 }

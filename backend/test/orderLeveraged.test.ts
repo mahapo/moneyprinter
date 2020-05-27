@@ -16,7 +16,8 @@ describe("Leverage Order", () => {
       side: "buy",
     });
     expect(long.liquidationPrice).toBe(9852.216748768473);
-    expect(parseFloat(long.feeValue.toFixed(6))).toBe(0.0025);
+    expect(long.changePriceLiquidation.toFixed(4)).toBe("147.7833");
+    expect(long.feeValue.toFixed(4)).toBe("0.0025");
     expect(long.amountValue).toBe(0.1);
     expect(long.realAmount).toBe(20);
 
@@ -96,6 +97,37 @@ describe("Leverage Order", () => {
     expect(long.uPNLValue.toFixed(4)).toBe("-0.0157");
     expect(long.feeToOpen.toFixed(4)).toBe("0.0006");
     expect(long.feeToClose.toFixed(8)).toBe("0.00058824");
-    expect(long.closedProfit.toFixed(8)).toBe("-0.01687451");
+    expect(long.closedProfitValue.toFixed(8)).toBe("-0.01687451");
+    // expect(long.closedProfit.toFixed(8)).toBe("-0.01687451");
+  });
+
+  test("Real trade long", () => {
+    const long = new OrderLeveraged({
+      timestamp: 0,
+      symbol: "",
+      price: 9204.13,
+      amount: 23,
+      leverage: 50,
+      ratio: 2,
+      side: "buy",
+    });
+    long.priceExit = 9203.53;
+
+    expect(long.closedProfitValue.toFixed(8)).toBe("-0.00000391");
+  });
+
+  test("Real trade long", () => {
+    const long = new OrderLeveraged({
+      timestamp: 0,
+      symbol: "",
+      price: 9170.99,
+      amount: 84,
+      leverage: 50,
+      ratio: 2,
+      side: "sell",
+    });
+    long.priceExit = 9196.01;
+
+    expect(long.closedProfitValue.toFixed(6)).toBe("-0.000039");
   });
 });
