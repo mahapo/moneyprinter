@@ -5,6 +5,8 @@ export class Order implements ccxt.Order {
   datetime: string;
   timestamp: number;
   lastTradeTimestamp: number;
+  timestampFilled: number;
+  timestampExit: number;
   status: "open" | "closed" | "canceled";
   symbol: string;
   type: "market" | "limit";
