@@ -19,22 +19,13 @@
               <v-container>
                 <v-row>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.start"
-                      label="Start"
-                    ></v-text-field>
+                    <v-text-field v-model="editedItem.start" label="Start"></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.end"
-                      label="End"
-                    ></v-text-field>
+                    <v-text-field v-model="editedItem.end" label="End"></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field
-                      v-model="editedItem.step"
-                      label="Step"
-                    ></v-text-field>
+                    <v-text-field v-model="editedItem.step" label="Step"></v-text-field>
                   </v-col>
                 </v-row>
               </v-container>

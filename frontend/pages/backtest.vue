@@ -98,6 +98,7 @@ export default {
       this.ticks = ticks
     },
     backtestFinish({ orders, balances }) {
+      this.orders = orders
       this.balances = balances
         .sort(function (a, b) {
           return new Date(a.timestamp) - new Date(b.timestamp)

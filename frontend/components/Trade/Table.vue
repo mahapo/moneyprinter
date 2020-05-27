@@ -1,9 +1,5 @@
 <template>
-  <v-data-table
-    :headers="header"
-    :items="trades"
-    :items-per-page="20"
-  ></v-data-table>
+  <v-data-table :headers="header" :items="trades" :items-per-page="20"></v-data-table>
 </template>
 
 <script>
@@ -19,7 +15,11 @@ export default {
       header: [
         {
           text: 'Time',
-          value: 'timestamp',
+          value: 'timestampFilled',
+        },
+        {
+          text: 'Time Exit',
+          value: 'timestampExit',
         },
         // { text: 'Symbol', value: 'symbol' },
         { text: 'Side', value: 'side' },
@@ -27,12 +27,8 @@ export default {
         { text: 'Entry Price', value: 'price' },
         { text: 'Exit Price', value: 'priceExit' },
         { text: 'Profit', value: 'profit' },
-        // { text: 'Liquidation Price', value: 'liquidationPriceEp' },
-        // { text: 'markPriceEp', value: 'markPriceEp' },
-        // { text: 'curTermRealisedPnlEv', value: 'curTermRealisedPnlEv' },
-        // { text: 'cumClosedPnlEv', value: 'cumClosedPnlEv' },
-        // { text: 'unrealisedPnlEv:', value: 'unrealisedPnlEv' },
-        // { text: 'execSeq', value: 'execSeq' },
+        { text: 'Takeprofit', value: 'takeProfit' },
+        { text: 'StopLoss', value: 'stopLoss' },
       ],
     }
   },

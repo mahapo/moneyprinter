@@ -2,37 +2,21 @@
   <div>
     <v-row v-for="(input, index) in inputs" :key="input.key">
       <v-col cols="12" sm="6" md="2">
-        <v-checkbox
-          v-model="input.enabled"
-          :label="input.name"
-          dense
-        ></v-checkbox>
+        <v-checkbox v-model="input.enabled" :label="input.name" dense></v-checkbox>
       </v-col>
       <v-col cols="12" sm="6" md="2">
         <v-text-field v-model="input.start" dense label="Start"></v-text-field>
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field
-          v-model="input.end"
-          dense
-          label="End"
-          :disabled="!input.enabled"
-        ></v-text-field>
+        <v-text-field v-model="input.end" dense label="End" :disabled="!input.enabled"></v-text-field>
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field
-          v-model="input.step"
-          dense
-          label="Step"
-          :disabled="!input.enabled"
-        ></v-text-field>
+        <v-text-field v-model="input.step" dense label="Step" :disabled="!input.enabled"></v-text-field>
       </v-col>
-      <v-col cols="12" sm="6" md="4">
-        {{ formatedInputs[index].total }}
-      </v-col>
+      <v-col cols="12" sm="6" md="4">{{ formatedInputs[index].total }}</v-col>
     </v-row>
     <v-row>
-      <v-col cols="12" sm="6" md="8"> </v-col>
+      <v-col cols="12" sm="6" md="8"></v-col>
       <v-col cols="12" sm="6" md="4">
         <strong>Total tests: {{ totalTests }}</strong>
       </v-col>
@@ -54,8 +38,8 @@ export default {
         {
           name: 'Leverage',
           key: 'leverage',
-          start: 30,
-          end: 50,
+          start: 50,
+          end: 80,
           step: 5,
           enabled: false,
         },
@@ -78,9 +62,9 @@ export default {
         {
           name: 'Percent Of max range',
           key: 'percentOfMaxRange',
-          start: 10,
-          end: 30,
-          step: 5,
+          start: 30,
+          end: 70,
+          step: 10,
           enabled: true,
         },
       ],
