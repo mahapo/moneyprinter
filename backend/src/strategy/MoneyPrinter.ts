@@ -201,7 +201,7 @@ export class MoneyPrinter extends StrategyBase {
       this.countFilled,
     ];
     // .map((n) => (isInt(n) ? n.toString(32) : n));
-    return LZW.lzw_encode(Object.values(options).join("-"));
+    return Object.values(options).join("-");
   }
 
   printActiveOrders() {

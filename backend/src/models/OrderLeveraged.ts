@@ -227,7 +227,7 @@ export class OrderLeveraged extends Order {
 
   toString(): string {
     const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.encodedIdUser}`;
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.idUser}`;
   }
 
   clone() {
