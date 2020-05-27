@@ -228,6 +228,7 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get currentStep() {
-    return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
+    if(this.isLive) return ZoneRecovery.calcStep(this.countFilled, this.options.ratio);
+    return ZoneRecovery.calcStep(this.countFilled - 1, this.options.ratio);
   }
 }

@@ -25,14 +25,15 @@ describe("MoneyPrinter via Backtester", () => {
 
   test("After long order is filled", () => {
     Strategy.onOrderFilled(Strategy.currentOrders[0]);
+    expect(Strategy.side).toBe("buy");
     expect(Strategy.countFilled).toBe(1);
     expect(Strategy.currentOrders.length).toBe(2);
-    expect(Strategy.side).toBe("buy");
   });
 
   test("After short order is filled", () => {
-    Strategy.onOrderFilled(Strategy.currentOrders[1]);
+    Strategy.currentOrders[1].filled = Strategy.currentOrders[1].amount;
     expect(Strategy.nextSide).toBe("sell");
+    Strategy.onOrderFilled(Strategy.currentOrders[1]);
     expect(Strategy.countFilled).toBe(2);
     expect(Strategy.currentOrders.length).toBe(3);
     expect(Strategy.currentOrders[2].amount).toBe(options.amount * 2);
