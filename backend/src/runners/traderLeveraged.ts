@@ -216,7 +216,9 @@ export class TraderLeveraged extends Runner {
       //   !error.message.includes("expect Rising") &&
       //   !error.message.includes("expect Falling")
       // )
-      Logger.error(error);
+      console.log(error.message);
+
+      Logger.error(error.message);
       this.reset();
     }
   }
