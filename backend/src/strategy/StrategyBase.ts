@@ -15,14 +15,14 @@ export class StrategyBase {
 
   get overview() {
     return this.orders.map((order) => ({
-      profit: order.profit,
+      profit: order.closedProfit,
       ...order,
     }));
   }
 
   get profitTotal() {
     return this.orders.reduce((r, p) => {
-      return r + p.profit;
+      return r + p.closedProfit;
     }, 0);
   }
 
