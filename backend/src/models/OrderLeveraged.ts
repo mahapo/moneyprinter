@@ -5,6 +5,7 @@
 
 import * as colors from "colors/safe";
 import { Order } from ".";
+import * as LZW from "../utils/LZW";
 
 export class OrderLeveraged extends Order {
   leverage: number;
@@ -34,6 +35,12 @@ export class OrderLeveraged extends Order {
 
   set idUser(id) {
     this._idUser = id;
+  }
+
+  get encodedIdUser() {
+    return LZW.lzw_decode(this.idUser)
+      .split("-")
+      .map((x) => x);
   }
 
   get isPositon() {
@@ -220,7 +227,7 @@ export class OrderLeveraged extends Order {
 
   toString(): string {
     const colored = this.side === "buy" ? colors.green("L") : colors.red("S");
-    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.idUser}`;
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.encodedIdUser}`;
   }
 
   clone() {

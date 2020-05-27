@@ -188,6 +188,9 @@ export class MoneyPrinter extends StrategyBase {
 
   createId(): string {
     if (!this.isLive) return "";
+    function isInt(n) {
+      return n % 1 === 0;
+    }
     let options = [
       this.options.timestamp,
       this.options.price,
@@ -196,7 +199,8 @@ export class MoneyPrinter extends StrategyBase {
       // this.options.leverage,
       this.options.ratio,
       this.countFilled,
-    ].map((n) => n.toString(32));
+    ];
+    // .map((n) => (isInt(n) ? n.toString(32) : n));
     return LZW.lzw_encode(Object.values(options).join("-"));
   }
 
