@@ -85,9 +85,8 @@ export class MoneyPrinter extends StrategyBase {
     this.long = new OrderLeveraged({ ...this.options, side: "buy" });
     this.short = new OrderLeveraged({ ...this.options, side: "sell" });
 
-    this.priceRange = rounder(
-      this.short.changePriceLiquidation * (this.percentOfMaxRange / 100)
-    );
+    this.priceRange =
+      this.short.changePriceLiquidation * (this.percentOfMaxRange / 100);
 
     this.priceTop = rounder(this.options.price + this.priceRange / 2);
     this.priceBottom = rounder(this.options.price - this.priceRange / 2);
@@ -96,12 +95,10 @@ export class MoneyPrinter extends StrategyBase {
     this.short.price = this.long.stopLoss = this.priceBottom;
 
     this.long.takeProfit = rounder(
-      this.short.price +
-        this.priceRange * this.options.ratio * (this.percentSlipperage / 100)
+      this.short.price + this.priceRange * this.options.ratio
     );
     this.short.takeProfit = rounder(
-      this.short.price -
-        this.priceRange * this.options.ratio * (this.percentSlipperage / 100)
+      this.short.price - this.priceRange * this.options.ratio
     );
 
     this.long.idUser = this.createId();
