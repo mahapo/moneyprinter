@@ -3,7 +3,7 @@ const fs = require("fs");
 
 (async () => {
   const exchange = "binance";
-  const instance = new ccxt[exchange]();
+  const instance = new ccxt[exchange]({ options: { defaultType: "future" } });
   const markets = await instance.fetchMarkets();
   fs.writeFile(
     `./data/exchange/${exchange}.json`,
