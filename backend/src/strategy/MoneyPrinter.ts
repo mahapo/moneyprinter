@@ -76,7 +76,7 @@ export class MoneyPrinter extends StrategyBase {
     };
 
     const rounder = (price: number) =>
-      this.isLive
+      this.isLive && this.runner
         ? parseFloat(
             this.runner.account.instance.priceToPrecision(symbol, price)
           )
@@ -115,55 +115,34 @@ export class MoneyPrinter extends StrategyBase {
 
     if (this.countFilled === 1) {
       this.side = order.side;
+      let otherSide: OrderLeveraged = this.currentOrders.find(
+        (order: OrderLeveraged) => order.side !== this.side
+      );
+      if (otherSide) otherSide.status = "canceled";
+    }
+
+    if (this.countFilled < this.maxSteps) {
+      let newOrder = this.createHedgOrder();
 
       if (this.isLive) {
-        let otherSide: OrderLeveraged = this.currentOrders.find(
-          (order: OrderLeveraged) => order.side !== this.side
-        );
-        if (otherSide) otherSide.status = "canceled";
-      }
-
-      if (this.isLive && this.countFilled !== this.maxSteps) {
-        order.stopLossSet = true;
-
-        // This order is close current open order and place order on other side
-        // No stop loss needed
-        let newOrder = this.createHedgOrder();
+        newOrder.idUser = this.createId();
+        newOrder.stopLossSet = true;
         newOrder.amount = Math.round(
           this.options.amount * this.currentStep.factor + order.amount
         );
-        newOrder.stopLossSet = true;
-
-        newOrder.idUser = this.createId();
-        this.currentOrders.push(newOrder);
-      }
-    } else if (this.countFilled > this.maxSteps) {
-      this.onOrderDone(order, true);
-    } else {
-      let newOrder = this.createHedgOrder();
-      newOrder.idUser = this.createId();
-
-      if (this.isLive) {
-        if (this.countFilled === this.maxSteps) {
-          order.stopLossSet = false;
-        } else {
-          // This order is close current open order and place order on other side
-          // No stop loss needed
-          newOrder.amount = Math.round(
-            this.options.amount * this.currentStep.factor + order.amount
-          );
-          this.onOrderDone(this.lastOrder, false);
-          this.currentOrders.push(newOrder);
-          newOrder.stopLossSet = true;
-        }
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor;
-        this.currentOrders.push(newOrder);
       }
-
-      this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
-      this.stats.amountMin = Math.min(this.stats.amountMin, order.amount);
+      this.currentOrders.push(newOrder);
+    } else if (this.countFilled === this.maxSteps) {
+      order.stopLossSet = false;
+    } else {
+      order.stopLossSet = false;
+      this.onOrderDone(order, true);
     }
+
+    this.stats.amountMax = Math.max(this.stats.amountMax, order.amount);
+    this.stats.amountMin = Math.min(this.stats.amountMin, order.amount);
     this.lastOrder = order;
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
   }
