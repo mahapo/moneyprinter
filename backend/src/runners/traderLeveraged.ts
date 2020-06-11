@@ -1,4 +1,4 @@
-import { OrderLeveraged, ZoneRecovery } from "../models";
+import { OrderBybit, ZoneRecovery } from "../models";
 import { Runner } from "./runner";
 import { MoneyPrinter } from "../strategy";
 import { Logger } from "../utils/Logger";
@@ -237,7 +237,7 @@ export class TraderLeveraged extends Runner {
   }
 
   searchOrder(orderFromExchange) {
-    return this.strategy.currentOrders.find((order: OrderLeveraged) => {
+    return this.strategy.currentOrders.find((order: OrderBybit) => {
       if (
         order.id === orderFromExchange.id ||
         order.idUser === orderFromExchange.idUser
@@ -276,7 +276,7 @@ export class TraderLeveraged extends Runner {
   //     leverage: parseFloat(options.leverage),
   //     ratio: parseFloat(options.ratio),
   //   };
-  //   const order = new OrderLeveraged({
+  //   const order = new OrderBybit({
   //     ...this.options,
   //     side: options.side,
   //   });
@@ -293,7 +293,7 @@ export class TraderLeveraged extends Runner {
   //   }
 
   //   this.orders.push(
-  //     new OrderLeveraged({
+  //     new OrderBybit({
   //       order,
   //       id: options.oldId.replace("-" + options.side, ""),
   //     })

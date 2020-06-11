@@ -7,7 +7,7 @@ import * as colors from "colors/safe";
 import { Order } from ".";
 import * as LZW from "../utils/LZW";
 
-export class OrderLeveraged extends Order {
+export class OrderBybit extends Order {
   leverage: number;
   ratio: number;
   takeProfit: number;
@@ -231,7 +231,7 @@ export class OrderLeveraged extends Order {
   }
 
   clone() {
-    const order = new OrderLeveraged({
+    const order = new OrderBybit({
       price: this.price,
       amount: this.amount,
       leverage: this.leverage,

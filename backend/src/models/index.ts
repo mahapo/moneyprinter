@@ -1,5 +1,5 @@
 export { Order } from "./Order";
-export { OrderLeveraged } from "./OrderLeveraged";
+export { OrderBybit } from "./OrderBybit";
 export { ZoneRecovery } from "./ZoneRecovery";
 
 // export { Position } from "./Position";

@@ -1,5 +1,5 @@
 import { Runner } from "./runner";
-import { OrderLeveraged, ZoneRecovery } from "../models";
+import { OrderBybit, ZoneRecovery } from "../models";
 import { performance } from "perf_hooks";
 
 import * as fs from "fs";
@@ -147,7 +147,7 @@ export class Backtester extends Runner {
   }
 
   updateOrders({ price, timestamp }) {
-    this.strategy.currentOrders.forEach((order: OrderLeveraged) => {
+    this.strategy.currentOrders.forEach((order: OrderBybit) => {
       if (order.status === "open" && order.filled === 0) {
         if (order.checkIfFilled(price)) {
           order.timestampFilled = timestamp;

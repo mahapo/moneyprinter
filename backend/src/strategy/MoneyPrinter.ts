@@ -1,5 +1,5 @@
 import { StrategyBase } from "./StrategyBase";
-import { OrderLeveraged, ZoneRecovery } from "../models";
+import { OrderBybit, ZoneRecovery } from "../models";
 import * as LZW from "../utils/LZW";
 import * as packageJson from "../../package.json";
 export class MoneyPrinter extends StrategyBase {
@@ -35,16 +35,16 @@ export class MoneyPrinter extends StrategyBase {
 
   side: string;
 
-  long: OrderLeveraged;
-  short: OrderLeveraged;
-  lastOrder: OrderLeveraged;
+  long: OrderBybit;
+  short: OrderBybit;
+  lastOrder: OrderBybit;
 
   priceRange: number;
   priceTop: number;
   priceBottom: number;
 
   currentOrders = [];
-  currentOrder: OrderLeveraged;
+  currentOrder: OrderBybit;
 
   maxSteps: number = 20;
 
@@ -82,8 +82,8 @@ export class MoneyPrinter extends StrategyBase {
           )
         : price;
 
-    this.long = new OrderLeveraged({ ...this.options, side: "buy" });
-    this.short = new OrderLeveraged({ ...this.options, side: "sell" });
+    this.long = new OrderBybit({ ...this.options, side: "buy" });
+    this.short = new OrderBybit({ ...this.options, side: "sell" });
 
     this.priceRange =
       this.short.changePriceLiquidation * (this.percentOfMaxRange / 100);
@@ -110,13 +110,13 @@ export class MoneyPrinter extends StrategyBase {
     return this.currentOrders;
   }
 
-  onOrderFilled(order: OrderLeveraged) {
+  onOrderFilled(order: OrderBybit) {
     order.filled = order.amount;
 
     if (this.countFilled === 1) {
       this.side = order.side;
-      let otherSide: OrderLeveraged = this.currentOrders.find(
-        (order: OrderLeveraged) => order.side !== this.side
+      let otherSide: OrderBybit = this.currentOrders.find(
+        (order: OrderBybit) => order.side !== this.side
       );
       if (otherSide) otherSide.status = "canceled";
     }
@@ -147,10 +147,10 @@ export class MoneyPrinter extends StrategyBase {
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled);
   }
 
-  onOrderDone(order: OrderLeveraged, win = false) {
+  onOrderDone(order: OrderBybit, win = false) {
     order.status = "closed";
     if (win || this.countFilled === this.maxSteps) {
-      this.currentOrders.forEach((p: OrderLeveraged) => {
+      this.currentOrders.forEach((p: OrderBybit) => {
         if (p.status === "open") p.status = "canceled";
       });
 
@@ -204,7 +204,7 @@ export class MoneyPrinter extends StrategyBase {
 
   get countFilled(): number {
     return this.currentOrders.filter(
-      (order: OrderLeveraged) => order.filled > 0
+      (order: OrderBybit) => order.filled > 0
     ).length;
   }
 

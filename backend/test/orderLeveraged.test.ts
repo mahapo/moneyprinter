@@ -1,4 +1,4 @@
-import { OrderLeveraged } from "../src/models";
+import { OrderBybit } from "../src/models";
 
 describe("Leverage Order", () => {
   let options = {
@@ -11,7 +11,7 @@ describe("Leverage Order", () => {
   };
 
   test("Long by Calculatior", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       ...options,
       side: "buy",
     });
@@ -37,7 +37,7 @@ describe("Leverage Order", () => {
   });
 
   test("Sell by Calculatior", () => {
-    const short = new OrderLeveraged({
+    const short = new OrderBybit({
       ...options,
       side: "sell",
     });
@@ -66,7 +66,7 @@ describe("Leverage Order", () => {
   //https://help.bybit.com/hc/en-us/articles/360039260694-Unrealized-Profit-Loss-Calculation-Inverse-Contract-
 
   test("Long", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       ...options2,
       side: "buy",
     });
@@ -76,7 +76,7 @@ describe("Leverage Order", () => {
   });
 
   test("Short", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       ...options2,
       side: "sell",
     });
@@ -88,7 +88,7 @@ describe("Leverage Order", () => {
   // https://help.bybit.com/hc/en-us/articles/360039749573-Profit-Loss-Inverse-Contract-
 
   test("Fees", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       ...options2,
       side: "sell",
     });
@@ -102,7 +102,7 @@ describe("Leverage Order", () => {
   });
 
   test("Real trade long", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       timestamp: 0,
       symbol: "",
       price: 9204.13,
@@ -117,7 +117,7 @@ describe("Leverage Order", () => {
   });
 
   test("Real trade long", () => {
-    const long = new OrderLeveraged({
+    const long = new OrderBybit({
       timestamp: 0,
       symbol: "",
       price: 9170.99,
