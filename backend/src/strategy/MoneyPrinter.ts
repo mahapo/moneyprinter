@@ -94,12 +94,8 @@ export class MoneyPrinter extends StrategyBase {
     this.long.price = this.short.stopLoss = this.priceTop;
     this.short.price = this.long.stopLoss = this.priceBottom;
 
-    this.long.takeProfit = rounder(
-      this.short.price + this.priceRange * this.options.ratio
-    );
-    this.short.takeProfit = rounder(
-      this.short.price - this.priceRange * this.options.ratio
-    );
+    this.long.setTakeProfit(this.options.ratio);
+    this.short.setTakeProfit(this.options.ratio);
 
     this.long.idUser = this.createId();
     this.short.idUser = this.createId();
@@ -203,9 +199,8 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   get countFilled(): number {
-    return this.currentOrders.filter(
-      (order: OrderBybit) => order.filled > 0
-    ).length;
+    return this.currentOrders.filter((order: OrderBybit) => order.filled > 0)
+      .length;
   }
 
   get nextSide() {

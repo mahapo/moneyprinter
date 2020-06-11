@@ -63,6 +63,7 @@ export class Backtester extends Runner {
 
   run(options) {
     this.options = {
+      ...options,
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
       startBalance: parseFloat(options.startBalance),
@@ -182,8 +183,7 @@ export class Backtester extends Runner {
       price,
       timestamp,
       amount: this.idealSize,
-      leverage: this.options.leverage,
-      ratio: this.options.ratio, // TODO: allow ratio < 2
+      ...this.options,
     });
   }
 

@@ -8,7 +8,7 @@ describe("MoneyPrinter via Backtester", () => {
     timestamp: 0,
     amount: 100,
     leverage: 100,
-    symbol: "",
+    symbol: "BTC/USD",
     ratio: 2,
   };
 
@@ -48,7 +48,7 @@ describe("MoneyPrinter via Trader", () => {
     timestamp: 0,
     amount: 100,
     leverage: 100,
-    symbol: "",
+    symbol: "BTC/USD",
     ratio: 2,
   };
 

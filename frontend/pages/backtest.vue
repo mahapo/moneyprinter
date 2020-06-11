@@ -154,9 +154,13 @@ export default {
     startBacktest() {
       this.results = []
       this.tab = 2
+      let symbol
+
+      if (this.testOptions.file.includes("BTCUSDT")) symbol = "BTC/USD"
 
       this.$socket.client.emit('startBacktesthMatrix', {
         ...this.testOptions,
+        symbol,
         matrix: this.testMatrix,
       })
     },
