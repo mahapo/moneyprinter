@@ -160,6 +160,12 @@ export class MoneyPrinter extends StrategyBase {
       if (!win && this.isLive)
         console.log("Max steps reached", this.countFilled);
     }
+    if (this.countFilled > this.maxSteps) {
+      console.log("sdsd");
+      this.options.timestamp = Math.random();
+      this.orders.push(...this.currentOrders);
+      this.currentOrders = [];
+    }
   }
 
   createId(): string {

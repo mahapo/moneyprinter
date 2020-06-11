@@ -171,7 +171,7 @@ export class Backtester extends Runner {
             balance: this.balance,
           });
 
-          this.strategy.onOrderDone(order, order.closedProfit > 0);
+          this.strategy.onOrderDone(order, order.winTrade);
         }
       }
     });

@@ -43,6 +43,12 @@ export class Order implements ccxt.Order {
     return this.amount - this.filled;
   }
 
+  get winTrade() {
+    return this.side === "buy"
+      ? this.priceExit > this.price
+      : this.priceExit < this.price;
+  }
+
   checkIfFilled(price: number) {
     return (
       (this.side === "buy" && this.price <= price) ||
