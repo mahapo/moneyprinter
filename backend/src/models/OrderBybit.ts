@@ -6,6 +6,7 @@
 import * as colors from "colors/safe";
 import { Order } from ".";
 import * as LZW from "../utils/LZW";
+import * as symbols from "../../data/exchange/bybit.json";
 
 export class OrderBybit extends Order {
   leverage: number;
@@ -37,6 +38,14 @@ export class OrderBybit extends Order {
     this._idUser = id;
   }
 
+  get info() {
+    return symbols.find((s) => s.symbol === this.symbol);
+  }
+
+  get precision() {
+    return this.info.precision;
+  }
+
   get encodedIdUser() {
     return LZW.lzw_decode(this.idUser)
       .split("-")
@@ -66,6 +75,12 @@ export class OrderBybit extends Order {
   // }
 
   // // Change in Price to Liquidation (%)
+  // get changePriceLiquidationPercent(): number {
+  //   if (this.side === "buy")
+  //     return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
+  //   return this.changePriceBankruptcyPercent - this.adjustedShort * 100;
+  // }
+
   // get changePriceLiquidationPercent(): number {
   //   if (this.side === "buy")
   //     return this.changePriceBankruptcyPercent + this.adjustedLong * 100;
@@ -118,9 +133,13 @@ export class OrderBybit extends Order {
   }
 
   get uPNLValue() {
+    return this._uPNLValue(this.priceExit);
+  }
+
+  _uPNLValue(priceExit: number) {
     if (this.side === "buy")
-      return this.amount * (1 / this.price - 1 / this.priceExit);
-    return this.amount * (1 / this.priceExit - 1 / this.price);
+      return this.amount * (1 / this.price - 1 / priceExit);
+    return this.amount * (1 / priceExit - 1 / this.price);
   }
 
   get initialMarginRate() {
@@ -150,13 +169,23 @@ export class OrderBybit extends Order {
   }
 
   get feeToClose() {
-    return this.amount * (1 / this.priceExit) * 0.00075;
+    return this._feeToClose(this.priceExit);
+  }
+
+  _feeToClose(priceExit: number) {
+    return this.amount * (1 / priceExit) * 0.00075;
   }
 
   get closedProfitValue() {
-    if (this.priceExit)
-      return this.uPNLValue - (this.feeToOpen + this.feeToClose);
+    if (this.priceExit) return this._closedProfitValue(this.priceExit);
     return 0;
+  }
+
+  _closedProfitValue(priceExit: number) {
+    return (
+      this._uPNLValue(priceExit) -
+      (this.feeToOpen + this._feeToClose(priceExit))
+    );
   }
 
   get closedProfit() {
@@ -210,6 +239,31 @@ export class OrderBybit extends Order {
   //   }
   //   return 0;
   // }
+
+  setStopLoss(percentOfMaxRange: number = 100) {
+    let priceRange = this.changePriceLiquidation * (percentOfMaxRange / 100);
+    if (this.side === "buy") this.stopLoss = this.price - priceRange;
+    else this.stopLoss = this.price + priceRange;
+  }
+
+  setTakeProfit(ratio: number) {
+    this.takeProfit = this.calcPriceForRatio(ratio);
+  }
+
+  calcPriceForRatio(ratio: number): number {
+    let profitStopLoss = this._closedProfitValue(this.stopLoss);
+    let profitTakeProfit = Math.abs(profitStopLoss) * ratio;
+    let price = this.price;
+    let profit;
+
+    // TODO: Better implementation
+    do {
+      if (this.side === "buy") price += this.precision.price;
+      else price -= this.precision.price;
+      profit = this._closedProfitValue(price);
+    } while (profit < profitTakeProfit);
+    return price;
+  }
 
   checkIfTriggersTakeProfit(price: number) {
     return (

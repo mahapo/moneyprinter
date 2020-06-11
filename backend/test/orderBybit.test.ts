@@ -130,4 +130,48 @@ describe("Leverage Order", () => {
 
     expect(long.closedProfitValue.toFixed(6)).toBe("-0.000039");
   });
+
+  test("Ratio 2 buy", () => {
+    const long = new OrderBybit({
+      timestamp: 0,
+      symbol: "BTC/USD",
+      price: 10000,
+      amount: 10000,
+      leverage: 100,
+      ratio: 2,
+      side: "buy",
+    });
+
+    expect(long._closedProfitValue(10000).toFixed(4)).toBe("-0.0015");
+    expect(long._closedProfitValue(10010).toFixed(4)).toBe("-0.0005");
+    expect(long._closedProfitValue(10020).toFixed(4)).toBe("0.0005");
+    expect(long._closedProfitValue(9950.25).toFixed(4)).toBe("-0.0065");
+    expect(long.liquidationPrice.toFixed(2)).toBe("9950.25");
+
+    long.setStopLoss(50);
+    expect(long.stopLoss.toFixed(2)).toBe("9975.12");
+
+    long.setTakeProfit(2);
+    expect(long.takeProfit.toFixed(1)).toBe("10096.0");
+  });
+
+  test("Ratio 3 sell", () => {
+    const long = new OrderBybit({
+      timestamp: 0,
+      symbol: "BTC/USD",
+      price: 10000,
+      amount: 10000,
+      leverage: 100,
+      ratio: 3,
+      side: "sell",
+    });
+
+    expect(long.liquidationPrice.toFixed(2)).toBe("10050.25");
+
+    long.setStopLoss(50);
+    expect(long.stopLoss.toFixed(2)).toBe("10025.13");
+
+    long.setTakeProfit(3);
+    expect(long.takeProfit.toFixed(1)).toBe("9866.5");
+  });
 });
