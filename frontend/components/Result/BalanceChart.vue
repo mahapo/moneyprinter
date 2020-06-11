@@ -80,15 +80,15 @@ export default {
             pointRadius: 0,
             steppedLine: true,
           },
-          {
-            label: 'Drawdown',
-            borderColor: 'green',
-            data: this.balances.map((balance) => balance.drawdown),
-            fill: false,
-            pointRadius: 0,
-            steppedLine: true,
-            yAxisID: 'drowdown'
-          },
+            // {
+            //   label: 'Drawdown',
+            //   borderColor: 'green',
+            //   data: this.balances.map((balance) => balance.drawdown),
+            //   fill: false,
+            //   pointRadius: 0,
+            //   steppedLine: true,
+            //   yAxisID: 'drowdown'
+            // },
         ],
       }
     }
