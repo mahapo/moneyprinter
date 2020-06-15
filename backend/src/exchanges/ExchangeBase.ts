@@ -13,14 +13,17 @@ export class ExchangeBase extends EventEmitter {
 
   lastTime: number;
 
-  constructor(private options) {
+  constructor(public options) {
     super();
+    options.defaultType = "future";
   }
 
   async init() {
     try {
       this.markets = await this.instance.fetchMarkets();
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getCurrentPrice(symbol) {
