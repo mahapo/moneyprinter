@@ -62,7 +62,7 @@ export default {
         {
           name: 'Percent Of max range',
           key: 'percentOfMaxRange',
-          start: 30,
+          start: 10,
           end: 70,
           step: 10,
           enabled: true,
