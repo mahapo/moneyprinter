@@ -22,7 +22,7 @@ const handlers: Handlers = {
     });
   },
   startBacktesthMatrix: async ({ id, args }) => {
-    if (args.multi) {
+    if (args.multi || true) {
       const numWorkes = os.cpus().length;
       let matrix = Matrix.createTestMatrix(args.matrix, numWorkes);
 
