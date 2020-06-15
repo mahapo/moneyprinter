@@ -1,8 +1,8 @@
-import { ExchangeBase } from ".";
+import { ExchangeBase } from "..";
 import { bybit as BybitCCXT } from "ccxt";
 import * as WebSocket from "ws";
 import * as crypto from "crypto";
-import { Logger } from "../utils/Logger";
+import { Logger } from "../../utils/Logger";
 
 // https://bybit-exchange.github.io/docs/inverse/
 export class Bybit extends ExchangeBase {

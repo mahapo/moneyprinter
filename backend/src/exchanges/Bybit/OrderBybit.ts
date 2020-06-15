@@ -4,9 +4,9 @@
 // https://help.bybit.com/hc/en-us/articles/360039260694-Unrealized-Profit-Loss-Calculation-Inverse-Contract-
 
 import * as colors from "colors/safe";
-import { Order } from ".";
-import * as LZW from "../utils/LZW";
-import * as symbols from "../../data/exchange/bybit.json";
+import { Order } from "../../models";
+import * as LZW from "../../utils/LZW";
+import * as symbols from "./markets.json";
 
 export class OrderBybit extends Order {
   leverage: number;
