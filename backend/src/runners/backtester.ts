@@ -62,8 +62,15 @@ export class Backtester extends Runner {
   }
 
   run(options) {
+    let symbol;
+    if (options.file.includes("BTCUSDT")) symbol = "BTC/USD";
+    else if (options.file.includes("ETHUSDT")) symbol = "ETH/USD";
+    else if (options.file.includes("EOSUSDT")) symbol = "EOS/USD";
+    else if (options.file.includes("XRPUSDT")) symbol = "XRP/USD";
+
     this.options = {
       ...options,
+      symbol,
       ratio: parseFloat(options.ratio),
       leverage: parseFloat(options.leverage),
       startBalance: parseFloat(options.startBalance),
@@ -148,43 +155,51 @@ export class Backtester extends Runner {
   }
 
   updateOrders({ price, timestamp }) {
-    this.strategy.currentOrders.forEach((order: OrderBybit) => {
-      if (order.status === "open" && order.filled === 0) {
-        if (order.checkIfFilled(price)) {
-          order.timestampFilled = timestamp;
-          this.balances.push({
-            timestamp,
-            balance: this.balance - order.amount / order.leverage,
-          });
-          this.strategy.onOrderFilled(order, price);
-        }
-      } else if (order.status === "open" && order.filled > 0) {
-        if (
-          order.checkIfTriggersTakeProfit(price) ||
-          order.checkIfTriggersStopLoss(price)
-        ) {
-          order.status = "closed";
-          order.priceExit = price;
-          order.timestampExit = timestamp;
+    try {
+      this.strategy.currentOrders.forEach((order: OrderBybit) => {
+        if (order.status === "open" && order.filled === 0) {
+          if (order.checkIfFilled(price)) {
+            order.timestampFilled = timestamp;
+            this.balances.push({
+              timestamp,
+              balance: this.balance - order.amount / order.leverage,
+            });
+            this.strategy.onOrderFilled(order, price);
+          }
+        } else if (order.status === "open" && order.filled > 0) {
+          if (
+            order.checkIfTriggersTakeProfit(price) ||
+            order.checkIfTriggersStopLoss(price)
+          ) {
+            order.status = "closed";
+            order.priceExit = price;
+            order.timestampExit = timestamp;
 
-          this.balances.push({
-            timestamp,
-            balance: this.balance,
-          });
+            this.balances.push({
+              timestamp,
+              balance: this.balance,
+            });
 
-          this.strategy.onOrderDone(order, order.winTrade);
+            this.strategy.onOrderDone(order, order.winTrade);
+          }
         }
-      }
-    });
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   onSignal({ price, timestamp }) {
-    this.strategy.onSignal({
-      price,
-      timestamp,
-      amount: this.idealSize,
-      ...this.options,
-    });
+    try {
+      this.strategy.onSignal({
+        price,
+        timestamp,
+        amount: this.idealSize,
+        ...this.options,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   onFinish() {
