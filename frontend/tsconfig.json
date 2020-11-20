@@ -24,10 +24,10 @@
         "./*"
       ]
     },
+    "resolveJsonModule": true,
     "types": [
       "@types/node",
       "@types/webpack",
-      "@types/webpack-env",
       "@nuxt/types",
       "@nuxtjs/vuetify"
     ]

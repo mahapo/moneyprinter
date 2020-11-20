@@ -1,5 +1,9 @@
 <template>
-  <v-data-table :headers="header" :items="trades" :items-per-page="20"></v-data-table>
+  <v-data-table
+    :headers="header"
+    :items="trades"
+    :items-per-page="20"
+  ></v-data-table>
 </template>
 
 <script>

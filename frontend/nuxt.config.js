@@ -19,6 +19,9 @@ module.exports = {
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
+
+  // components: true,
+
   /*
    ** Customize the progress-bar color
    */
@@ -35,10 +38,10 @@ module.exports = {
    ** Nuxt.js dev-modules
    */
   buildModules: [
-    '@nuxt/components',
+    '@nuxtjs/composition-api',
     '@nuxt/typescript-build',
-    // Doc: https://github.com/nuxt-community/stylelint-module
-    '@nuxtjs/stylelint-module',
+    // '@nuxt/components',
+    // '@nuxtjs/stylelint-module',
     '@nuxtjs/vuetify',
   ],
 
@@ -67,6 +70,8 @@ module.exports = {
    ** Nuxt.js modules
    */
   modules: [
+    // Doc: https://content.nuxtjs.org/installation
+    '@nuxt/content',
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/axios',
     // Doc: https://github.com/nuxt-community/dotenv-module
@@ -106,5 +111,8 @@ module.exports = {
      ** You can extend webpack config here
      */
     extend(_config, _ctx) {},
+  },
+  content: {
+    // Options
   },
 }

@@ -14,13 +14,15 @@ export class Matrix {
         return ans;
       }
     }
-    const values = getCombn(matrix.map((i) => i.steps)).map((i) =>
-      // @ts-ignore
-      Array.isArray(i) ? i.flat() : i
-    ).map((i) =>
-      // @ts-ignore
-      Array.isArray(i) ? i.flat() : i
-    );
+    const values = getCombn(matrix.map((i) => i.steps))
+      .map((i) =>
+        // @ts-ignore
+        Array.isArray(i) ? i.flat() : i
+      )
+      .map((i) =>
+        // @ts-ignore
+        Array.isArray(i) ? i.flat() : i
+      );
     const keys = matrix.map((i) => i.key);
     const result = values.map((value) =>
       keys.reduce((acc, key, i) => {
@@ -28,7 +30,7 @@ export class Matrix {
         return acc;
       }, {})
     );
-    
+
     if (parts) return Matrix.splitToChunks(result, parts);
     return result;
   }
@@ -39,5 +41,11 @@ export class Matrix {
       result.push(array.splice(0, Math.ceil(array.length / i)));
     }
     return result;
+  }
+
+  static cartesianProduct(data) {
+    return data.reduce((a, b) => a.flatMap((x) => b.map((y) => [...x, y])), [
+      [],
+    ]);
   }
 }

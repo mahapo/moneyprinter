@@ -42,11 +42,11 @@
         <v-icon>mdi-menu</v-icon>
       </v-btn>
     </v-app-bar>
-    <v-content>
+    <v-main>
       <v-container fluid>
         <nuxt />
       </v-container>
-    </v-content>
+    </v-main>
     <v-navigation-drawer v-model="rightDrawer" :right="right" temporary fixed>
       <v-list>
         <v-list-item @click.native="right = !right">
@@ -58,10 +58,10 @@
       </v-list>
     </v-navigation-drawer>
     <v-footer :fixed="fixed" app>
-      <span
-        >&copy; {{ new Date().getFullYear() }} - Moneyprinter by Manuel Haller
-        Polo</span
-      >
+      <span>
+        &copy; {{ new Date().getFullYear() }} - Moneyprinter by Manuel Haller
+        Polo
+      </span>
     </v-footer>
   </v-app>
 </template>

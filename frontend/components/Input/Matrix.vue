@@ -2,16 +2,30 @@
   <div>
     <v-row v-for="(input, index) in inputs" :key="input.key">
       <v-col cols="12" sm="6" md="2">
-        <v-checkbox v-model="input.enabled" :label="input.name" dense></v-checkbox>
+        <v-checkbox
+          v-model="input.enabled"
+          :label="input.name"
+          dense
+        ></v-checkbox>
       </v-col>
       <v-col cols="12" sm="6" md="2">
         <v-text-field v-model="input.start" dense label="Start"></v-text-field>
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="input.end" dense label="End" :disabled="!input.enabled"></v-text-field>
+        <v-text-field
+          v-model="input.end"
+          dense
+          label="End"
+          :disabled="!input.enabled"
+        ></v-text-field>
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="input.step" dense label="Step" :disabled="!input.enabled"></v-text-field>
+        <v-text-field
+          v-model="input.step"
+          dense
+          label="Step"
+          :disabled="!input.enabled"
+        ></v-text-field>
       </v-col>
       <v-col cols="12" sm="6" md="4">{{ formatedInputs[index].total }}</v-col>
     </v-row>

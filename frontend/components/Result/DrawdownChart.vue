@@ -7,30 +7,32 @@ export default {
   props: {
     drawdowns: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
   },
   computed: {
     formatedData() {
       let lastBalance = null
       let lastChange = null
-      return this.drawdowns.map((drawdown, index) => {
-        if (!index) {
+      return this.drawdowns
+        .map((drawdown, index) => {
+          if (!index) {
+            lastBalance = drawdown.balance
+            return drawdown
+          }
+          const change = 1 - (drawdown.balance / lastBalance) * 100
           lastBalance = drawdown.balance
-          return drawdown
-        }
-        const change = 1 - drawdown.balance / lastBalance * 100
-        lastBalance = drawdown.balance
-        return { ...drawdown, change }
-      }).map((drawdown, index) => {
-        if (!index) {
+          return { ...drawdown, change }
+        })
+        .map((drawdown, index) => {
+          if (!index) {
+            lastChange = drawdown.change
+            return drawdown
+          }
+          const newdrawdown = drawdown.change + lastChange
           lastChange = drawdown.change
-          return drawdown
-        }
-        const newdrawdown = drawdown.change + lastChange
-        lastChange = drawdown.change
-        return { ...drawdown, drawdown: newdrawdown }
-      })
+          return { ...drawdown, drawdown: newdrawdown }
+        })
     },
     chartOptions() {
       return {
@@ -93,7 +95,7 @@ export default {
           },
         ],
       }
-    }
+    },
   },
 }
 </script>
