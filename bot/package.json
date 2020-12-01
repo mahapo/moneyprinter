@@ -1,0 +1,44 @@
+{
+  "name": "@moneyprinter/bot",
+  "version": "0.4.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
+    "test": "jest",
+    "test:watch": "jest --watchAll"
+  },
+  "dependencies": {
+    "ccxt": "^1.38.65",
+    "csv-parser": "^2.3.4",
+    "dotenv": "^8.2.0",
+    "request": "^2.88.2",
+    "socket.io": "^3.0.3",
+    "socketio-wildcard": "^2.0.0",
+    "tulind": "^0.8.18",
+    "ws": "^7.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/node": "^7.12.6",
+    "@babel/preset-env": "^7.12.7",
+    "@types/consola": "^2.2.5",
+    "@types/graphql": "^14.5.0",
+    "@types/jest": "^26.0.16",
+    "@types/koa": "^2.11.6",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-router": "^7.4.1",
+    "@types/node": "^14.14.10",
+    "@types/source-map-support": "^0.5.3",
+    "csv-writer": "^1.6.0",
+    "jest": "^26.6.3",
+    "nodemon": "^2.0.6",
+    "source-map-support": "^0.5.19",
+    "ts-jest": "^26.4.4",
+    "ts-node-dev": "^1.0.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
+}
