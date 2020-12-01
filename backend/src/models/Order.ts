@@ -22,6 +22,7 @@ export class Order implements ccxt.Order {
 
   idUser: string;
   priceExit: number;
+  clientOrderId: string;
 
   constructor(options) {
     this.price = options.price;

@@ -1,41 +1,61 @@
-import { TraderLeveraged } from "./runners";
-import { Binance, OrderBinance } from "./exchanges/Binance";
-require("dotenv").config();
+require('dotenv').config()
+// import { TraderLeveraged } from "./runners";
+import { Binance, OrderBinance } from './exchanges/Binance'
 
 const main = async function () {
   try {
-    const isDemo = true;
+    const isDemo = true
 
     const options = {
       apiKey: process.env.BINANCE_ID_DEMO,
-      secret: process.env.BINANCE_SECRET_DEMO,
-    };
-
-    console.log(options);
+      secret: process.env.BINANCE_SECRET_DEMO
+    }
 
     const account = new Binance(
       {
         apiKey: process.env.BINANCE_ID_DEMO,
         secret: process.env.BINANCE_SECRET_DEMO,
-        options: { defaultType: "future" },
+        options: { defaultType: 'future' },
         timeout: 30000,
         enableRateLimit: true,
+        verbose: true,
+        urls: {
+          test: {
+            gateway: 'https://testnet.binancefuture.com/gateway-api/v1'
+          },
+          api: {
+            gateway: 'https://binancefuture.com/gateway-api/v1'
+          }
+        },
+        api: {
+          gateway: {
+            post: ['private/future/strategy/place-order']
+          }
+        }
       },
       true
-    );
+    )
+
     let order = new OrderBinance({
-      price: 9100,
+      price: 20000,
       timestamp: 0,
-      amount: 10,
+      amount: 0.1,
       leverage: 100,
-      symbol: "BTC/USDT",
+      symbol: 'BTC/USDT',
       ratio: 2,
-      side: "buy",
-    });
-    await account.init();
-    // console.log(await account.getCurrentPrice("BTC/USDT"));
-    console.log(await account.resetAll("BTC/USDT"));
-    console.log(await account.placeMarketStopOrder(order));
+      side: 'buy'
+    })
+
+    await account.startWebSocket()
+    // order.takeProfit = 21000
+    // order.stopLoss = 19000
+
+    // console.log(await account.instance.fetchBalance())
+    // account.placeStrategy(order)
+    // await account.init();
+    // // console.log(await account.getCurrentPrice("BTC/USDT"));
+    // console.log(await account.resetAll("BTC/USDT"));
+    // console.log(await account.placeMarketStopOrder(order));
     // await account.startWebSocket();
 
     // const traderSettings = isDemo
@@ -99,8 +119,8 @@ const main = async function () {
     //   await new Promise((resolve) => setTimeout(resolve, 2000));
     // }
   } catch (error) {
-    throw new Error(error);
+    throw new Error(error)
   }
-};
+}
 
-main();
+main()

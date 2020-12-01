@@ -30,17 +30,17 @@ export class OrderBinance extends Order {
     // this.stopLoss = this.stopLossSuggestion;
   }
 
-  get idUser() {
-    return `${this._idUser}-${this.side.charAt(0)}`;
-  }
+  // get idUser() {
+  //   return `${this._idUser}-${this.side.charAt(0)}`;
+  // }
 
-  set idUser(id) {
-    this._idUser = id;
-  }
+  // set idUser(id) {
+  //   this._idUser = id;
+  // }
 
-  get info() {
-    return symbols.find((s) => s.symbol === this.symbol);
-  }
+  // get info() {
+  //   return symbols.find((s) => s.symbol === this.symbol);
+  // }
 
   get precision() {
     return this.info.precision;
@@ -285,7 +285,7 @@ export class OrderBinance extends Order {
   }
 
   clone() {
-    const order = new OrderBybit({
+    const order = new OrderBinance({
       price: this.price,
       amount: this.amount,
       leverage: this.leverage,

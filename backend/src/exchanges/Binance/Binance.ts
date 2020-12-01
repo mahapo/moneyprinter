@@ -1,65 +1,41 @@
-import { ExchangeBase } from "..";
-import { binance as BinanceCCXT } from "ccxt";
-import * as WebSocket from "ws";
-import * as crypto from "crypto";
-import { Logger } from "../../utils/Logger";
+import { ExchangeBase } from '..'
+import { binance as BinanceCCXT } from 'ccxt'
+import * as WebSocket from 'ws'
+import * as crypto from 'crypto'
+import { Logger } from '../../utils/Logger'
+import { OrderGenerator } from './OrderGenerator'
+import SocketClient from './socketClient'
 
 export class Binance extends ExchangeBase {
-  instance: BinanceCCXT;
+  instance: BinanceCCXT
 
   constructor(options, private demo) {
-    super(options);
-    this.instance = new BinanceCCXT(this.options);
-    this.instance.setSandboxMode(this.demo);
+    super(options)
+    this.instance = new BinanceCCXT(this.options)
+    this.instance.setSandboxMode(this.demo)
   }
 
   startWebSocket() {
+    console.log(SocketClient)
     return new Promise((resolve, reject) => {
-      this.socket = new WebSocket("wss://stream.binancefuture.com");
-      const heartbeat = () => {
-        if (!this.socket) return;
-        if (this.socket.readyState !== 1) return;
-        this.socket.send('{"op":"ping"}');
-        setTimeout(heartbeat, 10000);
-      };
+      let pairs = ['btcusdt@aggTrade'].join('/')
 
-      this.socket.on("message", (message) => {
-        // const { topic, data } = JSON.parse(message);
-        // if (topic === "order") this.onOrder(data);
-        // else if (topic === "stop_order") this.onOrderStop(data);
-      });
-
-      this.socket.on("open", () => {
-        // // Logger.info("Websocket open");
-        // resolve();
-        // this.socket.send(
-        //   '{"op": "subscribe", "args": ["order", "stop_order"]}'
-        // );
-        // heartbeat();
-      });
-
-      this.socket.on("error", (error) => {
-        reject(error);
-        throw new Error(error);
-      });
-
-      this.socket.on("close", (error) => {
-        this.emit("disconnected");
-        reject(error);
-        throw new Error(error);
-      });
-    });
+      const socketApi = new SocketClient(`stream?streams=${pairs}`)
+      socketApi.setHandler('btcusdt@aggTrade', params =>
+        console.info(JSON.stringify(params))
+      )
+    })
   }
 
   getSignature() {
-    var expires = this.instance.nonce() + 1000;
+    var expires = this.instance.nonce() + 1000
 
     var signature = crypto
-      .createHmac("sha256", this.instance.secret)
-      .update("GET/realtime" + expires)
-      .digest("hex");
+      .createHmac('sha256', this.instance.secret)
+      .update('GET/realtime' + expires)
+      .digest('hex')
 
-    return `api_key=${this.instance.apiKey}&expires=${expires}&signature=${signature}`;
+    return `api_key=${this.instance.apiKey}&expires=${expires}&signature=${signature}`
   }
 
   onOrder(orders) {}
@@ -68,9 +44,9 @@ export class Binance extends ExchangeBase {
 
   async resetAll(symbol) {
     try {
-      await this.instance.cancelAllOrders(symbol);
+      await this.instance.cancelAllOrders(symbol)
     } catch (error) {
-      throw Logger.error(this.formatError(error));
+      throw Logger.error(this.formatError(error))
     }
   }
 
@@ -86,37 +62,61 @@ export class Binance extends ExchangeBase {
     // }
   }
 
+  async placeStrategy(order) {
+    try {
+      let strategy = new OrderGenerator(order)
+      // console.log(strategy.output);
+      const sign = this.instance.sign(
+        'userDataStream',
+        'historicalTrades',
+        'POST',
+        {
+          strategyType: 'OTOCO',
+          subOrderList: strategy.output
+        }
+      )
+      let request = await this.instance.fetch(
+        'https://testnet.binancefuture.com/gateway-api/v1/private/future/strategy/place-order',
+        sign.method,
+        sign.headers,
+        sign.body
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   async placeMarketStopOrder(order, newPosition = true) {
     try {
-      Logger.info(`New Order: ${order.toString()}`);
-      if (newPosition) this.lastTime = order.timestamp;
+      Logger.info(`New Order: ${order.toString()}`)
+      if (newPosition) this.lastTime = order.timestamp
       const { precision } = this.markets.find(
-        (market) => market.base === order.symbol.split("/")[0]
-      );
-      const price = this.instance.priceToPrecision(order.symbol, order.price);
+        market => market.base === order.symbol.split('/')[0]
+      )
+      const price = this.instance.priceToPrecision(order.symbol, order.price)
 
       let newOrder = await this.instance.createOrder(
         order.symbol,
-        "STOP_MARKET",
+        'STOP_MARKET',
         order.side,
         order.amount,
         0,
         // @ts-ignore
         {
           stopPrice: price,
-          workingType: "MARK_PRICE",
-          newClientOrderId: order.idUser,
+          workingType: 'MARK_PRICE',
+          newClientOrderId: order.idUser
         }
-      );
-      order.id = newOrder.info.clientOrderId;
-      this._orders.push(newOrder);
-      return newOrder;
+      )
+      order.id = newOrder.info.clientOrderId
+      this._orders.push(newOrder)
+      return newOrder
     } catch (error) {
       // TODO: Order would immediately trigger.
-      if (error.message.includes("Order would immediately trigger."))
-        throw this.formatError(error);
+      if (error.message.includes('Order would immediately trigger.'))
+        throw this.formatError(error)
       else {
-        throw this.formatError(error);
+        throw this.formatError(error)
       }
     }
   }
@@ -224,10 +224,10 @@ export class Binance extends ExchangeBase {
     try {
       return {
         ...error,
-        message: JSON.parse(error.message.replace("binance ", "")),
-      };
+        message: JSON.parse(error.message.replace('binance ', ''))
+      }
     } catch {
-      return error;
+      return error
     }
   }
 }
