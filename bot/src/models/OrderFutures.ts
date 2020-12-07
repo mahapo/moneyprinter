@@ -116,13 +116,15 @@ export class OrderFutures implements Order {
 
   get closedProfit() {
     if (this.priceExit && this.winTrade)
-      return this.priceDeltaProfit * this.priceExit
+      return this.priceDeltaProfit / this.amount
+    else if (this.priceExit && !this.winTrade)
+      return -this.priceDeltaLoss / this.amount
     return 0
   }
 
   get winTrade() {
     return this.side === 'buy'
-      ? this.priceExit > this.price
-      : this.priceExit < this.price
+      ? this.priceExit >= this.price
+      : this.priceExit <= this.price
   }
 }

@@ -68,7 +68,6 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   onSignal({ price, timestamp, amount }) {
-    console.log(amount)
     this.options = {
       ...this.options,
       amount,
@@ -105,9 +104,6 @@ export class MoneyPrinter extends StrategyBase {
     this.currentOrders.push(this.long)
     this.currentOrders.push(this.short)
 
-    console.log(price, this.priceTop, this.priceBottom)
-    console.log(this.currentOrders[1])
-
     return this.currentOrders
   }
 
@@ -133,11 +129,6 @@ export class MoneyPrinter extends StrategyBase {
         )
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor
-        console.log(
-          'newOrder.amount',
-          this.currentStep.factor,
-          this.options.amount
-        )
       }
       this.currentOrders.push(newOrder)
     } else if (this.countFilled === this.maxSteps) {

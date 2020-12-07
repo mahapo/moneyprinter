@@ -21,7 +21,7 @@ export class Backtester extends Runner {
     ratio: 2,
     leverage: 100,
     startBalance: 100,
-    risk: 100,
+    risk: 10,
     maxSteps: 10,
     file: '',
     update: false,
@@ -90,7 +90,7 @@ export class Backtester extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 2
+    this.options.risk = Math.round(lastStep.total) * 1.5
 
     this.strategy = new MoneyPrinter(this, this.options)
     this.strategy.maxSteps = this.options.maxSteps
@@ -191,8 +191,6 @@ export class Backtester extends Runner {
   }
 
   onSignal({ price, timestamp }) {
-    console.log('signal', price)
-
     try {
       this.strategy.onSignal({
         price,
@@ -239,7 +237,9 @@ export class Backtester extends Runner {
         ...this.calcOrderStats
       })
       console.log('Backtest took ' + this.time + ' milliseconds.')
+      console.log(this.strategy.profitTotal)
       console.log(this.calcOrderStats)
+      // console.log(this.strategy.overview)
     }
   }
 
