@@ -1,0 +1,1 @@
+export { MoneyPrinter } from './MoneyPrinter'

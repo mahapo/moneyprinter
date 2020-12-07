@@ -49,6 +49,8 @@ export class OrderFutures implements Order {
     )
   }
 
+  print() {}
+
   get priceDeltaLoss() {
     return (this.maxLossPercent / 100 / this.leverage) * this.price
   }
@@ -67,5 +69,10 @@ export class OrderFutures implements Order {
     return this.side === 'buy'
       ? this.price + this.priceDeltaProfit
       : this.price - this.priceDeltaProfit
+  }
+
+  get closedProfit() {
+    // TODO: Add loss
+    return this.closedProfit
   }
 }
