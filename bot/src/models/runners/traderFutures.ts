@@ -5,7 +5,7 @@ import { Logger } from '../utils/Logger'
 
 import * as colors from 'colors/safe'
 
-export class TraderLeveraged extends Runner {
+export class TraderFutures extends Runner {
   ticker: any
   currentCandle: any
 
@@ -21,20 +21,49 @@ export class TraderLeveraged extends Runner {
   constructor(public account, options) {
     super(options)
     this.options = {
-      ratio: parseFloat(options.ratio),
-      leverage: parseFloat(options.leverage),
-      risk: parseInt(options.risk),
-      maxSteps: parseInt(options.maxSteps),
-      symbol: options.symbol,
-      percentOfMaxRange: parseInt(options.percentOfMaxRange)
+      ...options
+    }
+    this.strategy = new MoneyPrinter(this, this.options)
+  }
+
+  async start() {
+    const symbol = this.options.symbol.replace('/', '')
+    this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
+    this.account.on(`${symbol}:Liquidation`, this.onLiquidation.bind(this))
+    this.account.on(`${symbol}:StopLoss`, this.onStopLoss.bind(this))
+    this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this))
+    this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
+    this.account.startTicker(symbol)
+  }
+
+  async onTick(tick) {
+    try {
+      // this.updateOrders(tick)
+      this.strategy.run(tick)
+    } catch (error) {
+      console.log(error)
     }
   }
 
-  async start() {}
+  async onSignal({ timestamp, price }) {
+    console.log('onSignal', price)
+    try {
+      const balance = await this.account.getCurrentBalance(
+        this.options.symbol.replace('/', '')
+      )
+      console.log(balance)
+      const amount = Math.round(
+        (balance * price * this.options.leverage) / this.options.risk
+      )
 
-  async onTick() {}
-
-  async onSignal({ timestamp, price }) {}
+      this.strategy.onSignal({
+        price,
+        timestamp,
+        amount
+      })
+    } catch (error) {}
+    console.error(2)
+  }
 
   async onTakeProfit(orderFromExchange) {}
 
@@ -45,8 +74,9 @@ export class TraderLeveraged extends Runner {
   async onFilled(orderFromExchange) {}
 
   onFinish() {
-    this.strategy.printProfit()
-    process.exit(0)
+    console.info('Finish')
+    // this.strategy.printProfit()
+    // process.exit(0)
   }
 
   async updateOrders() {}

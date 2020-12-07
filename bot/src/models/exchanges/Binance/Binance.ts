@@ -105,7 +105,7 @@ export class Binance extends ExchangeBase {
         {
           stopPrice: price,
           workingType: 'MARK_PRICE',
-          newClientOrderId: order.idUser
+          newClientOrderId: order.clientOrderId
         }
       )
       order.id = newOrder.info.clientOrderId
@@ -153,7 +153,7 @@ export class Binance extends ExchangeBase {
     // try {
     //   Logger.info(`Delete: ${order.toString()}`);
     //   let request = await this.instance.openapiPostStopOrderCancel({
-    //     order_link_id: order.idUser,
+    //     order_link_id: order.clientOrderId,
     //     symbol: order.symbol.replace("/", ""),
     //   });
     //   order.id = "";
@@ -209,7 +209,7 @@ export class Binance extends ExchangeBase {
   formatedOrder(orderFromExchange) {
     // return {
     //   id: orderFromExchange.order_link_id,
-    //   idUser: orderFromExchange.order_id,
+    //   clientOrderId: orderFromExchange.order_id,
     //   side: orderFromExchange.side.toLowerCase(),
     //   amount: orderFromExchange.qty,
     //   price: parseFloat(orderFromExchange.trigger_price),

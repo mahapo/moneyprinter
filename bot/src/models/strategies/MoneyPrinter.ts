@@ -49,11 +49,16 @@ export class MoneyPrinter extends StrategyBase {
 
   isLive: boolean
 
-  constructor(private runner) {
+  constructor(private runner, options) {
     super()
     this.isLive = !!this.runner?.account
 
     this.percentOfMaxRange = 20
+
+    this.options = {
+      ...this.options,
+      ...options
+    }
   }
 
   async run(tick) {
@@ -62,45 +67,46 @@ export class MoneyPrinter extends StrategyBase {
     }
   }
 
-  onSignal({ price, timestamp, amount, leverage, symbol, ratio }) {
-    if (this.currentOrders.length) return
-
+  onSignal({ price, timestamp, amount }) {
+    console.log(amount)
     this.options = {
-      price,
-      timestamp,
+      ...this.options,
       amount,
-      leverage,
-      symbol,
-      ratio
+      timestamp
     }
 
-    const rounder = (price: number) =>
-      this.isLive && this.runner
-        ? parseFloat(
-            this.runner.account.instance.priceToPrecision(symbol, price)
-          )
-        : price
+    this.long = new OrderFutures({
+      ...this.options,
+      side: 'buy',
+      price,
+      timestamp,
+      amount
+    })
+    this.short = new OrderFutures({
+      ...this.options,
+      side: 'sell',
+      price,
+      timestamp,
+      amount
+    })
 
-    this.long = new OrderFutures({ ...this.options, side: 'buy' })
-    this.short = new OrderFutures({ ...this.options, side: 'sell' })
+    // this.priceRange = this.short.priceDeltaLoss * (this.percentOfMaxRange / 100)
+    this.priceRange = this.long.priceDeltaLoss
 
-    this.priceRange =
-      this.short.changePriceLiquidation * (this.percentOfMaxRange / 100)
-
-    this.priceTop = rounder(this.options.price + this.priceRange / 2)
-    this.priceBottom = rounder(this.options.price - this.priceRange / 2)
+    this.priceTop = price + this.priceRange / 2
+    this.priceBottom = price - this.priceRange / 2
 
     this.long.price = this.short.stopLoss = this.priceTop
     this.short.price = this.long.stopLoss = this.priceBottom
 
-    this.long.setTakeProfit(this.options.ratio)
-    this.short.setTakeProfit(this.options.ratio)
-
-    this.long.idUser = this.createId()
-    this.short.idUser = this.createId()
+    this.long.clientOrderId = this.createId()
+    this.short.clientOrderId = this.createId()
 
     this.currentOrders.push(this.long)
     this.currentOrders.push(this.short)
+
+    console.log(price, this.priceTop, this.priceBottom)
+    console.log(this.currentOrders[1])
 
     return this.currentOrders
   }
@@ -120,19 +126,25 @@ export class MoneyPrinter extends StrategyBase {
       let newOrder = this.createHedgOrder()
 
       if (this.isLive) {
-        newOrder.idUser = this.createId()
-        newOrder.stopLossSet = true
+        newOrder.clientOrderId = this.createId()
+        // newOrder.stopLossSet = true
         newOrder.amount = Math.round(
           this.options.amount * this.currentStep.factor + order.amount
         )
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor
+        console.log(
+          'newOrder.amount',
+          this.currentStep.factor,
+          this.options.amount
+        )
       }
       this.currentOrders.push(newOrder)
     } else if (this.countFilled === this.maxSteps) {
-      order.stopLossSet = false
+      // order.stopLossSet = false
     } else {
-      order.stopLossSet = false
+      // order.stopLossSet = false
+      console.log('onOrderDone')
       this.onOrderDone(order, true)
     }
 
@@ -187,7 +199,7 @@ export class MoneyPrinter extends StrategyBase {
     })
   }
 
-  createHedgOrder() {
+  createHedgOrder(): OrderFutures {
     return this.nextSide !== 'buy' ? this.long.clone() : this.short.clone()
   }
 

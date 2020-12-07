@@ -3,7 +3,7 @@
   "version": "0.4.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
+    "dev": "ts-node-dev --respawn ./src/index.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },

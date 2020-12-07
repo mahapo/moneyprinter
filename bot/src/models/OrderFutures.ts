@@ -25,6 +25,12 @@ export class OrderFutures implements Order {
   // Custom Types
   leverage: number
   ratio: number
+  timestampFilled: number
+  timestampExit: number
+  priceExit: number
+
+  _stopLoss: number
+  takeProfit: number
 
   maxLossPercent = 50
 
@@ -49,7 +55,36 @@ export class OrderFutures implements Order {
     )
   }
 
+  checkIfTriggersTakeProfit(price: number) {
+    return (
+      (this.side === 'buy' && this.takeProfitPrice <= price) ||
+      (this.side === 'sell' && this.takeProfitPrice >= price)
+    )
+  }
+
+  checkIfTriggersStopLoss(price: number) {
+    return (
+      (this.side === 'buy' && this.stopLoss >= price) ||
+      (this.side === 'sell' && this.stopLoss <= price)
+    )
+  }
+
   print() {}
+
+  clone(): OrderFutures {
+    const order = new OrderFutures({
+      price: this.price,
+      amount: this.amount,
+      leverage: this.leverage,
+      side: this.side,
+      symbol: this.symbol,
+      timestamp: this.timestamp,
+      ratio: this.ratio
+    })
+    order.takeProfit = this.takeProfit
+    order.stopLoss = this.stopLoss
+    return order
+  }
 
   get priceDeltaLoss() {
     return (this.maxLossPercent / 100 / this.leverage) * this.price
@@ -57,6 +92,14 @@ export class OrderFutures implements Order {
 
   get priceDeltaProfit() {
     return this.priceDeltaLoss * this.ratio
+  }
+
+  set stopLoss(stopLoss) {
+    this._stopLoss = stopLoss
+  }
+
+  get stopLoss() {
+    return this._stopLoss
   }
 
   get stopLossPrice(): number {
@@ -72,7 +115,14 @@ export class OrderFutures implements Order {
   }
 
   get closedProfit() {
-    // TODO: Add loss
-    return this.closedProfit
+    if (this.priceExit && this.winTrade)
+      return this.priceDeltaProfit * this.priceExit
+    return 0
+  }
+
+  get winTrade() {
+    return this.side === 'buy'
+      ? this.priceExit > this.price
+      : this.priceExit < this.price
   }
 }
