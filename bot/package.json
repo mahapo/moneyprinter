@@ -4,18 +4,19 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn ./src/index.ts",
+    "binance": "ts-node-dev --respawn ./src/binance.ts",
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "ccxt": "^1.38.65",
-    "csv-parser": "^2.3.4",
+    "ccxt": "^1.38.95",
+    "csv-parser": "^3.0.0",
     "dotenv": "^8.2.0",
     "request": "^2.88.2",
-    "socket.io": "^3.0.3",
+    "socket.io": "^3.0.4",
     "socketio-wildcard": "^2.0.0",
     "tulind": "^0.8.18",
-    "ws": "^7.4.0"
+    "ws": "^7.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
@@ -23,7 +24,7 @@
     "@babel/preset-env": "^7.12.7",
     "@types/consola": "^2.2.5",
     "@types/graphql": "^14.5.0",
-    "@types/jest": "^26.0.16",
+    "@types/jest": "^26.0.17",
     "@types/koa": "^2.11.6",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.4.1",

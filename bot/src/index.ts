@@ -8,7 +8,7 @@ const main = async function () {
       file:
         './src/models/exchanges/Tester/BTC/BTCUSDT_August2019_January2020.csv',
       symbol: 'BTC/USD',
-      leverage: 100,
+      leverage: 50,
       ratio: 2,
       maxSteps: 10,
       percentOfMaxRange: 10

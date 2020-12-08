@@ -7,7 +7,7 @@ class SocketClient {
   _handlers: Map<any, any>
   _ws: WebSocket
   constructor(path, baseUrl = null) {
-    this.baseUrl = baseUrl || 'wss://stream.binance.com/'
+    this.baseUrl = baseUrl || 'wss://stream.binancefuture.com/'
     this._path = path
     this._createSocket()
     this._handlers = new Map()
@@ -22,7 +22,7 @@ class SocketClient {
     }
 
     this._ws.on('pong', () => {
-      console.info('receieved pong from server')
+      // console.info('receieved pong from server')
     })
     this._ws.on('ping', () => {
       console.info('==========receieved ping from server')
@@ -40,16 +40,17 @@ class SocketClient {
     this._ws.onmessage = msg => {
       try {
         const message = JSON.parse(msg.data)
-        if (message.stream || message.e) {
-          if (this._handlers.has(message.stream || message.e)) {
-            this._handlers.get(message.stream || message.e).forEach(cb => {
+        const method = message.data?.e || message.stream || message.e
+        if (method) {
+          if (this._handlers.has(method)) {
+            this._handlers.get(method).forEach(cb => {
               cb(message)
             })
           } else {
-            console.warn('Unprocessed method', message)
+            console.warn('Unprocessed method', method)
           }
         } else {
-          console.warn('Unprocessed method', message)
+          // console.warn('Unprocessed method', method)
         }
       } catch (e) {
         console.warn('Parse message failed', e)
@@ -63,7 +64,7 @@ class SocketClient {
     setInterval(() => {
       if (this._ws.readyState === WebSocket.OPEN) {
         this._ws.ping()
-        console.info('ping server')
+        // console.info('ping server')
       }
     }, 5000)
   }

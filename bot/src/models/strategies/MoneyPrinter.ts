@@ -98,9 +98,6 @@ export class MoneyPrinter extends StrategyBase {
     this.long.price = this.short.stopLoss = this.priceTop
     this.short.price = this.long.stopLoss = this.priceBottom
 
-    this.long.clientOrderId = this.createId()
-    this.short.clientOrderId = this.createId()
-
     this.currentOrders.push(this.long)
     this.currentOrders.push(this.short)
 
@@ -122,7 +119,6 @@ export class MoneyPrinter extends StrategyBase {
       let newOrder = this.createHedgOrder()
 
       if (this.isLive) {
-        newOrder.clientOrderId = this.createId()
         // newOrder.stopLossSet = true
         newOrder.amount = Math.round(
           this.options.amount * this.currentStep.factor + order.amount
@@ -164,24 +160,6 @@ export class MoneyPrinter extends StrategyBase {
       this.orders.push(...this.currentOrders)
       this.currentOrders = []
     }
-  }
-
-  createId(): string {
-    if (!this.isLive) return ''
-    function isInt(n) {
-      return n % 1 === 0
-    }
-    let options = [
-      this.options.timestamp,
-      this.options.price,
-      this.percentOfMaxRange,
-      // this.options.amount,
-      // this.options.leverage,
-      this.options.ratio,
-      this.countFilled
-    ]
-    // .map((n) => (isInt(n) ? n.toString(32) : n));
-    return Object.values(options).join('-')
   }
 
   printActiveOrders() {

@@ -1,46 +1,44 @@
 import { ExchangeBase } from '..'
 import { binance as BinanceCCXT } from 'ccxt'
-import * as WebSocket from 'ws'
-import * as crypto from 'crypto'
 import { Logger } from '../../utils/Logger'
-import { OrderGenerator } from './OrderGenerator'
 import SocketClient from './socketClient'
+
+const WSS_BASE_URL = process.env.WSS_BASE_URL || 'wss://stream.binance.com/'
 
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
   constructor(options, private demo) {
     super(options)
-    this.instance = new BinanceCCXT(this.options)
+    this.instance = new BinanceCCXT({
+      ...options,
+      options: { defaultType: 'future' },
+      timeout: 30000,
+      enableRateLimit: true
+    })
     this.instance.setSandboxMode(this.demo)
   }
 
   startWebSocket() {
-    console.log(SocketClient)
-    return new Promise((resolve, reject) => {
-      let pairs = ['btcusdt@aggTrade'].join('/')
+    return new Promise(async (resolve, reject) => {
+      let { listenKey } = await this.instance.fapiPrivatePostListenKey()
+      let pairs = [listenKey].join('/')
 
-      const socketApi = new SocketClient(`stream?streams=${pairs}`)
-      socketApi.setHandler('btcusdt@aggTrade', params =>
-        console.info(JSON.stringify(params))
+      const socketApi = new SocketClient(
+        `stream?streams=${pairs}`,
+        'wss://stream.binancefuture.com/'
       )
+      socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
+        const { x, X, ot, s, c } = data.o.o
+        if (x === 'TRADE' && X === 'FILLED' && ot === 'STOP_MARKET')
+          this.emit(`${s}:Filled`, c)
+      })
+      // socketApi.setHandler('ACCOUNT_UPDATE  ', params =>
+      //   console.info(JSON.stringify(params))
+      // )
+      resolve(true)
     })
   }
-
-  getSignature() {
-    var expires = this.instance.nonce() + 1000
-
-    var signature = crypto
-      .createHmac('sha256', this.instance.secret)
-      .update('GET/realtime' + expires)
-      .digest('hex')
-
-    return `api_key=${this.instance.apiKey}&expires=${expires}&signature=${signature}`
-  }
-
-  onOrder(orders) {}
-
-  onOrderStop(orders) {}
 
   async resetAll(symbol) {
     try {
@@ -50,39 +48,19 @@ export class Binance extends ExchangeBase {
     }
   }
 
-  async setLeverage(symbol, leverage) {
-    // try {
-    //   await this.instance.userPostLeverageSave({
-    //     symbol: symbol.replace("/", ""),
-    //     leverage,
-    //   });
-    // } catch (error) {
-    //   if (!error.message.includes("old leverage"))
-    //     throw Logger.error(this.formatError(error));
-    // }
-  }
-
-  async placeStrategy(order) {
+  async setLeverage(symbol, leverage: number) {
     try {
-      let strategy = new OrderGenerator(order)
-      // console.log(strategy.output);
-      const sign = this.instance.sign(
-        'userDataStream',
-        'historicalTrades',
-        'POST',
-        {
-          strategyType: 'OTOCO',
-          subOrderList: strategy.output
-        }
-      )
-      let request = await this.instance.fetch(
-        'https://testnet.binancefuture.com/gateway-api/v1/private/future/strategy/place-order',
-        sign.method,
-        sign.headers,
-        sign.body
-      )
+      // console.log(symbol, leverage)
+      // console.log(this.instance.dapiPrivatePostLeverage)
+
+      await this.instance.fapiPrivate_post_leverage({
+        symbol: 'BTCUSDT',
+        leverage: 22
+        // timestamp: this.instance.nonce()
+      })
     } catch (error) {
       console.log(error)
+      // Logger.error(this.formatError(error))
     }
   }
 
@@ -105,10 +83,10 @@ export class Binance extends ExchangeBase {
         {
           stopPrice: price,
           workingType: 'MARK_PRICE',
-          newClientOrderId: order.clientOrderId
+          clientOrderId: order.clientOrderId
         }
       )
-      order.id = newOrder.info.clientOrderId
+      order.id = newOrder.id
       this._orders.push(newOrder)
       return newOrder
     } catch (error) {
@@ -194,16 +172,6 @@ export class Binance extends ExchangeBase {
     // });
     // let orders = await this.instance.fetchOrders(symbol);
     // return [orders, positions];
-  }
-
-  async getLastPrice(symbol) {
-    // try {
-    //   let { info } = await this.instance.fetchTicker(symbol, {});
-    //   let { last_price, mark_price, index_price } = info;
-    //   return parseFloat(mark_price);
-    // } catch (error) {
-    //   throw this.formatError(error);
-    // }
   }
 
   formatedOrder(orderFromExchange) {

@@ -1,9 +1,10 @@
 import { Order, Trade, Fee } from 'ccxt'
+import * as colors from 'colors/safe'
 
 export class OrderFutures implements Order {
   // CCXT Types
   id: string
-  clientOrderId: string
+  // clientOrderId: string
   datetime: string
   timestamp: number
   lastTradeTimestamp: number
@@ -32,7 +33,7 @@ export class OrderFutures implements Order {
   _stopLoss: number
   takeProfit: number
 
-  maxLossPercent = 50
+  maxLossPercent = 10
 
   constructor(options) {
     this.status = 'open'
@@ -86,6 +87,12 @@ export class OrderFutures implements Order {
     return order
   }
 
+  get clientOrderId(): string {
+    let options = [this.timestamp, this.leverage, this.side, this.ratio]
+    // .map((n) => (isInt(n) ? n.toString(32) : n));
+    return Object.values(options).join('-')
+  }
+
   get priceDeltaLoss() {
     return (this.maxLossPercent / 100 / this.leverage) * this.price
   }
@@ -126,5 +133,10 @@ export class OrderFutures implements Order {
     return this.side === 'buy'
       ? this.priceExit >= this.price
       : this.priceExit <= this.price
+  }
+
+  toString(): string {
+    const colored = this.side === 'buy' ? colors.green('L') : colors.red('S')
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.clientOrderId}`
   }
 }

@@ -25,15 +25,19 @@ export class ExchangeBase extends EventEmitter {
     }
   }
 
-  async getCurrentPrice(symbol) {
-    const { bids, asks } = await this.instance.fetchOrderBook(symbol)
-    return Math.max(bids[0][0])
+  async getLastPrice(symbol) {
+    try {
+      let { info } = await this.instance.fetchTicker(symbol, {})
+      return parseFloat(info.lastPrice)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  // async getCurrentBalance(coin) {
-  //   const { result } = await this.instance.privateGetWalletBalance({ coin })
-  //   return result[coin].available_balance
-  // }
+  async getCurrentBalance(coin) {
+    const { total } = await this.instance.fetchBalance()
+    return total[coin]
+  }
 
   get orders(): Order[] {
     return this._orders
