@@ -74,20 +74,26 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
 
-    this.long = new OrderFutures({
-      ...this.options,
-      side: 'buy',
-      price,
-      timestamp,
-      amount
-    })
-    this.short = new OrderFutures({
-      ...this.options,
-      side: 'sell',
-      price,
-      timestamp,
-      amount
-    })
+    this.long = new OrderFutures(
+      {
+        ...this.options,
+        side: 'buy',
+        price,
+        timestamp,
+        amount
+      },
+      this.countFilled
+    )
+    this.short = new OrderFutures(
+      {
+        ...this.options,
+        side: 'sell',
+        price,
+        timestamp,
+        amount
+      },
+      this.countFilled
+    )
 
     // this.priceRange = this.short.priceDeltaLoss * (this.percentOfMaxRange / 100)
     this.priceRange = this.long.priceDeltaLoss
@@ -119,18 +125,17 @@ export class MoneyPrinter extends StrategyBase {
       let newOrder = this.createHedgOrder()
 
       if (this.isLive) {
-        // newOrder.stopLossSet = true
-        newOrder.amount = Math.round(
+        newOrder.stopLossSet = true
+        newOrder.amount =
           this.options.amount * this.currentStep.factor + order.amount
-        )
       } else {
         newOrder.amount = this.options.amount * this.currentStep.factor
       }
       this.currentOrders.push(newOrder)
     } else if (this.countFilled === this.maxSteps) {
-      // order.stopLossSet = false
+      order.stopLossSet = false
     } else {
-      // order.stopLossSet = false
+      order.stopLossSet = false
       console.log('onOrderDone')
       this.onOrderDone(order, true)
     }
@@ -155,7 +160,6 @@ export class MoneyPrinter extends StrategyBase {
         console.log('Max steps reached', this.countFilled)
     }
     if (this.countFilled > this.maxSteps) {
-      console.log('sdsd')
       this.options.timestamp = Math.random()
       this.orders.push(...this.currentOrders)
       this.currentOrders = []
@@ -169,7 +173,9 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   createHedgOrder(): OrderFutures {
-    return this.nextSide !== 'buy' ? this.long.clone() : this.short.clone()
+    return this.nextSide !== 'buy'
+      ? this.long.clone(this.countFilled)
+      : this.short.clone(this.countFilled)
   }
 
   get profitTotal() {

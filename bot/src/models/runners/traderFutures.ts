@@ -80,15 +80,72 @@ export class TraderFutures extends Runner {
     }
   }
 
-  async onFilled(id) {
-    console.log('onFilled', id)
+  async onFilled(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange)
+      console.log(order)
+
+      if (order?.id) {
+        Logger.info(colors.blue('onFilled'), order.toString())
+        this.strategy.onOrderFilled(order)
+        this.updateOrders()
+      } else {
+        Logger.warn(colors.red('Filled: Order not found'))
+        await this.reset()
+      }
+    } catch (error) {
+      Logger.error(error)
+    }
   }
 
-  async onTakeProfit(orderFromExchange) {}
+  async onTakeProfit(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange)
+      if (order) {
+        Logger.info(colors.green('onTakeProfit'), order.toString())
+        await this.strategy.onOrderDone(order, true)
+      } else {
+        Logger.warn(colors.red('TakeProfit: Order not found'))
+      }
+    } catch (error) {
+      Logger.error(error)
+    } finally {
+      await this.reset()
+    }
+  }
 
-  async onLiquidation(orderFromExchange) {}
+  async onStopLoss(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange)
+      if (order) {
+        Logger.info(colors.red('onStopLoss'), order?.toString())
+        await this.strategy.onOrderDone(order, false)
+      } else {
+        Logger.warn(colors.red('StopLoss: Order not found'))
+        await this.reset()
+      }
+    } catch (error) {
+      Logger.error(error)
+    } finally {
+      this.onTick()
+    }
+  }
 
-  async onStopLoss(orderFromExchange) {}
+  async onLiquidation(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange)
+      if (order) {
+        console.log(colors.red('onLiquidation'), order?.toString())
+        await this.strategy.onOrderDone(order, false)
+        this.onTick()
+      } else {
+        Logger.warn(colors.red('Liquidation: Order not found'))
+        await this.reset()
+      }
+    } catch (error) {
+      Logger.error(error)
+    }
+  }
 
   onFinish() {
     console.info('Finish')
@@ -98,23 +155,28 @@ export class TraderFutures extends Runner {
 
   async updateOrders() {
     try {
-      for (const order of this.strategy.currentOrders.reverse()) {
-        // Close orders
-        if (order.status === 'canceled' && order.id) {
-          await this.account.cancelOrder(order)
+      // Set new Orders
+      const newOrders = this.strategy.currentOrders.filter(
+        order => order.status === 'open' && order.filled === 0
+      )
+      newOrders && (await this.account.placeNewOrders(newOrders))
+      // for (const order of this.strategy.currentOrders.reverse()) {
+      //   // Close orders
+      //   if (order.status === 'canceled' && order.id) {
+      //     await this.account.cancelOrder(order)
 
-          // Set Takeprofit / StopLoss
-        } else if (
-          order.isPositon &&
-          (!order.stopLossSet || !order.takeProfitSet)
-        ) {
-          await this.account.setTpSLTs(order)
+      //     // Set Takeprofit / StopLoss
+      //   } else if (
+      //     order.isPositon &&
+      //     (!order.stopLossSet || !order.takeProfitSet)
+      //   ) {
+      //     await this.account.setTpSLTs(order)
 
-          // Set new Orders
-        } else if (order.status === 'open' && order.filled === 0) {
-          await this.account.placeMarketStopOrder(order)
-        }
-      }
+      //     // Set new Orders
+      //   } else if (order.status === 'open' && order.filled === 0) {
+      //     await this.account.placeMarketStopOrder(order)
+      //   }
+      // }
     } catch (error) {
       console.log(error.message)
       // Logger.error(error.message)
@@ -124,5 +186,24 @@ export class TraderFutures extends Runner {
 
   async reset() {}
 
-  searchOrder(orderFromExchange) {}
+  searchOrder(orderFromExchange) {
+    return this.strategy.currentOrders.find((order: OrderFutures) => {
+      if (
+        order.id === orderFromExchange.id ||
+        order.clientOrderId === orderFromExchange.clientOrderId
+      )
+        return true
+      if (
+        order.side === orderFromExchange.side &&
+        order.amount === orderFromExchange.amount
+      )
+        return true
+      if (
+        order.symbol.replace('/', '') === orderFromExchange.symbol &&
+        order.amount === orderFromExchange.amount
+      )
+        return true
+      return false
+    })
+  }
 }

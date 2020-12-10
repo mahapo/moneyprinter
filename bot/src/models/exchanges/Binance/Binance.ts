@@ -1,4 +1,5 @@
 import { ExchangeBase } from '..'
+import { OrderFutures } from '../../OrderFutures'
 import { binance as BinanceCCXT } from 'ccxt'
 import { Logger } from '../../utils/Logger'
 import SocketClient from './socketClient'
@@ -12,7 +13,7 @@ export class Binance extends ExchangeBase {
     super(options)
     this.instance = new BinanceCCXT({
       ...options,
-      options: { defaultType: 'future' },
+      options: { defaultType: 'future', adjustForTimeDifference: true },
       timeout: 30000,
       enableRateLimit: true
     })
@@ -29,13 +30,12 @@ export class Binance extends ExchangeBase {
         'wss://stream.binancefuture.com/'
       )
       socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
-        const { x, X, ot, s, c } = data.o.o
+        const { x, X, ot, s, c, i } = data.o
+        // console.log(x, X, ot, s, c, i)
         if (x === 'TRADE' && X === 'FILLED' && ot === 'STOP_MARKET')
-          this.emit(`${s}:Filled`, c)
+          this.emit(`${s}:Filled`, { clientOrderId: c, id: i })
       })
-      // socketApi.setHandler('ACCOUNT_UPDATE  ', params =>
-      //   console.info(JSON.stringify(params))
-      // )
+      socketApi.setHandler('ACCOUNT_UPDATE', () => {})
       resolve(true)
     })
   }
@@ -64,9 +64,44 @@ export class Binance extends ExchangeBase {
     }
   }
 
+  async placeNewOrders(orders: OrderFutures[]) {
+    Logger.info(`New Stop Orders: ${orders.length}`)
+    try {
+      const stopOrders = orders.map(order => ({
+        symbol: order.symbol.replace('/', ''),
+        side: order.side.toUpperCase(),
+        // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
+        type: 'STOP_MARKET',
+        quantity: (0.1).toString(),
+        stopPrice: order.price.toFixed(2),
+        newClientOrderId: order.clientOrderId
+      }))
+      const takeProfits = orders.map(order => ({
+        symbol: order.symbol.replace('/', ''),
+        side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
+        // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
+        type: 'TAKE_PROFIT_MARKET',
+        quantity: (0.1).toString(),
+        stopPrice: order.takeProfit.toFixed(2),
+        newClientOrderId: order.clientOrderIdTP,
+        timeInForce: 'GTC'
+        // reduceOnly: true
+      }))
+      const newOrders = [...stopOrders, ...takeProfits]
+      const params = {
+        batchOrders: encodeURIComponent(JSON.stringify(newOrders))
+      }
+      // this.instance.verbose = true
+      const result = await this.instance.fapiPrivatePostBatchOrders(params)
+      console.log(result)
+    } catch (error) {
+      Logger.error(error)
+    }
+  }
+
   async placeMarketStopOrder(order, newPosition = true) {
     try {
-      Logger.info(`New Order: ${order.toString()}`)
+      Logger.info(`New Stop Order: ${order.toString()}`)
       if (newPosition) this.lastTime = order.timestamp
       const { precision } = this.markets.find(
         market => market.base === order.symbol.split('/')[0]
@@ -100,45 +135,61 @@ export class Binance extends ExchangeBase {
   }
 
   async setTpSLTs(order) {
-    // try {
-    //   const { precision } = this.markets.find(
-    //     (market) => market.base === order.symbol.split("/")[0]
-    //   );
-    //   let options = { symbol: order.symbol.replace("/", "") };
-    //   if (!order.takeProfitSet) {
-    //     Logger.info(`Set trailing: ${order.toString()}`);
-    //     //options["take_profit"] = order.takeProfit
-    //     options["trailing_stop"] = precision.price * 5; // Creates more Profit as take_profit
-    //     options["new_trailing_active"] = order.takeProfit;
-    //     order.takeProfitSet = true;
-    //   }
-    //   if (!order.stopLossSet) {
-    //     Logger.info(`Set stop loss: ${order.toString()}`);
-    //     options["stop_loss"] = order.stopLoss;
-    //     order.stopLossSet = true;
-    //   }
-    //   let request = await this.instance.openapiPostPositionTradingStop(options);
-    //   return true;
-    // } catch (error) {
-    //   // TODO: Handel error: TrailingProfit:201.95 set for Sell position should be less than entry_price:194.05??LastPrice and last_price:195.65
-    //   // TODO: Handel 'StopLoss:211.5 set for Buy position should be between liq_price:212 and base_price:214.1??LastPrice'
-    //   Logger.error(this.formatError(error));
-    //   throw this.formatError(error);
-    // }
+    try {
+      // const { precision } = this.markets.find(
+      //   market => market.base === order.symbol.split('/')[0]
+      // )
+      // let options = { symbol: order.symbol.replace('/', '') }
+      if (!order.takeProfitSet) {
+        await this.instance.createOrder(
+          order.symbol,
+          'TAKE_PROFIT_MARKET',
+          order.side,
+          order.amount,
+          0,
+          // @ts-ignore
+          {
+            stopPrice: order.takeProfit,
+            workingType: 'MARK_PRICE',
+            clientOrderId: order.clientOrderId
+          }
+        )
+        order.takeProfitSet = true
+      }
+      if (!order.stopLossSet) {
+        Logger.info(`Set stop loss: ${order.toString()}`)
+        await this.instance.createOrder(
+          order.symbol,
+          'STOP_MARKET',
+          order.side,
+          order.amount,
+          0,
+          // @ts-ignore
+          {
+            stopPrice: order.takeProfit,
+            workingType: 'MARK_PRICE',
+            clientOrderId: order.clientOrderId
+          }
+        )
+        order.stopLossSet = true
+      }
+
+      return true
+    } catch (error) {
+      Logger.error(this.formatError(error))
+      throw this.formatError(error)
+    }
   }
 
   async cancelOrder(order) {
-    // try {
-    //   Logger.info(`Delete: ${order.toString()}`);
-    //   let request = await this.instance.openapiPostStopOrderCancel({
-    //     order_link_id: order.clientOrderId,
-    //     symbol: order.symbol.replace("/", ""),
-    //   });
-    //   order.id = "";
-    //   return true;
-    // } catch (error) {
-    //   throw this.formatError(error);
-    // }
+    try {
+      Logger.info(`Delete: ${order.toString()}`)
+      let request = await this.instance.cancelOrder(order.id, order.symbol)
+      order.id = ''
+      return true
+    } catch (error) {
+      throw this.formatError(error)
+    }
   }
 
   async cancelAllPositions(symbol) {

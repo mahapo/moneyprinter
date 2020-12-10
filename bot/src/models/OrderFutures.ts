@@ -4,6 +4,8 @@ import * as colors from 'colors/safe'
 export class OrderFutures implements Order {
   // CCXT Types
   id: string
+  idStopLoss: string
+  idTakeProfit: string
   // clientOrderId: string
   datetime: string
   timestamp: number
@@ -31,11 +33,14 @@ export class OrderFutures implements Order {
   priceExit: number
 
   _stopLoss: number
-  takeProfit: number
+  _takeProfit: number
 
-  maxLossPercent = 10
+  stopLossSet: boolean = false
+  takeProfitSet: boolean = false
 
-  constructor(options) {
+  maxLossPercent = 30
+
+  constructor(options, public slug = 0) {
     this.status = 'open'
     this.filled = 0
     this.price = options.price
@@ -72,25 +77,40 @@ export class OrderFutures implements Order {
 
   print() {}
 
-  clone(): OrderFutures {
-    const order = new OrderFutures({
-      price: this.price,
-      amount: this.amount,
-      leverage: this.leverage,
-      side: this.side,
-      symbol: this.symbol,
-      timestamp: this.timestamp,
-      ratio: this.ratio
-    })
-    order.takeProfit = this.takeProfit
+  clone(slug): OrderFutures {
+    const order = new OrderFutures(
+      {
+        price: this.price,
+        amount: this.amount,
+        leverage: this.leverage,
+        side: this.side,
+        symbol: this.symbol,
+        timestamp: this.timestamp,
+        ratio: this.ratio
+      },
+      slug
+    )
+    // order.takeProfit = this.takeProfit
     order.stopLoss = this.stopLoss
     return order
   }
 
   get clientOrderId(): string {
-    let options = [this.timestamp, this.leverage, this.side, this.ratio]
-    // .map((n) => (isInt(n) ? n.toString(32) : n));
-    return Object.values(options).join('-')
+    return [
+      this.timestamp,
+      this.slug,
+      this.leverage,
+      this.side,
+      this.ratio
+    ].join('-')
+  }
+
+  get clientOrderIdTP(): string {
+    return this.clientOrderId + 'TP'
+  }
+
+  get clientOrderIdSL(): string {
+    return this.clientOrderId + 'SL'
   }
 
   get priceDeltaLoss() {
@@ -107,6 +127,10 @@ export class OrderFutures implements Order {
 
   get stopLoss() {
     return this._stopLoss
+  }
+
+  get takeProfit() {
+    return this.takeProfitPrice
   }
 
   get stopLossPrice(): number {
@@ -137,6 +161,6 @@ export class OrderFutures implements Order {
 
   toString(): string {
     const colored = this.side === 'buy' ? colors.green('L') : colors.red('S')
-    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.clientOrderId}`
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfitPrice} SL:${this.stopLoss} ${this.clientOrderId}`
   }
 }
