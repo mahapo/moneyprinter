@@ -90,7 +90,7 @@ export class Backtester extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 1.5
+    this.options.risk = Math.round(lastStep.total) * 1
 
     this.strategy = new MoneyPrinter(this, this.options)
     this.strategy.maxSteps = this.options.maxSteps
@@ -305,7 +305,7 @@ export class Backtester extends Runner {
   }
 
   get idealSize() {
-    const maxSize = 10000
+    const maxSize = 100
     if (this.balance / this.options.risk > maxSize)
       return Math.round((maxSize / this.options.risk) * this.options.leverage)
 

@@ -1,3 +1,4 @@
+import { OrderFutures } from '.'
 export class ZoneRecovery {
   public initialTradeDirection: 'buy' | 'sell'
   public hedgeGapType: 'fix' | 'dynamic'
@@ -82,6 +83,26 @@ export class ZoneRecovery {
         total,
         profitTotal
       }
+    })
+  }
+
+  createOrders(count, symbol, amount, timestamp): OrderFutures[] {
+    return this.calcZones(count).map((zone, i) => {
+      const order = new OrderFutures(
+        {
+          price: zone.price,
+          leverage: this.leverage,
+          ratio: this.recoveryGapFactor,
+          side: zone.side,
+          symbol,
+          amount: amount * zone.total,
+          timestamp
+        },
+        i
+      )
+      order.takeProfit = zone.priceTakeProfit
+      order.stopLoss = zone.priceStopLoss
+      return order
     })
   }
 

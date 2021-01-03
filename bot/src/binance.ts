@@ -16,32 +16,60 @@ const main = async function () {
     await account.init()
     await account.startWebSocket()
 
+    const commonSettings = {
+      ratio: 2,
+      maxSteps: 2,
+      percentOfMaxRange: 30
+    }
+
     const traderSettings = [
       {
         symbol: 'BTC/USDT',
-        leverage: 100,
-        ratio: 2.5,
-        maxSteps: 10,
-        percentOfMaxRange: 30
+        leverage: 100
       }
       // {
-      //   symbol: "ETH/USD",
-      //   leverage: 50,
-      //   ratio: 4.5,
-      //   maxSteps: 3,
-      //   percentOfMaxRange: 30,
+      //   symbol: 'ETH/USDT',
+      //   leverage: 100
+      // }
+      // {
+      //   symbol: 'BCH/USDT',
+      //   leverage: 50
       // },
       // {
-      //   symbol: "EOS/USD",
-      //   leverage: 50,
-      //   ratio: 2,
-      //   maxSteps: 5,
-      //   percentOfMaxRange: 30,
+      //   symbol: 'XRP/USDT',
+      //   leverage: 50
       // },
+      // {
+      //   symbol: 'EOS/USDT',
+      //   leverage: 50
+      // },
+      // {
+      //   symbol: 'BNB/USDT',
+      //   leverage: 50
+      // },
+      // {
+      //   symbol: 'LTC/USDT',
+      //   leverage: 50
+      // },
+      // {
+      //   symbol: 'SNX/USDT',
+      //   leverage: 50
+      // },
+      // {
+      //   symbol: 'XMRUSDT',
+      //   leverage: 50
+      // },
+      // {
+      //   symbol: 'NEO/USDT',
+      //   leverage: 50
+      // }
     ]
 
     for (let setting of traderSettings) {
-      const trader = new TraderFutures(account, setting)
+      const trader = new TraderFutures(account, {
+        ...setting,
+        ...commonSettings
+      })
       trader.start()
       await new Promise(resolve => setTimeout(resolve, 2000))
     }

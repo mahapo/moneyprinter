@@ -33,7 +33,7 @@ export class TraderFutures extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 2
+    this.options.risk = Math.round(lastStep.total) * 40
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -44,8 +44,16 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
     await this.account.setLeverage(symbol, this.options.leverage)
+    // await this.reset()
     this.onTick()
     // this.account.startTicker(symbol)
+  }
+
+  async reset() {
+    this.strategy.currentOrders = []
+    this.account.lastTime = 0
+    await this.account.resetAll(this.options.symbol)
+    await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
   async onTick(tick = null) {
@@ -83,10 +91,9 @@ export class TraderFutures extends Runner {
   async onFilled(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
-      console.log(order)
 
       if (order?.id) {
-        Logger.info(colors.blue('onFilled'), order.toString())
+        Logger.info(`${colors.blue('onFilled')}: ${order.toString()}`)
         this.strategy.onOrderFilled(order)
         this.updateOrders()
       } else {
@@ -101,9 +108,10 @@ export class TraderFutures extends Runner {
   async onTakeProfit(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
-      if (order) {
-        Logger.info(colors.green('onTakeProfit'), order.toString())
+      if (order?.id) {
+        Logger.info(`${colors.green('onTakeProfit')}: ${order.toString()}`)
         await this.strategy.onOrderDone(order, true)
+        this.onTick()
       } else {
         Logger.warn(colors.red('TakeProfit: Order not found'))
       }
@@ -117,8 +125,8 @@ export class TraderFutures extends Runner {
   async onStopLoss(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
-      if (order) {
-        Logger.info(colors.red('onStopLoss'), order?.toString())
+      if (order?.id) {
+        Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
         await this.strategy.onOrderDone(order, false)
       } else {
         Logger.warn(colors.red('StopLoss: Order not found'))
@@ -149,61 +157,42 @@ export class TraderFutures extends Runner {
 
   onFinish() {
     console.info('Finish')
-    // this.strategy.printProfit()
-    // process.exit(0)
   }
 
   async updateOrders() {
     try {
+      // Close orders
+      const closeOrders = this.strategy.currentOrders.filter(
+        order => order.status === 'canceled' && order.id
+      )
+      closeOrders && (await this.account.cancelOrders(closeOrders))
+
+      // Set Stop Losses
+      const filledrders = this.strategy.currentOrders.filter(
+        order => order.status === 'open' && order.filled !== 0
+      )
+      filledrders && (await this.account.placeTpSLTs(filledrders))
+
       // Set new Orders
       const newOrders = this.strategy.currentOrders.filter(
         order => order.status === 'open' && order.filled === 0
       )
       newOrders && (await this.account.placeNewOrders(newOrders))
-      // for (const order of this.strategy.currentOrders.reverse()) {
-      //   // Close orders
-      //   if (order.status === 'canceled' && order.id) {
-      //     await this.account.cancelOrder(order)
-
-      //     // Set Takeprofit / StopLoss
-      //   } else if (
-      //     order.isPositon &&
-      //     (!order.stopLossSet || !order.takeProfitSet)
-      //   ) {
-      //     await this.account.setTpSLTs(order)
-
-      //     // Set new Orders
-      //   } else if (order.status === 'open' && order.filled === 0) {
-      //     await this.account.placeMarketStopOrder(order)
-      //   }
-      // }
     } catch (error) {
       console.log(error.message)
-      // Logger.error(error.message)
-      // this.reset()
     }
   }
 
-  async reset() {}
-
   searchOrder(orderFromExchange) {
-    return this.strategy.currentOrders.find((order: OrderFutures) => {
-      if (
+    return this.strategy.currentOrders.find(
+      (order: OrderFutures) =>
         order.id === orderFromExchange.id ||
-        order.clientOrderId === orderFromExchange.clientOrderId
-      )
-        return true
-      if (
-        order.side === orderFromExchange.side &&
-        order.amount === orderFromExchange.amount
-      )
-        return true
-      if (
-        order.symbol.replace('/', '') === orderFromExchange.symbol &&
-        order.amount === orderFromExchange.amount
-      )
-        return true
-      return false
-    })
+        order.idStopLoss === orderFromExchange.id ||
+        order.idTakeProfit === orderFromExchange.id ||
+        order.id === orderFromExchange.orderId ||
+        order.clientOrderId === orderFromExchange.clientOrderId ||
+        order.clientOrderIdTP === orderFromExchange.clientOrderId ||
+        order.clientOrderIdSL === orderFromExchange.clientOrderId
+    )
   }
 }

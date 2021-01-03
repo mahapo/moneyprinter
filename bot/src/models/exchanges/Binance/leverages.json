@@ -1,0 +1,350 @@
+[
+  {
+    "symbol": "RENUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BTCUSDT",
+    "leverage": 99
+  },
+  {
+    "symbol": "KSMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "NEARUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ETHUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "AAVEUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BCHUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "FILUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "XRPUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "RSRUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "EOSUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "LRCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "LTCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "MATICUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "TRXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "OCEANUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ETCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "CVCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "LINKUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BELUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "XLMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "CTKUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ADAUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "AXSUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "XMRUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ALPHAUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "DASHUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ZENUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ZECUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BTCBUSD_201225",
+    "leverage": 20
+  },
+  {
+    "symbol": "BTCBUSD_210326",
+    "leverage": 20
+  },
+  {
+    "symbol": "XTZUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BNBUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SKLUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ATOMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "GRTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ONTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BNTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "IOTAUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BTCBUSD_210129",
+    "leverage": 20
+  },
+  {
+    "symbol": "BATUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BTCBUSD_210226",
+    "leverage": 20
+  },
+  {
+    "symbol": "VETUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "1INCHUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "NEOUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "UNFIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "QTUMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "IOSTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "THETAUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ALGOUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ZILUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "KNCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ZRXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "COMPUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "OMGUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "DOGEUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SXPUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "LENDUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "KAVAUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BANDUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "RLCUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "WAVESUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "MKRUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SNXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "DOTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "DEFIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "YFIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BALUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "CRVUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "TRBUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "YFIIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "RUNEUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SUSHIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SRMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BZRXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "EGLDUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "SOLUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ICXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "STORJUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "BLZUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "UNIUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "AVAXUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "FTMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "HNTUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "ENJUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "FLMUSDT",
+    "leverage": 20
+  },
+  {
+    "symbol": "TOMOUSDT",
+    "leverage": 20
+  }
+]

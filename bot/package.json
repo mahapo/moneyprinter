@@ -6,7 +6,8 @@
     "dev": "ts-node-dev --respawn ./src/index.ts",
     "binance": "ts-node-dev --respawn ./src/binance.ts",
     "test": "jest",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "connect": "ssh -i 'binance-bot-1.pem' ubuntu@ec2-3-113-8-60.ap-northeast-1.compute.amazonaws.com"
   },
   "dependencies": {
     "ccxt": "^1.38.95",

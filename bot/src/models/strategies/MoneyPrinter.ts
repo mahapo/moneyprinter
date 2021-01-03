@@ -34,9 +34,12 @@ export class MoneyPrinter extends StrategyBase {
 
   side: string
 
-  long: OrderFutures
-  short: OrderFutures
   lastOrder: OrderFutures
+
+  longZone: ZoneRecovery
+  shortZone: ZoneRecovery
+  longZoneOrders: OrderFutures[]
+  shortZoneOrders: OrderFutures[]
 
   priceRange: number
   priceTop: number
@@ -53,7 +56,7 @@ export class MoneyPrinter extends StrategyBase {
     super()
     this.isLive = !!this.runner?.account
 
-    this.percentOfMaxRange = 20
+    this.percentOfMaxRange = 40
 
     this.options = {
       ...this.options,
@@ -74,40 +77,40 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
 
-    this.long = new OrderFutures(
-      {
-        ...this.options,
-        side: 'buy',
-        price,
-        timestamp,
-        amount
-      },
-      this.countFilled
-    )
-    this.short = new OrderFutures(
-      {
-        ...this.options,
-        side: 'sell',
-        price,
-        timestamp,
-        amount
-      },
-      this.countFilled
-    )
-
-    // this.priceRange = this.short.priceDeltaLoss * (this.percentOfMaxRange / 100)
-    this.priceRange = this.long.priceDeltaLoss
-
+    const percent = 5
+    this.priceRange = (percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
 
-    this.long.price = this.short.stopLoss = this.priceTop
-    this.short.price = this.long.stopLoss = this.priceBottom
+    // Long
+    this.longZone = new ZoneRecovery(
+      this.priceTop,
+      this.options.leverage,
+      this.options.ratio,
+      'buy'
+    )
+    this.longZoneOrders = this.longZone.createOrders(
+      this.maxSteps,
+      this.options.symbol,
+      amount,
+      timestamp
+    )
+    this.currentOrders.push(this.longZoneOrders[0])
 
-    this.currentOrders.push(this.long)
-    this.currentOrders.push(this.short)
-
-    return this.currentOrders
+    // Short
+    this.shortZone = new ZoneRecovery(
+      this.priceBottom,
+      this.options.leverage,
+      this.options.ratio,
+      'sell'
+    )
+    this.shortZoneOrders = this.shortZone.createOrders(
+      this.maxSteps,
+      this.options.symbol,
+      amount,
+      timestamp
+    )
+    this.currentOrders.push(this.shortZoneOrders[0])
   }
 
   onOrderFilled(order: OrderFutures) {
@@ -122,21 +125,10 @@ export class MoneyPrinter extends StrategyBase {
     }
 
     if (this.countFilled < this.maxSteps) {
-      let newOrder = this.createHedgOrder()
-
-      if (this.isLive) {
-        newOrder.stopLossSet = true
-        newOrder.amount =
-          this.options.amount * this.currentStep.factor + order.amount
-      } else {
-        newOrder.amount = this.options.amount * this.currentStep.factor
-      }
-      this.currentOrders.push(newOrder)
-    } else if (this.countFilled === this.maxSteps) {
-      order.stopLossSet = false
+      this.lastOrder && (this.lastOrder.status = 'canceled')
+      this.currentOrders.push(this.createHedgOrder())
     } else {
-      order.stopLossSet = false
-      console.log('onOrderDone')
+      // console.log('onOrderDone')
       this.onOrderDone(order, true)
     }
 
@@ -173,9 +165,9 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   createHedgOrder(): OrderFutures {
-    return this.nextSide !== 'buy'
-      ? this.long.clone(this.countFilled)
-      : this.short.clone(this.countFilled)
+    return this.side === 'buy'
+      ? this.longZoneOrders[this.countFilled]
+      : this.shortZoneOrders[this.countFilled]
   }
 
   get profitTotal() {
@@ -187,14 +179,6 @@ export class MoneyPrinter extends StrategyBase {
   get countFilled(): number {
     return this.currentOrders.filter((order: OrderFutures) => order.filled > 0)
       .length
-  }
-
-  get nextSide() {
-    return this.countFilled % 2 !== 0
-      ? this.side
-      : this.side === 'buy'
-      ? 'sell'
-      : 'buy'
   }
 
   get currentStep() {

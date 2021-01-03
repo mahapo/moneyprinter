@@ -15,7 +15,6 @@ export class OrderFutures implements Order {
   type: string
   timeInForce?: string
   side: 'buy' | 'sell'
-  price: number
   average?: number
   amount: number
   filled: number
@@ -32,13 +31,11 @@ export class OrderFutures implements Order {
   timestampExit: number
   priceExit: number
 
-  _stopLoss: number
-  _takeProfit: number
+  price: number
+  stopLoss: number
+  takeProfit: number
 
-  stopLossSet: boolean = false
-  takeProfitSet: boolean = false
-
-  maxLossPercent = 30
+  maxLossPercent = 50
 
   constructor(options, public slug = 0) {
     this.status = 'open'
@@ -48,7 +45,6 @@ export class OrderFutures implements Order {
     this.amount = options.amount
     this.symbol = options.symbol
     this.side = options.side
-    this.type = options.type
 
     this.leverage = options.leverage
     this.ratio = options.ratio
@@ -63,8 +59,8 @@ export class OrderFutures implements Order {
 
   checkIfTriggersTakeProfit(price: number) {
     return (
-      (this.side === 'buy' && this.takeProfitPrice <= price) ||
-      (this.side === 'sell' && this.takeProfitPrice >= price)
+      (this.side === 'buy' && this.takeProfit <= price) ||
+      (this.side === 'sell' && this.takeProfit >= price)
     )
   }
 
@@ -106,11 +102,11 @@ export class OrderFutures implements Order {
   }
 
   get clientOrderIdTP(): string {
-    return this.clientOrderId + 'TP'
+    return this.clientOrderId + '-TP'
   }
 
   get clientOrderIdSL(): string {
-    return this.clientOrderId + 'SL'
+    return this.clientOrderId + '-SL'
   }
 
   get priceDeltaLoss() {
@@ -121,29 +117,33 @@ export class OrderFutures implements Order {
     return this.priceDeltaLoss * this.ratio
   }
 
-  set stopLoss(stopLoss) {
-    this._stopLoss = stopLoss
-  }
+  // set stopLoss(stopLoss) {
+  //   this._stopLoss = stopLoss
+  // }
 
-  get stopLoss() {
-    return this._stopLoss
-  }
+  // get stopLoss() {
+  //   return this._stopLoss
+  // }
 
-  get takeProfit() {
-    return this.takeProfitPrice
-  }
+  // set takeProfit(takeProfit) {
+  //   this._takeProfit = takeProfit
+  // }
 
-  get stopLossPrice(): number {
-    return this.side === 'buy'
-      ? this.price - this.priceDeltaLoss
-      : this.price + this.priceDeltaLoss
-  }
+  // get takeProfit() {
+  //   return this._takeProfit
+  // }
 
-  get takeProfitPrice(): number {
-    return this.side === 'buy'
-      ? this.price + this.priceDeltaProfit
-      : this.price - this.priceDeltaProfit
-  }
+  // get stopLossPrice(): number {
+  //   return this.side === 'buy'
+  //     ? this.price - this.priceDeltaLoss
+  //     : this.price + this.priceDeltaLoss
+  // }
+
+  // get takeProfitPrice(): number {
+  //   return this.side === 'buy'
+  //     ? this.price + this.priceDeltaProfit
+  //     : this.price - this.priceDeltaProfit
+  // }
 
   get closedProfit() {
     if (this.priceExit && this.winTrade)
@@ -161,6 +161,6 @@ export class OrderFutures implements Order {
 
   toString(): string {
     const colored = this.side === 'buy' ? colors.green('L') : colors.red('S')
-    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfitPrice} SL:${this.stopLoss} ${this.clientOrderId}`
+    return `${colored} ${this.symbol} ${this.amount} @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} ${this.clientOrderId}`
   }
 }

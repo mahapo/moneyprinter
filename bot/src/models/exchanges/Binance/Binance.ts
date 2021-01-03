@@ -31,9 +31,16 @@ export class Binance extends ExchangeBase {
       )
       socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
         const { x, X, ot, s, c, i } = data.o
+        const isTakeProfit = c.endsWith('-TP')
+        const isStopLoss = c.endsWith('-SL')
         // console.log(x, X, ot, s, c, i)
-        if (x === 'TRADE' && X === 'FILLED' && ot === 'STOP_MARKET')
-          this.emit(`${s}:Filled`, { clientOrderId: c, id: i })
+        const order = { clientOrderId: c, id: i }
+        console.log(ot, X, order)
+        if (X === 'FILLED') {
+          if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
+          else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
+          else this.emit(`${s}:Filled`, order)
+        }
       })
       socketApi.setHandler('ACCOUNT_UPDATE', () => {})
       resolve(true)
@@ -42,7 +49,9 @@ export class Binance extends ExchangeBase {
 
   async resetAll(symbol) {
     try {
-      await this.instance.cancelAllOrders(symbol)
+      await this.instance.fapiPrivateDeleteAllOpenOrders({
+        symbol: symbol.replace('/', '')
+      })
     } catch (error) {
       throw Logger.error(this.formatError(error))
     }
@@ -50,13 +59,14 @@ export class Binance extends ExchangeBase {
 
   async setLeverage(symbol, leverage: number) {
     try {
-      // console.log(symbol, leverage)
-      // console.log(this.instance.dapiPrivatePostLeverage)
+      // const i = await this.instance.fapiPrivatePostMarginType({
+      //   symbol: symbol.replace('/', ''),
+      //   marginType: 'ISOLATED'
+      // })
 
-      await this.instance.fapiPrivate_post_leverage({
-        symbol: 'BTCUSDT',
-        leverage: 22
-        // timestamp: this.instance.nonce()
+      await this.instance.fapiPrivatePostLeverage({
+        symbol: symbol.replace('/', ''),
+        leverage
       })
     } catch (error) {
       console.log(error)
@@ -65,127 +75,98 @@ export class Binance extends ExchangeBase {
   }
 
   async placeNewOrders(orders: OrderFutures[]) {
-    Logger.info(`New Stop Orders: ${orders.length}`)
     try {
-      const stopOrders = orders.map(order => ({
-        symbol: order.symbol.replace('/', ''),
-        side: order.side.toUpperCase(),
-        // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
-        type: 'STOP_MARKET',
-        quantity: (0.1).toString(),
-        stopPrice: order.price.toFixed(2),
-        newClientOrderId: order.clientOrderId
-      }))
-      const takeProfits = orders.map(order => ({
-        symbol: order.symbol.replace('/', ''),
-        side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
-        // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
-        type: 'TAKE_PROFIT_MARKET',
-        quantity: (0.1).toString(),
-        stopPrice: order.takeProfit.toFixed(2),
-        newClientOrderId: order.clientOrderIdTP,
-        timeInForce: 'GTC'
-        // reduceOnly: true
-      }))
-      const newOrders = [...stopOrders, ...takeProfits]
-      const params = {
-        batchOrders: encodeURIComponent(JSON.stringify(newOrders))
+      let i = 0
+      for (const order of orders) {
+        Logger.info(`New Order: ${order.toString()}`)
+        const mainOrder = {
+          symbol: order.symbol.replace('/', ''),
+          side: order.side.toUpperCase(),
+          // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
+          type: 'STOP_MARKET',
+          quantity: this.instance.amountToPrecision(order.symbol, order.amount),
+          stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
+          newClientOrderId: order.clientOrderId
+        }
+
+        const params = {
+          batchOrders: encodeURIComponent(JSON.stringify([mainOrder]))
+        }
+        const results = await this.instance.fapiPrivatePostBatchOrders(params)
+        order.id = results[0].orderId
       }
-      // this.instance.verbose = true
-      const result = await this.instance.fapiPrivatePostBatchOrders(params)
-      console.log(result)
     } catch (error) {
       Logger.error(error)
     }
   }
 
-  async placeMarketStopOrder(order, newPosition = true) {
+  async placeTpSLTs(orders: OrderFutures[]) {
     try {
-      Logger.info(`New Stop Order: ${order.toString()}`)
-      if (newPosition) this.lastTime = order.timestamp
-      const { precision } = this.markets.find(
-        market => market.base === order.symbol.split('/')[0]
-      )
-      const price = this.instance.priceToPrecision(order.symbol, order.price)
-
-      let newOrder = await this.instance.createOrder(
-        order.symbol,
-        'STOP_MARKET',
-        order.side,
-        order.amount,
-        0,
-        // @ts-ignore
-        {
-          stopPrice: price,
-          workingType: 'MARK_PRICE',
-          clientOrderId: order.clientOrderId
+      let i = 0
+      for (const order of orders) {
+        Logger.info(`Set Stop Loss/Take Profit: ${order.toString()}`)
+        const takeProfit = {
+          symbol: order.symbol.replace('/', ''),
+          side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
+          type: 'TAKE_PROFIT_MARKET',
+          quantity: this.instance.amountToPrecision(order.symbol, order.amount),
+          stopPrice: this.instance.priceToPrecision(
+            order.symbol,
+            order.takeProfit
+          ),
+          newClientOrderId: order.clientOrderIdTP
+          // timeInForce: 'GTC'
         }
-      )
-      order.id = newOrder.id
-      this._orders.push(newOrder)
-      return newOrder
-    } catch (error) {
-      // TODO: Order would immediately trigger.
-      if (error.message.includes('Order would immediately trigger.'))
-        throw this.formatError(error)
-      else {
-        throw this.formatError(error)
+        const stopLoss = {
+          symbol: order.symbol.replace('/', ''),
+          side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
+          type: 'STOP_MARKET',
+          closePosition: true,
+          positionSide: 'BOTH',
+          quantity: 0,
+          // closePosition: true,
+          // quantity: this.instance.amountToPrecision(order.symbol, order.amount),
+          stopPrice: this.instance
+            .priceToPrecision(order.symbol, order.stopLoss)
+            .toString(),
+          newClientOrderId: order.clientOrderIdSL,
+          workingType: 'MARK_PRICE'
+          // timeInForce: 'GTE_GTC'
+        }
+        const params = {
+          batchOrders: encodeURIComponent(
+            JSON.stringify([
+              takeProfit
+              // , stopLoss
+            ])
+          )
+        }
+        const results = await this.instance.fapiPrivatePostBatchOrders(params)
+        order.idTakeProfit = results[0].orderId
+        // order.idStopLoss = results[1].orderId
+        // console.log(results)
       }
+    } catch (error) {
+      Logger.error(error)
     }
   }
 
-  async setTpSLTs(order) {
+  async cancelOrders(orders: OrderFutures[]) {
     try {
-      // const { precision } = this.markets.find(
-      //   market => market.base === order.symbol.split('/')[0]
-      // )
-      // let options = { symbol: order.symbol.replace('/', '') }
-      if (!order.takeProfitSet) {
-        await this.instance.createOrder(
-          order.symbol,
-          'TAKE_PROFIT_MARKET',
-          order.side,
-          order.amount,
-          0,
-          // @ts-ignore
-          {
-            stopPrice: order.takeProfit,
-            workingType: 'MARK_PRICE',
-            clientOrderId: order.clientOrderId
-          }
+      for (const order of orders) {
+        Logger.info(`Delete: ${order.toString()}`)
+        const ids = [order.id, order.idTakeProfit, order.idStopLoss].filter(
+          Boolean
         )
-        order.takeProfitSet = true
+        const params = {
+          symbol: order.symbol.replace('/', ''),
+          orderIdList: encodeURIComponent(JSON.stringify(ids))
+        }
+        const results = await this.instance.fapiPrivateDeleteBatchOrders(params)
+        order.id = null
+        order.idTakeProfit = null
+        order.idStopLoss = null
       }
-      if (!order.stopLossSet) {
-        Logger.info(`Set stop loss: ${order.toString()}`)
-        await this.instance.createOrder(
-          order.symbol,
-          'STOP_MARKET',
-          order.side,
-          order.amount,
-          0,
-          // @ts-ignore
-          {
-            stopPrice: order.takeProfit,
-            workingType: 'MARK_PRICE',
-            clientOrderId: order.clientOrderId
-          }
-        )
-        order.stopLossSet = true
-      }
-
-      return true
-    } catch (error) {
-      Logger.error(this.formatError(error))
-      throw this.formatError(error)
-    }
-  }
-
-  async cancelOrder(order) {
-    try {
-      Logger.info(`Delete: ${order.toString()}`)
-      let request = await this.instance.cancelOrder(order.id, order.symbol)
-      order.id = ''
       return true
     } catch (error) {
       throw this.formatError(error)
