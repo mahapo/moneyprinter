@@ -1,0 +1,23 @@
+require('dotenv').config()
+import { Backtester } from './models/runners'
+// import { Tester } from './models/exchanges'
+
+const main = async function () {
+  try {
+    const stettings = {
+      file: './src/models/exchanges/Tester/ETHUSDT_August2019_January2020.csv',
+      symbol: 'BTC/USD',
+      leverage: 100,
+      ratio: 2,
+      maxSteps: 12,
+      percentOfMaxRange: 10
+    }
+
+    const trader = new Backtester()
+    await trader.start(stettings)
+  } catch (error) {
+    console.debug('Main failed', error.message)
+  }
+}
+
+main()

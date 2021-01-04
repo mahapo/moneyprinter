@@ -94,10 +94,10 @@ export class OrderFutures implements Order {
   get clientOrderId(): string {
     return [
       this.timestamp,
-      this.slug,
       this.leverage,
+      this.ratio,
       this.side,
-      this.ratio
+      this.slug
     ].join('-')
   }
 

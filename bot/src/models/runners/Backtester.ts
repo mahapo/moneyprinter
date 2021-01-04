@@ -3,6 +3,9 @@ import * as fs from 'fs'
 import * as glob from 'glob'
 import * as path from 'path'
 import * as csv from 'csv-parser'
+import * as dayjs from 'dayjs'
+import * as duration from 'dayjs/plugin/duration'
+dayjs.extend(duration)
 
 import { Runner } from './runner'
 import { OrderFutures, ZoneRecovery } from '..'
@@ -236,9 +239,19 @@ export class Backtester extends Runner {
         ...this.strategy.stats,
         ...this.calcOrderStats
       })
+      const startTime = dayjs(this.ticks[0].timestamp)
+      const endTime = dayjs(this.ticks[this.ticks.length - 1].timestamp)
+      const days = dayjs.duration(endTime.diff(startTime)).asDays()
+      const pecent = (this.balance / this.options.startBalance - 1) * 100
+      const ppD = pecent / days
+
       console.log('Backtest took ' + this.time + ' milliseconds.')
-      console.log(this.strategy.profitTotal)
-      console.log(this.calcOrderStats)
+      console.log(`Profit: ${pecent.toFixed(3)}%`)
+      console.log(`Profit per day: ${ppD.toFixed(3)}%`)
+      console.log(`Balance: ${this.balance.toFixed(2)}`)
+      console.log(`Days: ${days.toFixed(1)}`)
+      console.log(this.strategy.stats)
+      // console.log(this.calcOrderStats)
       // console.log(this.strategy.overview)
     }
   }

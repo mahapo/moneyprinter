@@ -77,7 +77,7 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
 
-    const percent = 5
+    const percent = 40
     this.priceRange = (percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
@@ -115,6 +115,8 @@ export class MoneyPrinter extends StrategyBase {
 
   onOrderFilled(order: OrderFutures) {
     order.filled = order.amount
+    // TODO: Fix
+    order.filled = 1
 
     if (this.countFilled === 1) {
       this.side = order.side
@@ -128,7 +130,6 @@ export class MoneyPrinter extends StrategyBase {
       this.lastOrder && (this.lastOrder.status = 'canceled')
       this.currentOrders.push(this.createHedgOrder())
     } else {
-      // console.log('onOrderDone')
       this.onOrderDone(order, true)
     }
 
@@ -138,20 +139,17 @@ export class MoneyPrinter extends StrategyBase {
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled)
   }
 
+  // TODO: Refactor this shit
   onOrderDone(order: OrderFutures, win = false) {
     order.status = 'closed'
     if (win || this.countFilled === this.maxSteps) {
       this.currentOrders.forEach((p: OrderFutures) => {
         if (p.status === 'open') p.status = 'canceled'
       })
-
-      this.options.timestamp = Math.random()
-      this.orders.push(...this.currentOrders)
-      this.currentOrders = []
       if (!win && this.isLive)
         console.log('Max steps reached', this.countFilled)
     }
-    if (this.countFilled > this.maxSteps) {
+    if (win || this.countFilled >= this.maxSteps) {
       this.options.timestamp = Math.random()
       this.orders.push(...this.currentOrders)
       this.currentOrders = []

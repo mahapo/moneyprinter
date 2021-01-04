@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "moneyprinter-1337",
+  "private_key_id": "f876c6c4c951e2a295fd64825ccd60f48deb69f9",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDemRsxl71KXxMA\nFYYutUmfj7lgXziCI/dEB720cQUyF40IHXdcQgLwwwgWMmkc2YL3/S6vT+8kOqdM\ng6sGgUvqXGRxCz4VXazyIGOOQ6TBjDhR9CY43n5WVwvAikuLwX2c9UDILgElRmJX\nScGH0Ur75moB8gq/lDsFquEbVGcg9O6ih6JycMxvB/420up9TzPvKpqF8F2bVgeL\nhK6Tw0n6vt3pUjKqGuYzcvUvg+J57Y4m7i5n6+kKdrjQ9EY+iiOPgKmiWleYxUCF\nyahtmr5RHXX/qC+QFQ/uA0Uz1x2c6Tjn1CommEblF4uxbJutbx/3uSzjw45riPlz\nlPrZrAcbAgMBAAECggEAFmYhrmPZJbAGIW6ztI+EJmI4An09GnC0DkxucnHNAWAN\nTlETabKFc+SsM6Tu9CWPCuqXKrJIcMTWK4Te+NCZ6wNRDW8BgvTiKkXIFCYKYM99\n+1aDYhrsFj68GAEn3kWiIOEs8PfFdb1st+ExcDvx56x6jlI6HVJf02TWh1bUPySL\nrKxUybp/FiFwkTjqZRHdVGumXmlpQYzTdF9yyzQlvNpdNDSMdkt46T5ca8n2+mx9\nRwp4GHIJ1pCr6bBTG6HVkyWnKSjlu4pD/v0Ffvty/5OLow5auQUrDwrgyukRHZ1O\nC6v6BFzDOd9jc6zQGnkrSYZBACy35S85FcvdvbOxAQKBgQD3FBzSAcAD5mhcujXe\np3i3mv4w9q4GrbF0HnYmWRg2VsnLADGScaoErhxxXi7D0jQi8oDKjKWTojU4gbWM\nDyjTwE6Yk8xzyPfy2w4mwaRh777FNYHiLS5w11PQgKfI4ljag4ny8w1k5f6wWGSo\nzOtMKiymoRZsjVMA/PLW8jkj8QKBgQDmorTgWpDDv105CYwiyn4Xdx/hxHnWjfaT\nLCRNo3g2fLhVHTuDvwRSRqJheEQjjqRQDK+s070VaOIQoCKXWlrzRyaxjksPbXW+\nw28KKPmzN8/rBWNcUTQaAg/WZzvoSwhpOSXd9KakP8xA/K7GzlmTT2d4czYVebqk\n78Olcp/3ywKBgQDLOp3iF1JrYs+gxgGdXL8stq4ydBT8pU37Jzsjm9EQkR52fXhI\n7nlcVCJNFZz9sR71R+artDhVUOzZx8cepzF7ywha8+cNrdZUyd2//zNI4zxVVge5\nlFRIuLTWIZzg3V0cj2mejlEMFyoAvxQ8zCEWivIjNQkOzMfjXiwYpTBe4QKBgQCC\nacqhelSVe2X5VJ67JYk7N479mJ3UZp3hBnrYs/DLzqZk6oy2qJKG+43iU6EkAgqD\ngUjtDyXCL3Z1NDebIep/2eHVUMK8zIZiAhyNwDHB13NoT7mpf/lYI4ZVFDbZ2WO+\nLCRvZ2G7Sp/yt28U16XrGGFHyM3yQsz5auJUcYZnFQKBgGN6bAz/UukH35io+Y+q\nzjKzbhI8JrJXPG0qfXdaIifYRcbzaS/BqJsz6NJUDuaRYd0WzXUzIVMB+0kaVwRB\ngNAYqldaUIa9OpuRNCwcMLK9DA1IHaCavnj6kRNzjayl2UxBMZyRcJ9uRcqkyO3v\nSPGH1FptM6IOZKO1/dbeZvHm\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-hhpw1@moneyprinter-1337.iam.gserviceaccount.com",
+  "client_id": "108546932176500785263",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-hhpw1%40moneyprinter-1337.iam.gserviceaccount.com"
+}

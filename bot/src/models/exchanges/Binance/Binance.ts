@@ -27,7 +27,9 @@ export class Binance extends ExchangeBase {
 
       const socketApi = new SocketClient(
         `stream?streams=${pairs}`,
-        'wss://stream.binancefuture.com/'
+        this.demo
+          ? 'wss://stream.binancefuture.com/'
+          : 'wss://fstream.binance.com/'
       )
       socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
         const { x, X, ot, s, c, i } = data.o
@@ -35,14 +37,20 @@ export class Binance extends ExchangeBase {
         const isStopLoss = c.endsWith('-SL')
         // console.log(x, X, ot, s, c, i)
         const order = { clientOrderId: c, id: i }
-        console.log(ot, X, order)
         if (X === 'FILLED') {
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
+        } else {
+          console.log(ot, X, order.clientOrderId)
         }
       })
       socketApi.setHandler('ACCOUNT_UPDATE', () => {})
+      // renew listenkey
+      setInterval(async () => {
+        await this.instance.fapiPrivatePutListenKey()
+        console.info('ListenKey is renewed')
+      }, 1000 * 60 * 10) // review the key every 10 mins
       resolve(true)
     })
   }
@@ -76,7 +84,7 @@ export class Binance extends ExchangeBase {
 
   async placeNewOrders(orders: OrderFutures[]) {
     try {
-      let i = 0
+      const neworders = []
       for (const order of orders) {
         Logger.info(`New Order: ${order.toString()}`)
         const mainOrder = {
@@ -88,15 +96,23 @@ export class Binance extends ExchangeBase {
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
           newClientOrderId: order.clientOrderId
         }
+        neworders.push(mainOrder)
+      }
+      const results = await this.instance.fapiPrivatePostBatchOrders({
+        batchOrders: encodeURIComponent(JSON.stringify(neworders))
+      })
 
-        const params = {
-          batchOrders: encodeURIComponent(JSON.stringify([mainOrder]))
+      let i = 0
+      for (const result of results) {
+        if (result.orderId) {
+          orders[i].id = result.orderId
+          i++
+        } else {
+          throw new Error(results)
         }
-        const results = await this.instance.fapiPrivatePostBatchOrders(params)
-        order.id = results[0].orderId
       }
     } catch (error) {
-      Logger.error(error)
+      throw this.formatError(error)
     }
   }
 
@@ -142,12 +158,14 @@ export class Binance extends ExchangeBase {
           )
         }
         const results = await this.instance.fapiPrivatePostBatchOrders(params)
-        order.idTakeProfit = results[0].orderId
-        // order.idStopLoss = results[1].orderId
-        // console.log(results)
+        if (results[0].orderId) {
+          order.idTakeProfit = results[0].orderId
+        } else {
+          throw new Error(results[0])
+        }
       }
     } catch (error) {
-      Logger.error(error)
+      throw this.formatError(error)
     }
   }
 
@@ -155,14 +173,23 @@ export class Binance extends ExchangeBase {
     try {
       for (const order of orders) {
         Logger.info(`Delete: ${order.toString()}`)
-        const ids = [order.id, order.idTakeProfit, order.idStopLoss].filter(
-          Boolean
-        )
-        const params = {
-          symbol: order.symbol.replace('/', ''),
-          orderIdList: encodeURIComponent(JSON.stringify(ids))
-        }
-        const results = await this.instance.fapiPrivateDeleteBatchOrders(params)
+        // TODO: Fix this
+        // const ids = [order.id, order.idTakeProfit, order.idStopLoss].filter(
+        //   Boolean
+        // )
+
+        // const params = {
+        //   symbol: order.symbol.replace('/', ''),
+        //   orderIdList: encodeURIComponent(JSON.stringify(ids))
+        // }
+        // const results = await this.instance.fapiPrivateDeleteBatchOrders(params)
+        // const results = await this.instance.fapiPrivateDeleteOrder({
+        //   symbol: order.symbol.replace('/', ''),
+        //   origClientOrderId: order.clientOrderId
+        // })
+        await this.instance.fapiPrivateDeleteAllOpenOrders({
+          symbol: order.symbol.replace('/', '')
+        })
         order.id = null
         order.idTakeProfit = null
         order.idStopLoss = null

@@ -33,7 +33,8 @@ export class TraderFutures extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 40
+    this.options.risk = Math.round(lastStep.total) * 2
+    this.options.risk = 100
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -53,7 +54,8 @@ export class TraderFutures extends Runner {
     this.strategy.currentOrders = []
     this.account.lastTime = 0
     await this.account.resetAll(this.options.symbol)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 10000))
+    this.onTick()
   }
 
   async onTick(tick = null) {
@@ -85,6 +87,7 @@ export class TraderFutures extends Runner {
       await this.updateOrders()
     } catch (error) {
       console.error(error)
+      await this.reset()
     }
   }
 
@@ -173,13 +176,17 @@ export class TraderFutures extends Runner {
       )
       filledrders && (await this.account.placeTpSLTs(filledrders))
 
-      // Set new Orders
-      const newOrders = this.strategy.currentOrders.filter(
-        order => order.status === 'open' && order.filled === 0
-      )
-      newOrders && (await this.account.placeNewOrders(newOrders))
+      if (this.strategy.countFilled === 0) {
+        // Set new Orders
+        const newOrders = this.strategy.currentOrders.filter(
+          order => order.status === 'open' && order.filled === 0
+        )
+        newOrders && (await this.account.placeNewOrders(newOrders))
+      }
     } catch (error) {
-      console.log(error.message)
+      console.log(error)
+
+      await this.reset()
     }
   }
 

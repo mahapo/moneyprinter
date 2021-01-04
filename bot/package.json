@@ -12,7 +12,9 @@
   "dependencies": {
     "ccxt": "^1.38.95",
     "csv-parser": "^3.0.0",
+    "dayjs": "^1.10.1",
     "dotenv": "^8.2.0",
+    "firebase-admin": "^9.4.2",
     "request": "^2.88.2",
     "socket.io": "^3.0.4",
     "socketio-wildcard": "^2.0.0",
