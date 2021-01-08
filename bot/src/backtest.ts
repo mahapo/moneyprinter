@@ -5,11 +5,11 @@ import { Backtester } from './models/runners'
 const main = async function () {
   try {
     const stettings = {
-      file: './src/models/exchanges/Tester/ETHUSDT_August2019_January2020.csv',
+      file: './src/models/exchanges/Tester/BTCUSDT_August2019_January2020.csv',
       symbol: 'BTC/USD',
       leverage: 100,
       ratio: 2,
-      maxSteps: 12,
+      maxSteps: 6,
       percentOfMaxRange: 10
     }
 

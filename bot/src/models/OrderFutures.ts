@@ -34,6 +34,7 @@ export class OrderFutures implements Order {
   price: number
   stopLoss: number
   takeProfit: number
+  amountLoss: number
 
   maxLossPercent = 50
 
@@ -41,6 +42,7 @@ export class OrderFutures implements Order {
     this.status = 'open'
     this.filled = 0
     this.price = options.price
+    this.priceExit = options.price
     this.timestamp = options.timestamp
     this.amount = options.amount
     this.symbol = options.symbol
@@ -48,6 +50,7 @@ export class OrderFutures implements Order {
 
     this.leverage = options.leverage
     this.ratio = options.ratio
+    this.amountLoss = options.amountLoss
   }
 
   checkIfFilled(price: number) {
@@ -82,7 +85,8 @@ export class OrderFutures implements Order {
         side: this.side,
         symbol: this.symbol,
         timestamp: this.timestamp,
-        ratio: this.ratio
+        ratio: this.ratio,
+        amountLoss: this.amountLoss
       },
       slug
     )
@@ -113,44 +117,16 @@ export class OrderFutures implements Order {
     return (this.maxLossPercent / 100 / this.leverage) * this.price
   }
 
-  get priceDeltaProfit() {
-    return this.priceDeltaLoss * this.ratio
+  get priceDelta() {
+    return this.price * this.priceExit
   }
 
-  // set stopLoss(stopLoss) {
-  //   this._stopLoss = stopLoss
-  // }
-
-  // get stopLoss() {
-  //   return this._stopLoss
-  // }
-
-  // set takeProfit(takeProfit) {
-  //   this._takeProfit = takeProfit
-  // }
-
-  // get takeProfit() {
-  //   return this._takeProfit
-  // }
-
-  // get stopLossPrice(): number {
-  //   return this.side === 'buy'
-  //     ? this.price - this.priceDeltaLoss
-  //     : this.price + this.priceDeltaLoss
-  // }
-
-  // get takeProfitPrice(): number {
-  //   return this.side === 'buy'
-  //     ? this.price + this.priceDeltaProfit
-  //     : this.price - this.priceDeltaProfit
-  // }
-
-  get closedProfit() {
-    if (this.priceExit && this.winTrade)
-      return this.priceDeltaProfit / this.amount
-    else if (this.priceExit && !this.winTrade)
-      return -this.priceDeltaLoss / this.amount
-    return 0
+  get pnl() {
+    const deltaPercent = this.priceExit/this.price-1
+    if (this.side === 'buy')
+      return deltaPercent * (this.amount )
+    else 
+      return -deltaPercent * (this.amount)
   }
 
   get winTrade() {

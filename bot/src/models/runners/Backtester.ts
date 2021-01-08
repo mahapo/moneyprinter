@@ -13,6 +13,7 @@ import { MoneyPrinter } from '../strategies'
 
 export class Backtester extends Runner {
   balances = []
+  balance: number
 
   percent: number = 0
   time: number = 0
@@ -95,11 +96,12 @@ export class Backtester extends Runner {
 
     this.options.risk = Math.round(lastStep.total) * 1
 
-    this.strategy = new MoneyPrinter(this, this.options)
+    this.strategy = new MoneyPrinter(this, this.options, false)
     this.strategy.maxSteps = this.options.maxSteps
     this.strategy.percentOfMaxRange = this.options.percentOfMaxRange
 
     this.balances = []
+    this.balance = this.options.startBalance
 
     if (this.options.update) {
       // this.emit("ticks", this.ticks);
@@ -160,31 +162,41 @@ export class Backtester extends Runner {
 
   updateOrders({ price, timestamp }) {
     try {
-      this.strategy.currentOrders.forEach((order: OrderFutures) => {
-        if (order.status === 'open' && order.filled === 0) {
-          if (order.checkIfFilled(price)) {
-            order.timestampFilled = timestamp
-            this.balances.push({
-              timestamp,
-              balance: this.balance - order.amount / order.leverage
-            })
-            this.strategy.onOrderFilled(order, price)
-          }
-        } else if (order.status === 'open' && order.filled > 0) {
+      
+      this.strategy.currentOrders.filter(x => x.status === 'open').forEach((order: OrderFutures) => {
+        if (order.filled === 0 && order.checkIfFilled(price)) {
+          order.filled = order.amount
+          order.timestampFilled = timestamp
+          this.balances.push({
+            timestamp,
+            balance: this.balance.toFixed(2),
+            c: this.strategy.countFilled,
+          })
+          this.strategy.onOrderFilled(order)
+        } else if (order.filled > 0) {
           if (
             order.checkIfTriggersTakeProfit(price) ||
             order.checkIfTriggersStopLoss(price)
-          ) {
+            ) {
             order.status = 'closed'
             order.priceExit = price
             order.timestampExit = timestamp
+            
+
+            this.balance = this.balance + order.pnl
+            
 
             this.balances.push({
               timestamp,
-              balance: this.balance
+              balance: this.balance.toFixed(2),
+              p: order.pnl.toFixed(2),
+              c: this.strategy.countFilled,
             })
-
-            this.strategy.onOrderDone(order, order.winTrade)
+          }
+          if (order.checkIfTriggersTakeProfit(price)) {
+            this.strategy.onOrderDone(order, true)
+          } else if (order.checkIfTriggersStopLoss(price)) {
+            this.strategy.onOrderFilled(order)
           }
         }
       })
@@ -244,6 +256,10 @@ export class Backtester extends Runner {
       const days = dayjs.duration(endTime.diff(startTime)).asDays()
       const pecent = (this.balance / this.options.startBalance - 1) * 100
       const ppD = pecent / days
+
+      console.log(this.balances);
+      console.log(this.balance);
+      
 
       console.log('Backtest took ' + this.time + ' milliseconds.')
       console.log(`Profit: ${pecent.toFixed(3)}%`)
@@ -313,9 +329,9 @@ export class Backtester extends Runner {
       })
   }
 
-  get balance() {
-    return this.options.startBalance + this.strategy.profitTotal
-  }
+  // get balance() {
+  //   return this.options.startBalance + this.strategy.profitTotal
+  // }
 
   get idealSize() {
     const maxSize = 100

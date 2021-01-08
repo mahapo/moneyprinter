@@ -87,6 +87,7 @@ export class ZoneRecovery {
   }
 
   createOrders(count, symbol, amount, timestamp): OrderFutures[] {
+    const nextZone = this.calcZones(count + 1)
     return this.calcZones(count).map((zone, i) => {
       const order = new OrderFutures(
         {
@@ -96,6 +97,7 @@ export class ZoneRecovery {
           side: zone.side,
           symbol,
           amount: amount * zone.total,
+          amountLoss: nextZone[i + 1].total * amount,
           timestamp
         },
         i

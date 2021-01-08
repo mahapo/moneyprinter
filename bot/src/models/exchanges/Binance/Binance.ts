@@ -55,7 +55,7 @@ export class Binance extends ExchangeBase {
     })
   }
 
-  async resetAll(symbol) {
+  async deleteOpenOrders(symbol) {
     try {
       await this.instance.fapiPrivateDeleteAllOpenOrders({
         symbol: symbol.replace('/', '')
@@ -108,7 +108,7 @@ export class Binance extends ExchangeBase {
           orders[i].id = result.orderId
           i++
         } else {
-          throw new Error(results)
+          throw new Error(result)
         }
       }
     } catch (error) {
@@ -125,36 +125,32 @@ export class Binance extends ExchangeBase {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           type: 'TAKE_PROFIT_MARKET',
+          positionSide: 'BOTH',
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(
             order.symbol,
             order.takeProfit
           ),
           newClientOrderId: order.clientOrderIdTP
-          // timeInForce: 'GTC'
         }
         const stopLoss = {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           type: 'STOP_MARKET',
-          closePosition: true,
           positionSide: 'BOTH',
-          quantity: 0,
-          // closePosition: true,
-          // quantity: this.instance.amountToPrecision(order.symbol, order.amount),
+          quantity: this.instance.amountToPrecision(
+            order.symbol,
+            order.amountLoss
+          ),
           stopPrice: this.instance
             .priceToPrecision(order.symbol, order.stopLoss)
             .toString(),
-          newClientOrderId: order.clientOrderIdSL,
-          workingType: 'MARK_PRICE'
-          // timeInForce: 'GTE_GTC'
+          newClientOrderId: order.clientOrderIdSL
         }
+
         const params = {
           batchOrders: encodeURIComponent(
-            JSON.stringify([
-              takeProfit
-              // , stopLoss
-            ])
+            JSON.stringify([takeProfit, stopLoss])
           )
         }
         const results = await this.instance.fapiPrivatePostBatchOrders(params)
@@ -162,6 +158,14 @@ export class Binance extends ExchangeBase {
           order.idTakeProfit = results[0].orderId
         } else {
           throw new Error(results[0])
+        }
+
+        if (results[1].orderId) {
+          order.idStopLoss = results[1].orderId
+        } else {
+          console.log(results[1])
+
+          throw new Error(results[1])
         }
       }
     } catch (error) {
@@ -248,6 +252,8 @@ export class Binance extends ExchangeBase {
   }
 
   formatError(error) {
+    console.log(JSON.stringify(error));
+    
     try {
       return {
         ...error,

@@ -1,6 +1,20 @@
 import { StrategyBase } from './StrategyBase'
 import { OrderFutures, ZoneRecovery } from '..'
 
+/*
+  1. Place Buy_0 / Sell_0 
+
+  === ON BUY filled ===
+
+  2. Delete Sell_0
+  3. Set StopLoss_0 (S) and TakeProfit_0 (S)
+
+  === on stopLoss ===
+
+  2. Delete TakeProfit_0
+  3. Set StopLoss_1 (B) and TakeProfit_1 (B)
+
+*/
 export class MoneyPrinter extends StrategyBase {
   static idKeys = [
     'id',
@@ -34,8 +48,6 @@ export class MoneyPrinter extends StrategyBase {
 
   side: string
 
-  lastOrder: OrderFutures
-
   longZone: ZoneRecovery
   shortZone: ZoneRecovery
   longZoneOrders: OrderFutures[]
@@ -50,11 +62,8 @@ export class MoneyPrinter extends StrategyBase {
 
   maxSteps: number = 20
 
-  isLive: boolean
-
-  constructor(private runner, options) {
+  constructor(private runner, options, public isLive = true) {
     super()
-    this.isLive = !!this.runner?.account
 
     this.percentOfMaxRange = 40
 
@@ -115,11 +124,10 @@ export class MoneyPrinter extends StrategyBase {
 
   onOrderFilled(order: OrderFutures) {
     order.filled = order.amount
-    // TODO: Fix
-    order.filled = 1
 
     if (this.countFilled === 1) {
       this.side = order.side
+      this.currentOrder = order
       let otherSide: OrderFutures = this.currentOrders.find(
         (order: OrderFutures) => order.side !== this.side
       )
@@ -127,17 +135,23 @@ export class MoneyPrinter extends StrategyBase {
     }
 
     if (this.countFilled < this.maxSteps) {
-      this.lastOrder && (this.lastOrder.status = 'canceled')
-      this.currentOrders.push(this.createHedgOrder())
+      this.currentOrder = this.createHedgOrder()
+      // Fix for Backtester
+      order.status  = 'canceled'
+      this.currentOrder.filled = this.currentOrder.amount
+      this.currentOrders.push(this.currentOrder)
     } else {
       this.onOrderDone(order, true)
     }
 
     this.stats.amountMax = Math.max(this.stats.amountMax, order.amount)
     this.stats.amountMin = Math.min(this.stats.amountMin, order.amount)
-    this.lastOrder = order
     this.stats.countMax = Math.max(this.stats.countMax, this.countFilled)
   }
+
+  // onTakeProfit(order: OrderFutures) {
+  //   order.status = 'closed'
+  // }
 
   // TODO: Refactor this shit
   onOrderDone(order: OrderFutures, win = false) {
@@ -152,6 +166,7 @@ export class MoneyPrinter extends StrategyBase {
     if (win || this.countFilled >= this.maxSteps) {
       this.options.timestamp = Math.random()
       this.orders.push(...this.currentOrders)
+      this.currentOrder = null
       this.currentOrders = []
     }
   }

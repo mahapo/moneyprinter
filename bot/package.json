@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn ./src/index.ts",
+    "backtest": "ts-node-dev --respawn ./src/backtest.ts",
     "binance": "ts-node-dev --respawn ./src/binance.ts",
     "test": "jest",
     "test:watch": "jest --watchAll",

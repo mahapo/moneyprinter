@@ -3,11 +3,11 @@ import { TraderFutures } from './models/runners'
 import { Binance } from './models/exchanges'
 ;(async () => {
   const firebase = new Firebase()
-  firebase.refAccounts.doc('real-1').onSnapshot(async doc => {
+  firebase.refAccounts.doc('demo-1').onSnapshot(async doc => {
     var { options } = doc.data()
 
     try {
-      const isDemo = false
+      const isDemo = true
 
       const account = new Binance(options, isDemo)
       await account.init()

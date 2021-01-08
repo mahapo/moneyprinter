@@ -16,7 +16,7 @@ export class StrategyBase {
 
   get overview() {
     return this.orders.map(order => ({
-      profit: order.closedProfit,
+      profit: order.pnl,
       priceExit: order.priceExit,
       ...order
     }))
@@ -24,7 +24,7 @@ export class StrategyBase {
 
   get profitTotal() {
     return this.orders.reduce((r, p) => {
-      return r + p.closedProfit
+      return r + p.pnl
     }, 0)
   }
 
