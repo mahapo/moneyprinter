@@ -62,7 +62,7 @@ export class Backtester extends Runner {
 
   async start(options) {
     await this.initTicks(options.file)
-    this.run(options)
+    return await this.run(options)
   }
 
   run(options) {
@@ -71,11 +71,13 @@ export class Backtester extends Runner {
     else if (options.file.includes('ETHUSDT')) symbol = 'ETH/USD'
     else if (options.file.includes('EOSUSDT')) symbol = 'EOS/USD'
     else if (options.file.includes('XRPUSDT')) symbol = 'XRP/USD'
+    else if (options.file.includes('LINKUSDT')) symbol = 'LINK/USD'
+    else if (options.file.includes('LTCUSDT')) symbol = 'LTC/USD'
 
     this.options = {
       ...this.options,
-      ...options
-      // symbol,
+      ...options,
+      symbol
       // ratio: parseFloat(options.ratio),
       // leverage: parseFloat(options.leverage),
       // startBalance: parseFloat(options.startBalance),
@@ -148,7 +150,7 @@ export class Backtester extends Runner {
         text: `Backtest on ${this.ticks.length} trades successful`
       })
     }
-    this.onFinish()
+    return this.onFinish()
   }
 
   onTick(tick) {
@@ -169,8 +171,7 @@ export class Backtester extends Runner {
           order.timestampFilled = timestamp
           this.balances.push({
             timestamp,
-            balance: this.balance.toFixed(2),
-            c: this.strategy.countFilled,
+            balance: this.balance
           })
           this.strategy.onOrderFilled(order)
         } else if (order.filled > 0) {
@@ -188,9 +189,7 @@ export class Backtester extends Runner {
 
             this.balances.push({
               timestamp,
-              balance: this.balance.toFixed(2),
-              p: order.pnl.toFixed(2),
-              c: this.strategy.countFilled,
+              balance: this.balance
             })
           }
           if (order.checkIfTriggersTakeProfit(price)) {
@@ -220,56 +219,43 @@ export class Backtester extends Runner {
 
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders)
-    if (this.options.matrix) {
-      const balances = this.formatedBalances.map(b => b.balance)
-      const drawdowns = this.formatedBalances
-        .filter(b => !!b.drawdown)
-        .map(b => b.drawdown)
-      this.emit('backtestFinishMatrix', {
-        profit: this.strategy.profitTotal.toFixed(2),
-        time: this.time,
-        ordersCount: this.strategy.orders.length,
-        balanceMin: Math.min(...balances).toFixed(2),
-        balanceMax: Math.max(...balances).toFixed(2),
-        drawdownMax: Math.min(...drawdowns).toFixed(2),
-        options: this.options,
-        ...this.strategy.stats,
-        ...this.calcOrderStats
-      })
-      console.log(
-        'Finish ' + this.time + ' ms.',
-        `Ratio: ${this.options.ratio} Leverage: ${this.options.leverage} MaxSteps: ${this.options.maxSteps} Risk: ${this.options.risk} percentOfMaxRange: ${this.options.percentOfMaxRange}`
-      )
-    } else {
-      this.emit('backtestFinish', {
-        orders: this.strategy.overview,
-        countMax: this.strategy.countMax,
-        profit: this.strategy.profitTotal,
-        startBalance: this.options.startBalance,
-        time: this.time,
-        balances: this.formatedBalances,
-        ...this.strategy.stats,
-        ...this.calcOrderStats
-      })
-      const startTime = dayjs(this.ticks[0].timestamp)
-      const endTime = dayjs(this.ticks[this.ticks.length - 1].timestamp)
-      const days = dayjs.duration(endTime.diff(startTime)).asDays()
-      const pecent = (this.balance / this.options.startBalance - 1) * 100
-      const ppD = pecent / days
 
-      console.log(this.balances);
-      console.log(this.balance);
-      
+    // const balances = this.formatedBalances.map(b => b.balance)
+    // const drawdowns = this.formatedBalances
+    //   .filter(b => !!b.drawdown)
+    //   .map(b => b.drawdown)
 
-      console.log('Backtest took ' + this.time + ' milliseconds.')
-      console.log(`Profit: ${pecent.toFixed(3)}%`)
-      console.log(`Profit per day: ${ppD.toFixed(3)}%`)
-      console.log(`Balance: ${this.balance.toFixed(2)}`)
-      console.log(`Days: ${days.toFixed(1)}`)
-      console.log(this.strategy.stats)
-      // console.log(this.calcOrderStats)
-      // console.log(this.strategy.overview)
+    const timeStart = dayjs(this.ticks[0].timestamp)
+    const timeEnd = dayjs(this.ticks[this.ticks.length - 1].timestamp)
+    const days = dayjs.duration(timeEnd.diff(timeStart)).asDays()
+
+    const profitPecent = (this.balance / this.options.startBalance - 1) * 100
+    const profitPecentPerDay = profitPecent / days
+    const result = {
+      // orders: this.strategy.overview,
+      // countMax: this.strategy.countMax,
+      // profit: this.strategy.profitTotal,
+      // drawdownMax: Math.min(...drawdowns).toFixed(2),
+
+      balances: this.balances,
+      timeStart: timeStart.unix(),
+      timeEnd: timeEnd.unix(),
+      days,
+      profitPecent,
+      profitPecentPerDay,
+      options: this.options,
+      ...this.strategy.stats,
+      ...this.calcOrderStats
     }
+    // this.emit('backtestFinish', result)
+
+    console.log('========================')
+    console.log('Backtest took ' + this.time + ' milliseconds.')
+    console.log(`Profit: ${profitPecent.toFixed(3)}%`)
+    console.log(`Profit per day: ${profitPecentPerDay.toFixed(3)}%`)
+    console.log(`Balance: ${this.balance.toFixed(2)}`)
+    console.log(`Days: ${days.toFixed(1)}`)
+    return result
   }
 
   get calcOrderStats() {
@@ -280,24 +266,24 @@ export class Backtester extends Runner {
     return {
       countWin: this.strategy.overview.filter(o => o.profit > 0).length,
       countLoss: this.strategy.overview.filter(o => o.profit < 0).length,
-      countWinSerieMax: this.strategy.overview
-        .filter(o => o.status === 'closed' && o.filled > 0)
-        .reduce((acc, o) => {
-          const isWin = o.profit > 0
-          if (isWin && winLast) acc = Math.max(acc, ++winSerie)
-          else winSerie = 0
-          winLast = isWin
-          return acc
-        }, 0),
-      countLossSerieMax: this.strategy.overview
-        .filter(o => o.status === 'closed' && o.filled > 0)
-        .reduce((acc, o) => {
-          const isLoss = o.profit < 0
-          if (isLoss && lossLast) acc = Math.max(acc, ++lossSerie)
-          else lossSerie = 0
-          lossLast = isLoss
-          return acc
-        }, 0)
+      // countWinSerieMax: this.strategy.overview
+      //   .filter(o => o.status === 'closed' && o.filled > 0)
+      //   .reduce((acc, o) => {
+      //     const isWin = o.profit > 0
+      //     if (isWin && winLast) acc = Math.max(acc, ++winSerie)
+      //     else winSerie = 0
+      //     winLast = isWin
+      //     return acc
+      //   }, 0),
+      // countLossSerieMax: this.strategy.overview
+      //   .filter(o => o.status === 'closed' && o.filled > 0)
+      //   .reduce((acc, o) => {
+      //     const isLoss = o.profit < 0
+      //     if (isLoss && lossLast) acc = Math.max(acc, ++lossSerie)
+      //     else lossSerie = 0
+      //     lossLast = isLoss
+      //     return acc
+      //   }, 0)
     }
   }
 
@@ -334,7 +320,7 @@ export class Backtester extends Runner {
   // }
 
   get idealSize() {
-    const maxSize = 100
+    const maxSize = 1000
     if (this.balance / this.options.risk > maxSize)
       return Math.round((maxSize / this.options.risk) * this.options.leverage)
 

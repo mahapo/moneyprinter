@@ -3,11 +3,11 @@ import { TraderFutures } from './models/runners'
 import { Binance } from './models/exchanges'
 ;(async () => {
   const firebase = new Firebase()
-  firebase.refAccounts.doc('demo-1').onSnapshot(async doc => {
+  firebase.refAccounts.doc('real-1').onSnapshot(async doc => {
     var { options } = doc.data()
 
     try {
-      const isDemo = true
+      const isDemo = false
 
       const account = new Binance(options, isDemo)
       await account.init()
@@ -19,14 +19,14 @@ import { Binance } from './models/exchanges'
       }
 
       const traderSettings = [
-        // {
-        //   symbol: 'BTC/USDT',
-        //   leverage: 100
-        // },
         {
-          symbol: 'ETH/USDT',
+          symbol: 'BTC/USDT',
           leverage: 100
-        }
+        },
+        // {
+        //   symbol: 'ETH/USDT',
+        //   leverage: 100
+        // }
         // {
         //   symbol: 'XRP/USDT',
         //   leverage: 75
