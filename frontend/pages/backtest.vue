@@ -68,7 +68,7 @@
                       height="36"
                       reactive
                     >
-                      <template v-slot="{ value }">
+                      <template #default="{ value }">
                         {{ progress.text }}:
                         <strong>{{ value }}%</strong>
                       </template>

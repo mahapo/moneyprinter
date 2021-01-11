@@ -1,7 +1,8 @@
 const colors = require('vuetify/es5/util/colors').default
 
 module.exports = {
-  mode: 'universal',
+  target: 'static',
+  // target: 'static',
   /*
    ** Headers of the page
    */
@@ -76,6 +77,7 @@ module.exports = {
     '@nuxtjs/axios',
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv',
+    '@nuxtjs/firebase',
   ],
   /*
    ** Axios module configuration
@@ -114,5 +116,29 @@ module.exports = {
   },
   content: {
     // Options
+  },
+
+  router: {
+    // middleware: 'router-auth',
+  },
+
+  firebase: {
+    config: {
+      apiKey: 'AIzaSyB4UFaCfUW9zfEefwcgseVlrKXjna31xC4',
+      authDomain: 'moneyprinter-1337.firebaseapp.com',
+      projectId: 'moneyprinter-1337',
+      storageBucket: 'moneyprinter-1337.appspot.com',
+      messagingSenderId: '485077092320',
+      appId: '1:485077092320:web:f89f0ffffe171c68aa4d85',
+    },
+    services: {
+      firestore: true,
+      auth: {
+        initialize: {
+          onAuthStateChangedAction: 'auth/onAuthStateChanged',
+        },
+        ssr: false,
+      },
+    },
   },
 }

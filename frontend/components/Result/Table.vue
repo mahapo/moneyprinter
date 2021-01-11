@@ -6,20 +6,20 @@
     :items-per-page="100"
     multi-sort
   >
-    <template v-slot:top>
+    <template #top>
       <v-switch
         v-model="good"
         label="Show only good results"
         class="pa-3"
       ></v-switch>
     </template>
-    <template v-slot:item.countWin="{ item }"
+    <template #item.countWin="{ item }"
       >{{ item.countWin }} ({{ item.countWinSerieMax }})</template
     >
-    <template v-slot:item.countLoss="{ item }"
+    <template #item.countLoss="{ item }"
       >{{ item.countLoss }} ({{ item.countLossSerieMax }})</template
     >
-    <template v-slot:item.actions="{ item }">
+    <template #item.actions="{ item }">
       <v-icon small @click="startBacktest(item.options)">mdi-run</v-icon>
     </template>
   </v-data-table>
