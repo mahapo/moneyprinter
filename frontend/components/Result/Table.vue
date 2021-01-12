@@ -5,6 +5,7 @@
     :items="filteredResults"
     :items-per-page="100"
     multi-sort
+    @click:row="handleClick"
   >
     <template #top>
       <v-switch
@@ -12,15 +13,6 @@
         label="Show only good results"
         class="pa-3"
       ></v-switch>
-    </template>
-    <template #item.countWin="{ item }"
-      >{{ item.countWin }} ({{ item.countWinSerieMax }})</template
-    >
-    <template #item.countLoss="{ item }"
-      >{{ item.countLoss }} ({{ item.countLossSerieMax }})</template
-    >
-    <template #item.actions="{ item }">
-      <v-icon small @click="startBacktest(item.options)">mdi-run</v-icon>
     </template>
   </v-data-table>
 </template>
@@ -36,6 +28,10 @@ export default {
   data() {
     return {
       header: [
+        {
+          text: 'Symbol',
+          value: 'options.symbol',
+        },
         {
           text: 'Leverage',
           value: 'options.leverage',
@@ -68,30 +64,30 @@ export default {
           text: 'Loss Trades (in row)',
           value: 'countLoss',
         },
-        { text: 'Profit', value: 'profit' },
-        { text: 'Balance Min', value: 'balanceMin' },
-        { text: 'Balance Max', value: 'balanceMax' },
-        { text: 'Max Drawdown (%)', value: 'drawdownMax' },
-        { text: 'Min Amount', value: 'amountMin' },
-        { text: 'Max Amount', value: 'amountMax' },
-        { text: 'Actions', value: 'actions', sortable: false },
+        { text: 'Profit (%)', value: 'profitPecent' },
+        { text: 'Profit per Day', value: 'profitPecentPerDay' },
+        // { text: 'Balance Min', value: 'balanceMin' },
+        // { text: 'Balance Max', value: 'balanceMax' },
+        // { text: 'Max Drawdown (%)', value: 'drawdownMax' },
+        // { text: 'Min Amount', value: 'amountMin' },
+        // { text: 'Max Amount', value: 'amountMax' },
       ],
-      good: true,
+      good: false,
     }
   },
   computed: {
     filteredResults() {
-      return this.results.filter(
+      return [...this.results].filter(
         (result) => !this.good || (result.balanceMin > 0 && result.profit > 0)
       )
     },
   },
   methods: {
-    startBacktest(options) {
-      this.$socket.client.emit('startBacktest', {
-        ...options,
-        matrix: false,
-      })
+    async handleClick(value) {
+      const results = await value.balances.get()
+      const { balances } = results.data()
+      console.log(balances)
+      this.$emit('balances', balances)
     },
   },
 }

@@ -132,7 +132,10 @@ module.exports = {
       appId: '1:485077092320:web:f89f0ffffe171c68aa4d85',
     },
     services: {
-      firestore: true,
+      firestore: {
+        // ...
+        enablePersistence: true,
+      },
       auth: {
         initialize: {
           onAuthStateChangedAction: 'auth/onAuthStateChanged',

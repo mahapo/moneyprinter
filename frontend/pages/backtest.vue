@@ -18,11 +18,13 @@
     <v-col md="12">
       <v-card>
         <v-tabs v-model="tab">
-          <v-tab> <v-icon left>mdi-account</v-icon>Settings </v-tab>
-          <v-tab> <v-icon left>mdi-account</v-icon>Trades </v-tab>
+          <v-tab v-if="false">
+            <v-icon left>mdi-account</v-icon>Settings
+          </v-tab>
+          <v-tab v-if="false"> <v-icon left>mdi-account</v-icon>Trades </v-tab>
           <v-tab> <v-icon left>mdi-money</v-icon>Results </v-tab>
 
-          <v-tab-item>
+          <v-tab-item v-if="false">
             <v-card flat>
               <v-card-text>
                 <v-row>
@@ -81,7 +83,7 @@
               </v-card-text>
             </v-card>
           </v-tab-item>
-          <v-tab-item>
+          <v-tab-item v-if="false">
             <v-card flat>
               <v-card-text>
                 <trade-table :trades="orders"></trade-table>
@@ -91,7 +93,10 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
-                <result-table :results="results"></result-table>
+                <result-table
+                  :results="results"
+                  @balances="balances = $event"
+                ></result-table>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -141,7 +146,6 @@ export default {
       ticks: [],
       testMatrix: [],
       files: [],
-      results: [],
       testOptions: {
         strategy: 'moneyprinter',
         file: './data/trades/BTCUSDT_August2019_January2020.csv',
@@ -157,13 +161,22 @@ export default {
         text: 'Start test',
       },
       orders: [],
+      results: [],
+      balance: null,
       balances: [],
     }
   },
-  mounted() {
-    this.$socket.client.emit('files')
+  async mounted() {
+    const results = await this.$fire.firestore
+      .collection('backtesting')
+      .where('profitPecent', '>=', 100)
+      .get()
+    this.results = results.docs.map((doc) => doc.data())
   },
   methods: {
+    showBalance(id) {
+      console.log(id)
+    },
     startBacktest() {
       this.results = []
       this.tab = 2
