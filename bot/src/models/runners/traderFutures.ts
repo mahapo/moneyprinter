@@ -53,8 +53,9 @@ export class TraderFutures extends Runner {
   async reset() {
     this.strategy.currentOrders = []
     this.account.lastTime = 0
+    // await this.account.cancelAllPositions(this.options.symbol)
     await this.account.deleteOpenOrders(this.options.symbol)
-    await new Promise(resolve => setTimeout(resolve, 10000))
+    await new Promise(resolve => setTimeout(resolve, 2000))
     this.onTick()
   }
 
@@ -103,7 +104,6 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       await this.account.placeTpSLTs([this.strategy.currentOrder])
-
     } catch (error) {
       Logger.error(error)
       await this.reset()
@@ -118,7 +118,6 @@ export class TraderFutures extends Runner {
       await this.strategy.onOrderDone(order, true)
 
       this.onTick()
-
     } catch (error) {
       Logger.error(error)
     } finally {
@@ -135,7 +134,6 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       await this.account.placeTpSLTs([this.strategy.currentOrder])
-
     } catch (error) {
       Logger.error(error)
       await this.reset()
@@ -148,7 +146,6 @@ export class TraderFutures extends Runner {
       console.log(colors.red('onLiquidation'), order?.toString())
 
       await this.strategy.onOrderDone(order, false)
-
     } catch (error) {
       Logger.error(error)
     } finally {
@@ -199,10 +196,7 @@ export class TraderFutures extends Runner {
         order.clientOrderIdTP === orderFromExchange.clientOrderId ||
         order.clientOrderIdSL === orderFromExchange.clientOrderId
     )
-    if(order?.id)
-      return order
-    else
-      throw new Error("Order not found");
-      
+    if (order?.id) return order
+    else throw new Error('Order not found')
   }
 }

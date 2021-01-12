@@ -1,6 +1,6 @@
 import { ExchangeBase } from '..'
 import { OrderFutures } from '../../OrderFutures'
-import { binance as BinanceCCXT } from 'ccxt'
+import { binance as BinanceCCXT, ExchangeNotAvailable } from 'ccxt'
 import { Logger } from '../../utils/Logger'
 import SocketClient from './socketClient'
 
@@ -98,9 +98,7 @@ export class Binance extends ExchangeBase {
         }
         neworders.push(mainOrder)
       }
-      const results = await this.instance.fapiPrivatePostBatchOrders({
-        batchOrders: encodeURIComponent(JSON.stringify(neworders))
-      })
+      const results = await this.placeBatchOrders(neworders)
 
       let i = 0
       for (const result of results) {
@@ -148,12 +146,7 @@ export class Binance extends ExchangeBase {
           newClientOrderId: order.clientOrderIdSL
         }
 
-        const params = {
-          batchOrders: encodeURIComponent(
-            JSON.stringify([takeProfit, stopLoss])
-          )
-        }
-        const results = await this.instance.fapiPrivatePostBatchOrders(params)
+        const results = await this.placeBatchOrders([takeProfit, stopLoss])
         if (results[0].orderId) {
           order.idTakeProfit = results[0].orderId
         } else {
@@ -205,55 +198,52 @@ export class Binance extends ExchangeBase {
   }
 
   async cancelAllPositions(symbol) {
-    // try {
-    //   let orders = await this.instance.privateGetPositionList({
-    //     symbol: symbol.replace("/", ""),
-    //   });
-    //   if (orders.result.side === "Sell" && orders.result.size)
-    //     await this.instance.createOrder(
-    //       symbol,
-    //       "market",
-    //       "buy",
-    //       orders.result.size
-    //     );
-    //   else if (orders.result.side === "Buy" && orders.result.size)
-    //     await this.instance.createOrder(
-    //       symbol,
-    //       "market",
-    //       "sell",
-    //       orders.result.size
-    //     );
-    //   return true;
-    // } catch (error) {
-    //   throw this.formatError(error);
-    // }
+    try {
+      const orders = ['BUY', 'SELL'].map(side => ({
+        symbol: symbol.replace('/', ''),
+        positionSide: 'BOTH',
+        quantity: 100,
+        reduceOnly: true,
+        side,
+        type: 'MARKET'
+      }))
+
+      const r = await this.placeBatchOrders(orders)
+      console.log(r)
+    } catch (error) {
+      throw this.formatError(error)
+    }
   }
 
-  async getCurrentOrdersAndPosition(symbol) {
-    // let positions = await this.instance.privateGetPositionList({
-    //   symbol: symbol.replace("/", ""),
-    // });
-    // let orders = await this.instance.fetchOrders(symbol);
-    // return [orders, positions];
+  async placeBatchOrders(orders) {
+    let results = []
+    try {
+      const params = {
+        batchOrders: encodeURIComponent(JSON.stringify(orders))
+      }
+      return await this.instance.fapiPrivatePostBatchOrders(params)
+    } catch (error) {
+      if (error instanceof ExchangeNotAvailable) {
+        console.log('ExchangeNotAvailable')
+        try {
+          for (const order of orders) {
+            results.push(await this.instance.fapiPrivatePostOrder(order))
+          }
+          return results
+        } catch (error) {
+          console.log(error)
+
+          throw this.formatError(error)
+        }
+      } else {
+        throw this.formatError(error)
+      }
+    }
   }
 
-  formatedOrder(orderFromExchange) {
-    // return {
-    //   id: orderFromExchange.order_link_id,
-    //   clientOrderId: orderFromExchange.order_id,
-    //   side: orderFromExchange.side.toLowerCase(),
-    //   amount: orderFromExchange.qty,
-    //   price: parseFloat(orderFromExchange.trigger_price),
-    //   takeProfit: parseFloat(orderFromExchange.take_profit),
-    //   stopLoss: parseFloat(orderFromExchange.stop_loss),
-    //   raw: JSON.stringify(orderFromExchange),
-    //   symbol: orderFromExchange.symbol,
-    // };
-  }
+  formatedOrder(orderFromExchange) {}
 
   formatError(error) {
-    console.log(JSON.stringify(error));
-    
     try {
       return {
         ...error,

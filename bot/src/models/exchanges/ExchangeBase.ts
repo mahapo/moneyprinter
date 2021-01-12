@@ -35,8 +35,8 @@ export class ExchangeBase extends EventEmitter {
   }
 
   async getCurrentBalance(coin) {
-    const { total } = await this.instance.fetchBalance()
-    return total[coin]
+    const { free } = await this.instance.fetchBalance()
+    return free[coin]
   }
 
   get orders(): Order[] {
