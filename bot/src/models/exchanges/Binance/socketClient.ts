@@ -25,7 +25,7 @@ class SocketClient {
       // console.info('receieved pong from server')
     })
     this._ws.on('ping', () => {
-      console.info('==========receieved ping from server')
+      // console.info('==========receieved ping from server')
       this._ws.pong()
     })
 

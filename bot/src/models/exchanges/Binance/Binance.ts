@@ -3,9 +3,6 @@ import { OrderFutures } from '../../OrderFutures'
 import { binance as BinanceCCXT, ExchangeNotAvailable } from 'ccxt'
 import { Logger } from '../../utils/Logger'
 import SocketClient from './socketClient'
-
-const WSS_BASE_URL = process.env.WSS_BASE_URL || 'wss://stream.binance.com/'
-
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
@@ -42,7 +39,7 @@ export class Binance extends ExchangeBase {
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
         } else {
-          console.log(ot, X, order.clientOrderId)
+          Logger.log(ot, X, order.clientOrderId)
         }
       })
       socketApi.setHandler('ACCOUNT_UPDATE', () => {})
@@ -199,6 +196,7 @@ export class Binance extends ExchangeBase {
 
   async cancelAllPositions(symbol) {
     try {
+      Logger.info(`cancelAllPositions: ${symbol}`)
       const orders = ['BUY', 'SELL'].map(side => ({
         symbol: symbol.replace('/', ''),
         positionSide: 'BOTH',
@@ -209,7 +207,6 @@ export class Binance extends ExchangeBase {
       }))
 
       const r = await this.placeBatchOrders(orders)
-      console.log(r)
     } catch (error) {
       throw this.formatError(error)
     }
@@ -224,14 +221,14 @@ export class Binance extends ExchangeBase {
       return await this.instance.fapiPrivatePostBatchOrders(params)
     } catch (error) {
       if (error instanceof ExchangeNotAvailable) {
-        console.log('ExchangeNotAvailable')
+        Logger.error('ExchangeNotAvailable')
         try {
           for (const order of orders) {
             results.push(await this.instance.fapiPrivatePostOrder(order))
           }
           return results
         } catch (error) {
-          console.log(error)
+          Logger.error(error)
 
           throw this.formatError(error)
         }
