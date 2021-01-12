@@ -39,7 +39,7 @@ export class Binance extends ExchangeBase {
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
         } else {
-          Logger.log(ot, X, order.clientOrderId)
+          Logger.info(`${ot}, ${X}, ${order.clientOrderId}`)
         }
       })
       socketApi.setHandler('ACCOUNT_UPDATE', () => {})
@@ -228,7 +228,7 @@ export class Binance extends ExchangeBase {
           }
           return results
         } catch (error) {
-          Logger.error(error)
+          // Logger.error(error)
 
           throw this.formatError(error)
         }
