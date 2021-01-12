@@ -86,7 +86,7 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
 
-    const percent = 80
+    const percent = 40
     this.priceRange = (percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
@@ -137,7 +137,7 @@ export class MoneyPrinter extends StrategyBase {
     if (this.countFilled < this.maxSteps) {
       this.currentOrder = this.createHedgOrder()
       // Fix for Backtester
-      order.status  = 'canceled'
+      order.status = 'canceled'
       this.currentOrder.filled = this.currentOrder.amount
       this.currentOrders.push(this.currentOrder)
     } else {

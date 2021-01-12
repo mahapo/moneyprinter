@@ -22,27 +22,11 @@ import { Binance } from './models/exchanges'
         {
           symbol: 'BTC/USDT',
           leverage: 50
+        },
+        {
+          symbol: 'ETH/USDT',
+          leverage: 50
         }
-        // {
-        //   symbol: 'ETH/USDT',
-        //   leverage: 100
-        // }
-        // {
-        //   symbol: 'XRP/USDT',
-        //   leverage: 75
-        // },
-        // {
-        //   symbol: 'EOS/USDT',
-        //   leverage: 50
-        // },
-        // {
-        //   symbol: 'BNB/USDT',
-        //   leverage: 75
-        // },
-        // {
-        //   symbol: 'LTC/USDT',
-        //   leverage: 50
-        // }
       ]
 
       for (let setting of traderSettings) {
