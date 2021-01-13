@@ -12,10 +12,10 @@ export class TraderFutures extends Runner {
   options = {
     ratio: 2,
     leverage: 100,
-    risk: 100,
     symbol: '',
     maxSteps: 5,
-    percentOfMaxRange: 80
+    percentOfMaxRange: 80,
+    risk: 100
   }
 
   constructor(public account, options) {
@@ -33,8 +33,7 @@ export class TraderFutures extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 2
-    this.options.risk = 100
+    this.options.risk = Math.round(lastStep.total) * 4
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
