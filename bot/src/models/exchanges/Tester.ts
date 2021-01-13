@@ -1,4 +1,4 @@
-import { ExchangeBase } from '..'
+import { ExchangeBase } from '.'
 
 import * as fs from 'fs'
 import * as glob from 'glob'

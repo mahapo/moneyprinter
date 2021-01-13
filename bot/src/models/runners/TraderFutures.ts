@@ -127,7 +127,6 @@ export class TraderFutures extends Runner {
   async onStopLoss(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
-
       Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
 
       await this.account.deleteOpenOrders(this.options.symbol)
