@@ -48,7 +48,7 @@ export class Binance extends ExchangeBase {
       setInterval(async () => {
         await this.instance.fapiPrivatePutListenKey()
         console.info('ListenKey is renewed')
-      }, 1000 * 60 * 10) // review the key every 10 mins
+      }, 1000 * 60 * 30) // review the key every 30 mins
       resolve(true)
     })
   }
@@ -153,12 +153,12 @@ export class Binance extends ExchangeBase {
           newClientOrderId: order.clientOrderIdSL
         }
 
-        Logger.info(
-          `Set TakeProfit:  ${takeProfit.quantity} @ ${takeProfit.stopPrice}`
-        )
-        Logger.info(
-          `Set StopLoss:  ${stopLoss.quantity} @ ${stopLoss.stopPrice}`
-        )
+        // Logger.info(
+        //   `Set TakeProfit:  ${takeProfit.quantity} @ ${takeProfit.stopPrice}`
+        // )
+        // Logger.info(
+        //   `Set StopLoss:  ${stopLoss.quantity} @ ${stopLoss.stopPrice}`
+        // )
         const results = await this.placeBatchOrders([takeProfit, stopLoss])
         order.idTakeProfit = results[0].orderId
         order.idStopLoss = results[1].orderId
