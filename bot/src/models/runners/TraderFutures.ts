@@ -13,7 +13,7 @@ export class TraderFutures extends Runner {
     ratio: 2,
     leverage: 100,
     symbol: '',
-    maxSteps: 5,
+    maxSteps: 6,
     percentOfMaxRange: 80,
     risk: 100
   }
@@ -102,7 +102,7 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder])
+      await this.account.placeTpSLTs([order])
     } catch (error) {
       Logger.error(error)
       await this.reset()
@@ -127,9 +127,10 @@ export class TraderFutures extends Runner {
   async onStopLoss(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
+      this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
 
       Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
-      this.strategy.onOrderFilled(order)
+      await this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
       await this.account.placeTpSLTs([this.strategy.currentOrder])

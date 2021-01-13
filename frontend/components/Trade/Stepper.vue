@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { ZoneRecovery } from '../../../backend/src/models/ZoneRecovery'
+// import { ZoneRecovery } from '../../../backend/src/models/ZoneRecovery'
 
 export default {
   props: {
@@ -95,7 +95,8 @@ export default {
       }
     },
     steps() {
-      return ZoneRecovery.calcSteps(this.maxSteps, this.ratio, this.breakeven)
+      // return ZoneRecovery.calcSteps(this.maxSteps, this.ratio, this.breakeven)
+      return []
     },
     prices() {
       const prices = {

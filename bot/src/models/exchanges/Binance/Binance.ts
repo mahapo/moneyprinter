@@ -32,9 +32,10 @@ export class Binance extends ExchangeBase {
         const { x, X, ot, s, c, i } = data.o
         const isTakeProfit = c.endsWith('-TP')
         const isStopLoss = c.endsWith('-SL')
+        const isWebtrade = c.startsWith('web')
         // console.log(x, X, ot, s, c, i)
         const order = { clientOrderId: c, id: i }
-        if (X === 'FILLED') {
+        if (X === 'FILLED' && !isWebtrade) {
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
@@ -54,6 +55,7 @@ export class Binance extends ExchangeBase {
 
   async deleteOpenOrders(symbol) {
     try {
+      Logger.info(`Clsoe open orders: ${symbol}`)
       await this.instance.fapiPrivateDeleteAllOpenOrders({
         symbol: symbol.replace('/', '')
       })
@@ -104,7 +106,7 @@ export class Binance extends ExchangeBase {
           orders[i].id = result.orderId
           i++
         } else {
-          throw new Error(result)
+          throw result.msg || result
         }
       }
     } catch (error) {
@@ -117,48 +119,56 @@ export class Binance extends ExchangeBase {
       let i = 0
       for (const order of orders) {
         Logger.info(`Set Stop Loss/Take Profit: ${order.toString()}`)
-        const takeProfit = {
+
+        const common = {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
+          // positionSide: 'BOTH',
+          workingType: 'MARK_PRICE'
+        }
+
+        const takeProfit = {
+          ...common,
           type: 'TAKE_PROFIT_MARKET',
-          positionSide: 'BOTH',
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(
             order.symbol,
             order.takeProfit
           ),
-          newClientOrderId: order.clientOrderIdTP,
-          workingType: 'MARK_PRICE'
+          newClientOrderId: order.clientOrderIdTP
         }
+
         const stopLoss = {
-          symbol: order.symbol.replace('/', ''),
-          side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
+          ...common,
           type: 'STOP_MARKET',
-          positionSide: 'BOTH',
           quantity: this.instance.amountToPrecision(
             order.symbol,
             order.amountLoss
           ),
-          stopPrice: this.instance
-            .priceToPrecision(order.symbol, order.stopLoss)
-            .toString(),
-          newClientOrderId: order.clientOrderIdSL,
-          workingType: 'MARK_PRICE'
+          stopPrice: this.instance.priceToPrecision(
+            order.symbol,
+            order.stopLoss
+          ),
+          // priceProtect: true,
+          newClientOrderId: order.clientOrderIdSL
         }
 
+        Logger.info(
+          `Set TakeProfit:  ${takeProfit.quantity} @ ${takeProfit.stopPrice}`
+        )
+        Logger.info(
+          `Set StopLoss:  ${stopLoss.quantity} @ ${stopLoss.stopPrice}`
+        )
         const results = await this.placeBatchOrders([takeProfit, stopLoss])
-        if (results[0].orderId) {
-          order.idTakeProfit = results[0].orderId
-        } else {
-          throw new Error(results[0])
+        order.idTakeProfit = results[0].orderId
+        order.idStopLoss = results[1].orderId
+
+        if (!results[0].orderId) {
+          throw 'TakeProfit' + results[0].msg
         }
 
-        if (results[1].orderId) {
-          order.idStopLoss = results[1].orderId
-        } else {
-          console.log(results[1])
-
-          throw new Error(results[1])
+        if (!results[1].orderId) {
+          throw 'StopLoss' + results[1].msg
         }
       }
     } catch (error) {
@@ -171,19 +181,6 @@ export class Binance extends ExchangeBase {
       for (const order of orders) {
         Logger.info(`Delete: ${order.toString()}`)
         // TODO: Fix this
-        // const ids = [order.id, order.idTakeProfit, order.idStopLoss].filter(
-        //   Boolean
-        // )
-
-        // const params = {
-        //   symbol: order.symbol.replace('/', ''),
-        //   orderIdList: encodeURIComponent(JSON.stringify(ids))
-        // }
-        // const results = await this.instance.fapiPrivateDeleteBatchOrders(params)
-        // const results = await this.instance.fapiPrivateDeleteOrder({
-        //   symbol: order.symbol.replace('/', ''),
-        //   origClientOrderId: order.clientOrderId
-        // })
         await this.instance.fapiPrivateDeleteAllOpenOrders({
           symbol: order.symbol.replace('/', '')
         })
@@ -224,7 +221,7 @@ export class Binance extends ExchangeBase {
       return await this.instance.fapiPrivatePostBatchOrders(params)
     } catch (error) {
       if (error instanceof ExchangeNotAvailable) {
-        Logger.error('ExchangeNotAvailable')
+        // Logger.error('ExchangeNotAvailable')
         try {
           for (const order of orders) {
             results.push(await this.instance.fapiPrivatePostOrder(order))
