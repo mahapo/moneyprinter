@@ -91,7 +91,8 @@ export class Binance extends ExchangeBase {
           type: 'STOP_MARKET',
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
-          newClientOrderId: order.clientOrderId
+          newClientOrderId: order.clientOrderId,
+          workingType: 'MARK_PRICE'
         }
         neworders.push(mainOrder)
       }
@@ -126,7 +127,8 @@ export class Binance extends ExchangeBase {
             order.symbol,
             order.takeProfit
           ),
-          newClientOrderId: order.clientOrderIdTP
+          newClientOrderId: order.clientOrderIdTP,
+          workingType: 'MARK_PRICE'
         }
         const stopLoss = {
           symbol: order.symbol.replace('/', ''),
@@ -140,7 +142,8 @@ export class Binance extends ExchangeBase {
           stopPrice: this.instance
             .priceToPrecision(order.symbol, order.stopLoss)
             .toString(),
-          newClientOrderId: order.clientOrderIdSL
+          newClientOrderId: order.clientOrderIdSL,
+          workingType: 'MARK_PRICE'
         }
 
         const results = await this.placeBatchOrders([takeProfit, stopLoss])
