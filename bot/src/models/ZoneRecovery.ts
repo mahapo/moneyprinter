@@ -4,7 +4,7 @@ export class ZoneRecovery {
   public hedgeGapType: 'fix' | 'dynamic'
   public countTrades: number
 
-  public recoveryGapInitial: number = 20 // In Percent
+  public recoveryGapInitial: number = 30 // In Percent
   public recoveryGapFactor: number
   public recoveryGapDynamicAdd: number = 5 // In Percent
   public recoveryGapDynamicCount: number = 3
