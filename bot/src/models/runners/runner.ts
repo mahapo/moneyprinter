@@ -1,14 +1,12 @@
-import { EventEmitter } from "events";
-
-export class Runner extends EventEmitter {
-  account: any;
-  startTime: any;
-  endTime: any;
-  interval: any;
-  product: any;
-  historical: any;
-  strategyType: any;
-  strategy: any;
+export class Runner {
+  account: any
+  startTime: any
+  endTime: any
+  interval: any
+  product: any
+  historical: any
+  strategyType: any
+  strategy: any
 
   // constructor(
   //   account,

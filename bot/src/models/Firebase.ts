@@ -30,15 +30,12 @@ export class Firebase extends EventEmitter {
     this.refBinance = this.db.collection('binance')
     this.refAccounts = this.db.collection('accounts')
     this.refBacktesting = this.db.collection('backtesting')
-    this.refBalances = this.db.collection('balances')
+    // this.refBalances = this.db.collection('balances')
   }
 
-  async saveBacktestResult(result, balances) {   
-    const id = await this.refBalances.add({balances})
-    return this.refBacktesting.add({
-      ...result,
-      balances: id
-    })
+  async saveBacktestResult(result, balances) {
+    const { id } = await this.refBacktesting.add(result)
+    return this.db.collection(`backtesting/${id}/balances`).add({ balances })
   }
 
   // async multipleImport(ref, array, idKey = null) {

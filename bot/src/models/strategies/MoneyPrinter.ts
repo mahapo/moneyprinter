@@ -128,10 +128,10 @@ export class MoneyPrinter extends StrategyBase {
     if (this.countFilled === 1) {
       this.side = order.side
       this.currentOrder = order
-      let otherSide: OrderFutures = this.currentOrders.find(
-        (order: OrderFutures) => order.side !== this.side
+      this.currentOrders = this.currentOrders.filter(
+        (order: OrderFutures) => order.side === this.side
       )
-      if (otherSide) otherSide.status = 'canceled'
+      // if (otherSide) otherSide.status = 'canceled'
     }
 
     if (this.countFilled < this.maxSteps) {

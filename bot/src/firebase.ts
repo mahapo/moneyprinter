@@ -13,8 +13,7 @@ import { Firebase } from './models/Firebase'
   // const res = markets.reduce((acc, curr) => ((acc[curr.id] = curr), acc), {})
   let snapshot = await firebase.refBacktesting.get()
   snapshot = snapshot.docs.map(doc => doc.data())
-  snapshot = sortBy(snapshot, ['profitPecentPerDay']).reverse()
+  snapshot = sortBy(snapshot, ['profitPercentPerDay']).reverse()
   snapshot.length = 10
-  console.log(snapshot.reverse());
-  
+  console.log(snapshot.reverse())
 })()

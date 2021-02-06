@@ -19,7 +19,8 @@ export class TraderFutures extends Runner {
   }
 
   constructor(public account, options) {
-    super(options)
+    super()
+
     this.options = {
       ...this.options,
       ...options

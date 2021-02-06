@@ -1,8 +1,5 @@
-import { performance } from 'perf_hooks'
-import * as fs from 'fs'
-import * as glob from 'glob'
-import * as path from 'path'
-import * as csv from 'csv-parser'
+// import { performance } from 'perf_hooks'
+
 import * as dayjs from 'dayjs'
 import * as duration from 'dayjs/plugin/duration'
 dayjs.extend(duration)
@@ -33,70 +30,19 @@ export class Backtester extends Runner {
     percentOfMaxRange: 80
   }
 
-  async startMatrix(options, matrix) {
-    await this.initTicks(options.file)
-    delete options.matrix
-    delete options.strategy
-    console.log('Starting matrix', matrix.length)
-
-    for (const option of matrix) {
-      try {
-        this.run({
-          ...options,
-          ...option,
-          update: false,
-          matrix: true
-        })
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    console.log('Stop matrix test')
-  }
-
-  async initTicks(path) {
-    if (this.currentfile !== path) this.ticks = await this.getTestTickes(path)
-    // this.ticks = this.ticks.slice(0, 20000);
-    this.currentfile = path
-  }
-
-  async start(options) {
-    await this.initTicks(options.file)
-    return await this.run(options)
-  }
-
-  run(options) {
-    let symbol
-    if (options.file.includes('BTCUSDT')) symbol = 'BTC/USD'
-    else if (options.file.includes('ETHUSDT')) symbol = 'ETH/USD'
-    else if (options.file.includes('EOSUSDT')) symbol = 'EOS/USD'
-    else if (options.file.includes('XRPUSDT')) symbol = 'XRP/USD'
-    else if (options.file.includes('LINKUSDT')) symbol = 'LINK/USD'
-    else if (options.file.includes('LTCUSDT')) symbol = 'LTC/USD'
-
+  run(options, ticks) {
+    this.ticks = ticks
     this.options = {
       ...this.options,
-      ...options,
-      symbol
-      // ratio: parseFloat(options.ratio),
-      // leverage: parseFloat(options.leverage),
-      // startBalance: parseFloat(options.startBalance),
-      // maxSteps: parseInt(options.maxSteps),
-      // percentOfMaxRange: parseInt(options.percentOfMaxRange),
-      // risk: parseInt(options.risk),
-      // file: options.file,
-      // update: options.update,
-      // matrix: options.matrix
+      ...options
     }
-
-    //TODO: Ratio: 6 Leverage: 50 MaxSteps: 4: Check why timeout
 
     const lastStep = ZoneRecovery.calcStep(
       this.options.maxSteps,
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 1
+    this.options.risk = Math.round(lastStep.total) * 2
 
     this.strategy = new MoneyPrinter(this, this.options, false)
     this.strategy.maxSteps = this.options.maxSteps
@@ -105,58 +51,26 @@ export class Backtester extends Runner {
     this.balances = []
     this.balance = this.options.startBalance
 
-    if (this.options.update) {
-      // this.emit("ticks", this.ticks);
-      this.emit('backtestUpdate', {
-        percent: 0,
-        text: 'Loading trades'
-      })
-      this.emit('backtestUpdate', {
-        text: `Test Strategy on ${this.ticks.length} Trades`
-      })
-    }
-
-    const t0 = performance.now()
+    // const t0 = performance.now()
     this.percent = 0
-    let percentOld = 0
-    this.ticks.forEach((tick, index) => {
-      if (index === 0)
-        this.balances.push({
-          timestamp: tick.timestamp,
-          balance: this.options.startBalance
-        })
-
-      this.onTick(tick)
-
-      if (this.options.update) {
-        percentOld = this.percent
-        this.percent = Math.max(
-          Math.round((index / this.ticks.length) * 100),
-          this.percent
-        )
-        if (percentOld !== this.percent) {
-          // console.log(this.percent);
-          this.emit('backtestUpdate', {
-            percent: this.percent
-          })
-        }
-      }
+    this.balances.push({
+      timestamp: this.ticks[0].timestamp,
+      balance: this.balance
     })
-    this.time = performance.now() - t0
 
-    if (this.options.update) {
-      this.emit('backtestUpdate', {
-        percent: 100,
-        text: `Backtest on ${this.ticks.length} trades successful`
-      })
-    }
+    this.ticks.forEach(this.onTick.bind(this))
+
+    // this.time = performance.now() - t0
+
     return this.onFinish()
   }
 
   onTick(tick) {
     try {
-      this.updateOrders(tick)
-      this.strategy.run(tick)
+      if (this.balance > 10) {
+        this.updateOrders(tick)
+        this.strategy.run(tick)
+      }
     } catch (error) {
       console.log(error)
     }
@@ -164,41 +78,43 @@ export class Backtester extends Runner {
 
   updateOrders({ price, timestamp }) {
     try {
-      
-      this.strategy.currentOrders.filter(x => x.status === 'open').forEach((order: OrderFutures) => {
-        if (order.filled === 0 && order.checkIfFilled(price)) {
-          order.filled = order.amount
-          order.timestampFilled = timestamp
-          this.balances.push({
-            timestamp,
-            balance: this.balance
-          })
-          this.strategy.onOrderFilled(order)
-        } else if (order.filled > 0) {
-          if (
-            order.checkIfTriggersTakeProfit(price) ||
-            order.checkIfTriggersStopLoss(price)
-            ) {
-            order.status = 'closed'
-            order.priceExit = price
-            order.timestampExit = timestamp
-            
-
-            this.balance = this.balance + order.pnl
-            
+      this.strategy.currentOrders
+        .filter(x => x.status === 'open')
+        .forEach((order: OrderFutures) => {
+          if (order.filled === 0 && order.checkIfFilled(price)) {
+            order.timestampFilled = timestamp
 
             this.balances.push({
               timestamp,
-              balance: this.balance
+              balance: this.balance,
+              filled: 1
             })
-          }
-          if (order.checkIfTriggersTakeProfit(price)) {
-            this.strategy.onOrderDone(order, true)
-          } else if (order.checkIfTriggersStopLoss(price)) {
             this.strategy.onOrderFilled(order)
+          } else if (order.filled > 0) {
+            const isTakeProfit = order.checkIfTriggersTakeProfit(price)
+            const isStopLoss = order.checkIfTriggersStopLoss(price)
+            if (isTakeProfit || isStopLoss) {
+              order.status = 'closed'
+              order.priceExit = price
+              order.timestampExit = timestamp
+
+              this.balance = this.balance + order.pnl
+
+              this.balances.push({
+                timestamp,
+                balance: this.balance,
+                filled: this.strategy.countFilled,
+                type: isTakeProfit ? 'TP' : 'SL',
+                pnl: order.pnl
+              })
+              if (isTakeProfit) {
+                this.strategy.onOrderDone(order, true)
+              } else if (isStopLoss) {
+                this.strategy.onOrderFilled(order)
+              }
+            }
           }
-        }
-      })
+        })
     } catch (error) {
       console.log(error)
     }
@@ -229,8 +145,8 @@ export class Backtester extends Runner {
     const timeEnd = dayjs(this.ticks[this.ticks.length - 1].timestamp)
     const days = dayjs.duration(timeEnd.diff(timeStart)).asDays()
 
-    const profitPecent = (this.balance / this.options.startBalance - 1) * 100
-    const profitPecentPerDay = profitPecent / days
+    const profitPercent = (this.balance / this.options.startBalance - 1) * 100
+    const profitPercentPerDay = profitPercent / days
     const result = {
       // orders: this.strategy.overview,
       // countMax: this.strategy.countMax,
@@ -241,8 +157,8 @@ export class Backtester extends Runner {
       timeStart: timeStart.unix(),
       timeEnd: timeEnd.unix(),
       days,
-      profitPecent,
-      profitPecentPerDay,
+      profitPercent,
+      profitPercentPerDay,
       options: this.options,
       ...this.strategy.stats,
       ...this.calcOrderStats
@@ -250,11 +166,12 @@ export class Backtester extends Runner {
     // this.emit('backtestFinish', result)
 
     console.log('========================')
-    console.log('Backtest took ' + this.time + ' milliseconds.')
-    console.log(`Profit: ${profitPecent.toFixed(3)}%`)
-    console.log(`Profit per day: ${profitPecentPerDay.toFixed(3)}%`)
+    // console.log('Backtest took ' + this.time + ' milliseconds.')
+    console.log(`Profit: ${profitPercent.toFixed(3)}%`)
+    console.log(`Profit per day: ${profitPercentPerDay.toFixed(3)}%`)
     console.log(`Balance: ${this.balance.toFixed(2)}`)
     console.log(`Days: ${days.toFixed(1)}`)
+    console.log(`Trades: ${this.strategy.orders.length}`)
     return result
   }
 
@@ -265,7 +182,7 @@ export class Backtester extends Runner {
     let winSerie = 0
     return {
       countWin: this.strategy.overview.filter(o => o.profit > 0).length,
-      countLoss: this.strategy.overview.filter(o => o.profit < 0).length,
+      countLoss: this.strategy.overview.filter(o => o.profit < 0).length
       // countWinSerieMax: this.strategy.overview
       //   .filter(o => o.status === 'closed' && o.filled > 0)
       //   .reduce((acc, o) => {
@@ -315,62 +232,11 @@ export class Backtester extends Runner {
       })
   }
 
-  // get balance() {
-  //   return this.options.startBalance + this.strategy.profitTotal
-  // }
-
   get idealSize() {
     const maxSize = 1000
     if (this.balance / this.options.risk > maxSize)
-      return Math.round((maxSize / this.options.risk) * this.options.leverage)
+      return (maxSize / this.options.risk) * this.options.leverage
 
-    return Math.round(
-      (this.balance / this.options.risk) * this.options.leverage
-    )
-  }
-
-  async getTestTickes(filePath) {
-    const results = await this.loadCSV(filePath)
-
-    // @ts-ignore
-    return results.map(tick => {
-      let timestamp
-      timestamp = tick.unix
-      if (tick.unix.includes('+')) {
-        timestamp = new Date(parseFloat(tick.unix))
-        timestamp = timestamp.setHours(
-          // @ts-ignore
-          ...tick.date.split(':').join('.').split('.')
-        )
-      }
-
-      return {
-        timestamp: parseInt(timestamp),
-        price: parseFloat(tick.price)
-      }
-    })
-  }
-
-  async loadCSV(filePath) {
-    let data = []
-    return new Promise(resolve => {
-      fs.createReadStream(filePath)
-        .pipe(csv())
-        .on('data', d => data.push(d))
-        .on('end', () => resolve(data))
-    })
-  }
-
-  getFiles() {
-    return new Promise(resolve =>
-      glob('./data/**/*.csv', {}, (er, files) => {
-        resolve(
-          files.map(file => ({
-            text: path.parse(file).name,
-            value: file
-          }))
-        )
-      })
-    )
+    return (this.balance / this.options.risk) * this.options.leverage
   }
 }
