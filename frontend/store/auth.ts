@@ -23,10 +23,16 @@ export const mutations = {
       email: authUser.email,
     }
   },
+
+  ON_AUTH_STATE_CHANGED_MUTATION: (state, { authUser, _claims }) => {
+    // Do this:
+    const { uid, email, emailVerified } = authUser
+    state.authUser = { uid, email, emailVerified }
+  },
 }
 
 export const actions = {
-  onAuthStateChanged({ commit }, { authUser, _claims }) {
+  onAuthStateChanged({ commit }, { authUser }) {
     if (!authUser) {
       commit('RESET_STORE')
       return

@@ -130,6 +130,7 @@ module.exports = {
       storageBucket: 'moneyprinter-1337.appspot.com',
       messagingSenderId: '485077092320',
       appId: '1:485077092320:web:f89f0ffffe171c68aa4d85',
+      databaseURL: '',
     },
     services: {
       firestore: {
@@ -138,6 +139,7 @@ module.exports = {
       },
       auth: {
         initialize: {
+          onAuthStateChangedMutation: 'auth/ON_AUTH_STATE_CHANGED_MUTATION',
           onAuthStateChangedAction: 'auth/onAuthStateChanged',
         },
         ssr: false,

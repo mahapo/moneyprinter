@@ -64,8 +64,8 @@ export default {
           text: 'Loss Trades (in row)',
           value: 'countLoss',
         },
-        { text: 'Profit (%)', value: 'profitPecent' },
-        { text: 'Profit per Day', value: 'profitPecentPerDay' },
+        { text: 'Profit (%)', value: 'profitPercent' },
+        { text: 'Profit per Day', value: 'profitPercentPerDay' },
         // { text: 'Balance Min', value: 'balanceMin' },
         // { text: 'Balance Max', value: 'balanceMax' },
         // { text: 'Max Drawdown (%)', value: 'drawdownMax' },
@@ -77,17 +77,29 @@ export default {
   },
   computed: {
     filteredResults() {
-      return [...this.results].filter(
+      return this.results.filter(
         (result) => !this.good || (result.balanceMin > 0 && result.profit > 0)
       )
     },
   },
   methods: {
     async handleClick(value) {
-      const results = await value.balances.get()
-      const { balances } = results.data()
-      console.log(balances)
-      this.$emit('balances', balances)
+      try {
+        const { docs } = await this.$fire.firestore
+          .collection(`backtesting/${value.id}/balances`)
+          .get()
+        let { balances } = docs[0].data()
+        if (balances) {
+          // Quick fix
+          balances = balances.map((balance) => {
+            return { ...balance }
+          })
+          console.table(balances)
+          this.$emit('balances', balances)
+        }
+      } catch (error) {
+        console.error(error)
+      }
     },
   },
 }

@@ -5,14 +5,20 @@
 </template>
 
 <script>
+import { call } from 'vuex-pathify'
+
 export default {
-  middleware: 'auth',
+  middleware: 'authenticated',
   async mounted() {
     try {
-      await this.$store.dispatch('binance/bindCountDocument')
+      await this.$store.dispatch('user/initSettings')
     } catch (e) {
       console.error(e)
     }
+  },
+  methods: {
+    // wire multiple actions
+    ...call('user/*'),
   },
 }
 </script>

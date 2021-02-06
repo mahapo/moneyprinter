@@ -169,9 +169,9 @@ export default {
   async mounted() {
     const results = await this.$fire.firestore
       .collection('backtesting')
-      .where('profitPecent', '>=', 100)
+      // .where('profitPercent', '>=', 100)
       .get()
-    this.results = results.docs.map((doc) => doc.data())
+    this.results = results.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   },
   methods: {
     showBalance(id) {

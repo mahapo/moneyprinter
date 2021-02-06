@@ -42,32 +42,15 @@ export default {
     }
   },
   methods: {
-    emailRegister() {
-      this.$store
-        .dispatch('auth/registerWithEmail', {
-          email: this.formEmail,
-          password: this.formPassword,
-        })
-        .catch((e) => {
-          this.error = e.message
-        })
-    },
     async emailLogin() {
       try {
-        const user = await this.$store.dispatch('auth/signInWithEmail', {
-          email: this.formEmail,
-          password: this.formPassword,
-        })
-        await this.$store.dispatch('auth/changeUserData', user)
-        console.log(user)
+        await this.$fire.auth.signInWithEmailAndPassword(
+          this.formEmail,
+          this.formPassword
+        )
       } catch (error) {
         this.error = error.message
       }
-    },
-    googleSignUp() {
-      this.$store.dispatch('auth/signInWithGoogle').catch((e) => {
-        this.error = e.message
-      })
     },
   },
 }
