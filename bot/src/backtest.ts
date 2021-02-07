@@ -1,8 +1,7 @@
 require('dotenv').config()
-import { Backtester } from './models/runners'
+import { Backtester } from '@moneyprinter/runners'
 import { Firebase } from './models/Firebase'
-import { Matrix } from './models/utils/Matrix'
-import { TickLoader } from './models/utils/TickLoader'
+import { Matrix, TickLoader } from '@moneyprinter/utils'
 
 const main = async function () {
   try {
@@ -74,7 +73,7 @@ const main = async function () {
         const { balances, ...rest } = result
         await firebase.saveBacktestResult(rest, balances)
       }
-      // break;
+      break
     }
 
     console.log('Fin')

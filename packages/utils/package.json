@@ -1,0 +1,9 @@
+{
+  "name": "@moneyprinter/utils",
+  "version": "0.4.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "winston": "^3.3.3"
+  }
+}

@@ -4,9 +4,9 @@ import * as dayjs from 'dayjs'
 import * as duration from 'dayjs/plugin/duration'
 dayjs.extend(duration)
 
-import { Runner } from './runner'
-import { OrderFutures, ZoneRecovery } from '..'
-import { MoneyPrinter } from '../strategies'
+import { Runner } from './Runner'
+import { OrderFutures, ZoneRecovery } from '@moneyprinter/models'
+import { MoneyPrinter } from '@moneyprinter/strategies'
 
 export class Backtester extends Runner {
   balances = []

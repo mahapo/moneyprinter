@@ -1,7 +1,7 @@
-import { OrderFutures, ZoneRecovery } from '..'
+import { OrderFutures, ZoneRecovery } from '../../../bot/src/models'
 import { Runner } from './runner'
-import { MoneyPrinter } from '../strategies'
-import { Logger } from '../utils/Logger'
+import { MoneyPrinter } from '@moneyprinter/strategies'
+import { Logger } from '@moneyprinter/utils'
 
 import * as colors from 'colors/safe'
 

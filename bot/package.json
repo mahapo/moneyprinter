@@ -1,5 +1,6 @@
 {
   "name": "@moneyprinter/bot",
+  "version": "0.4.0",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn ./src/index.ts",
@@ -13,22 +14,17 @@
     "print": "yarn build && pm2 start dist/index.js"
   },
   "dependencies": {
-    "ccxt": "^1.40.29",
     "colors": "^1.4.0",
-    "csv-parser": "^3.0.0",
     "dayjs": "^1.10.3",
     "dotenv": "^8.2.0",
+    "firebase-admin": "^9.4.2",
     "request": "^2.88.2",
     "socket.io": "^3.0.5",
     "socketio-wildcard": "^2.0.0",
     "tulind": "^0.8.18",
-    "winston": "^3.3.3",
     "ws": "^7.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/node": "^7.12.10",
-    "@babel/preset-env": "^7.12.11",
     "@types/consola": "^2.2.5",
     "@types/graphql": "^14.5.0",
     "@types/jest": "^26.0.20",

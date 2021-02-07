@@ -34,7 +34,7 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['@/plugins/vue-socket.client'],
+  plugins: [],
   /*
    ** Nuxt.js dev-modules
    */
@@ -71,8 +71,6 @@ module.exports = {
    ** Nuxt.js modules
    */
   modules: [
-    // Doc: https://content.nuxtjs.org/installation
-    '@nuxt/content',
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/axios',
     // Doc: https://github.com/nuxt-community/dotenv-module
@@ -112,6 +110,11 @@ module.exports = {
     /*
      ** You can extend webpack config here
      */
+    transpile: [
+      '@moneyprinter/runners',
+      '@moneyprinter/strategies',
+      '@moneyprinter/models',
+    ],
     extend(_config, _ctx) {},
   },
   content: {
@@ -140,7 +143,7 @@ module.exports = {
       },
       auth: {
         initialize: {
-          onAuthStateChangedMutation: 'auth/ON_AUTH_STATE_CHANGED_MUTATION',
+          // onAuthStateChangedMutation: 'auth/ON_AUTH_STATE_CHANGED_MUTATION',
           onAuthStateChangedAction: 'auth/onAuthStateChanged',
         },
         ssr: false,

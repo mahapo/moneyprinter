@@ -1,0 +1,9 @@
+{
+  "name": "@moneyprinter/runners",
+  "version": "0.4.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@moneyprinter/strategies": "link:../strategies",
+    "@moneyprinter/models": "link:../models"
+  }
+}

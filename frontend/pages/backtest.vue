@@ -107,7 +107,7 @@
 </template>
 
 <script>
-import { Backtester } from '../../bot/src/models/runners/Backtester'
+import { Backtester } from '@moneyprinter/runners'
 
 export default {
   sockets: {
@@ -120,7 +120,7 @@ export default {
     backtestFinish({ orders, balances }) {
       this.orders = orders
       this.balances = balances
-        .sort(function (a, b) {
+        .sort(function(a, b) {
           return new Date(a.timestamp) - new Date(b.timestamp)
         })
         .filter((balance) => !!balance.timestamp)
@@ -131,9 +131,9 @@ export default {
     backtestUpdate(update) {
       this.progress = {
         ...this.progress,
-        ...update,
+        ...update
       }
-    },
+    }
   },
   data() {
     return {
@@ -142,8 +142,8 @@ export default {
       strategies: [
         {
           text: 'Moneyprinter',
-          value: 'moneyprinter',
-        },
+          value: 'moneyprinter'
+        }
       ],
       ticks: [],
       testMatrix: [],
@@ -156,16 +156,16 @@ export default {
         startBalance: 100,
         risk: 100,
         maxSteps: 5,
-        percentOfMaxRange: 80,
+        percentOfMaxRange: 80
       },
       progress: {
         percent: 0,
-        text: 'Start test',
+        text: 'Start test'
       },
       orders: [],
       results: [],
       balance: null,
-      balances: [],
+      balances: []
     }
   },
   async mounted() {
@@ -176,12 +176,12 @@ export default {
     //   .get()
     // this.results = results.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-    // const trader = new Backtester()
-    // const result = await trader.run(
-    //   { leverage: 100, maxSteps: 3 },
-    //   this.balances
-    // )
-    // console.log(result)
+    const trader = new Backtester()
+    const result = await trader.run(
+      { leverage: 100, maxSteps: 3 },
+      this.balances
+    )
+    console.log(result)
   },
   methods: {
     generateChart() {
@@ -192,7 +192,7 @@ export default {
         y += Math.random() * 10 - 5
         dataPoints.push({
           timestamp: i - limit / 2,
-          balance: y,
+          balance: y
         })
       }
       this.balances = dataPoints
@@ -211,10 +211,10 @@ export default {
       this.$socket.client.emit('startBacktesthMatrix', {
         ...this.testOptions,
         symbol,
-        matrix: this.testMatrix,
+        matrix: this.testMatrix
       })
-    },
-  },
+    }
+  }
 }
 </script>
 

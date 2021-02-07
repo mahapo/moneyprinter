@@ -1,7 +1,7 @@
 import { ExchangeBase } from '..'
-import { OrderFutures } from '../../OrderFutures'
+import { OrderFutures } from '@moneyprinter/models'
 import { binance as BinanceCCXT, ExchangeNotAvailable } from 'ccxt'
-import { Logger } from '../../utils/Logger'
+import { Logger } from '@moneyprinter/utils'
 import SocketClient from './socketClient'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT

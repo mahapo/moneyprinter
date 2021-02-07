@@ -1,6 +1,6 @@
 import { Firebase } from './models/Firebase'
-import { TraderFutures } from './models/runners'
-import { Binance } from './models/exchanges'
+import { TraderFutures } from '@moneyprinter/runners'
+import { Binance } from '@moneyprinter/exchanges'
 ;(async () => {
   const firebase = new Firebase()
   firebase.refAccounts.doc('demo-1').onSnapshot(async doc => {

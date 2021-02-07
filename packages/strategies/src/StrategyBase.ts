@@ -1,4 +1,4 @@
-import { OrderFutures } from '..'
+import { OrderFutures } from '@moneyprinter/models'
 
 export class StrategyBase {
   static id: string = 'aa'
