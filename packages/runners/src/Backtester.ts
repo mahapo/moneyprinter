@@ -2,7 +2,9 @@
 
 import * as dayjs from 'dayjs'
 import * as duration from 'dayjs/plugin/duration'
+import 'dayjs/locale/en'
 dayjs.extend(duration)
+dayjs.locale('en')
 
 import { Runner } from './Runner'
 import { OrderFutures, ZoneRecovery } from '@moneyprinter/models'
@@ -44,7 +46,7 @@ export class Backtester extends Runner {
 
     this.options.risk = Math.round(lastStep.total) * 2
 
-    this.strategy = new MoneyPrinter(this, this.options, false)
+    this.strategy = new MoneyPrinter(this.options, false)
     this.strategy.maxSteps = this.options.maxSteps
     this.strategy.percentOfMaxRange = this.options.percentOfMaxRange
 

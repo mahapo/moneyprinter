@@ -149,7 +149,7 @@ export class MoneyPrinter extends StrategyBase {
   // TODO: Refactor this shit
   onOrderDone(order: OrderFutures, win = false) {
     order.status = 'closed'
-    if (win || this.countFilled === this.maxSteps) {
+    if (win || this.countFilled === this.options.maxSteps) {
       this.currentOrders.forEach((p: OrderFutures) => {
         if (p.status === 'open') p.status = 'canceled'
       })

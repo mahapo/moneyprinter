@@ -1,6 +1,6 @@
 require('dotenv').config()
-import { TraderFutures } from './models/runners'
-import { Binance } from './models/exchanges'
+import { TraderFutures } from '@moneyprinter/runners'
+import { Binance } from '@moneyprinter/exchanges'
 
 const main = async function () {
   try {
