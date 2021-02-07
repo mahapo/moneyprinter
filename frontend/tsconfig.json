@@ -3,26 +3,18 @@
     "target": "es2018",
     "module": "esnext",
     "moduleResolution": "node",
-    "lib": [
-      "esnext",
-      "esnext.asynciterable",
-      "dom"
-    ],
-    "esModuleInterop": true,
+    "lib": ["esnext", "esnext.asynciterable", "dom"],
+    // "esModuleInterop": true,
     "experimentalDecorators": true,
     "allowJs": true,
     "sourceMap": true,
-    "strict": true,
+    "strict": false,
     "noImplicitAny": false,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./*"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "~/*": ["./*"],
+      "@/*": ["./*"]
     },
     "resolveJsonModule": true,
     "types": [
@@ -30,11 +22,13 @@
       "@types/webpack",
       "@nuxt/types",
       "@nuxtjs/vuetify"
-    ]
+    ],
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "allowSyntheticDefaultImports": true,
+    "strictPropertyInitialization": false
   },
-  "exclude": [
-    "node_modules",
-    ".nuxt",
-    "dist"
-  ]
+  "exclude": ["node_modules", ".nuxt", "dist"]
 }

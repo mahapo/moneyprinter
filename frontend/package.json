@@ -1,9 +1,5 @@
 {
   "name": "@moneyprinter/frontend",
-  "version": "1.0.0",
-  "description": "My geometric Nuxt.js project",
-  "author": "Manuel Haller Polo",
-  "private": true,
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",

@@ -133,6 +133,7 @@ module.exports = {
       databaseURL: '',
     },
     services: {
+      storage: true,
       firestore: {
         // ...
         enablePersistence: true,

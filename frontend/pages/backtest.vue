@@ -107,6 +107,8 @@
 </template>
 
 <script>
+import { Backtester } from '../../bot/src/models/runners/Backtester'
+
 export default {
   sockets: {
     files(files) {
@@ -167,13 +169,35 @@ export default {
     }
   },
   async mounted() {
-    const results = await this.$fire.firestore
-      .collection('backtesting')
-      // .where('profitPercent', '>=', 100)
-      .get()
-    this.results = results.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    this.generateChart()
+    // const results = await this.$fire.firestore
+    //   .collection('backtesting')
+    //   // .where('profitPercent', '>=', 100)
+    //   .get()
+    // this.results = results.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+
+    // const trader = new Backtester()
+    // const result = await trader.run(
+    //   { leverage: 100, maxSteps: 3 },
+    //   this.balances
+    // )
+    // console.log(result)
   },
   methods: {
+    generateChart() {
+      const limit = 1000
+      let y = 0
+      const dataPoints = []
+      for (let i = 0; i < limit; i += 1) {
+        y += Math.random() * 10 - 5
+        dataPoints.push({
+          timestamp: i - limit / 2,
+          balance: y,
+        })
+      }
+      this.balances = dataPoints
+      console.log(dataPoints)
+    },
     showBalance(id) {
       console.log(id)
     },
