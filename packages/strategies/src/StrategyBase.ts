@@ -4,8 +4,6 @@ export class StrategyBase {
   static id: string = 'aa'
   orders: OrderFutures[] = []
 
-  async run({ sticks = [], time, price }) {}
-
   get activeOrders() {
     return this.orders.filter(order => order.status === 'open')
   }

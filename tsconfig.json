@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "sourceMap": false,
     "target": "es5",
-    "module": "commonjs",
-    "allowJs": true,
-    "checkJs": true,
-    "outDir": "./dist",
-    "sourceMap": true,
+    "module": "esnext",
+    "moduleResolution": "node",
     "strict": false,
     "noImplicitAny": false,
     "strictNullChecks": false,
@@ -16,9 +16,16 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["jest", "node"],
+    "rootDir": "."
     // "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json"],
-  "exclude": ["node_modules", "../ccxt/**/*", "**/*.test.ts", "**/*.spec.ts"]
+  "include": [
+    "packages/global.d.ts",
+    "packages/*/src",
+    "packages/runtime-dom/types/jsx.d.ts",
+    "packages/*/__tests__",
+    "test-dts"
+  ]
 }

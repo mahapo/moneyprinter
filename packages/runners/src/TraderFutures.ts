@@ -25,7 +25,7 @@ export class TraderFutures extends Runner {
       ...this.options,
       ...options
     }
-    this.strategy = new MoneyPrinter(this, this.options)
+    this.strategy = new MoneyPrinter(this.options)
   }
 
   async start() {

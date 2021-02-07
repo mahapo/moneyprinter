@@ -37,7 +37,8 @@ export class MoneyPrinter extends StrategyBase {
     amount: 0,
     leverage: 100,
     symbol: '',
-    ratio: 2
+    ratio: 2,
+    maxSteps: 6
   }
 
   stats = {
@@ -60,9 +61,7 @@ export class MoneyPrinter extends StrategyBase {
   currentOrders = []
   currentOrder: OrderFutures
 
-  maxSteps: number = 20
-
-  constructor(private runner, options, public isLive = true) {
+  constructor(options, public isLive = true) {
     super()
 
     this.percentOfMaxRange = 40
@@ -70,12 +69,6 @@ export class MoneyPrinter extends StrategyBase {
     this.options = {
       ...this.options,
       ...options
-    }
-  }
-
-  async run(tick) {
-    if (!this.currentOrders.length) {
-      this.runner.onSignal(tick)
     }
   }
 
@@ -99,7 +92,7 @@ export class MoneyPrinter extends StrategyBase {
       'buy'
     )
     this.longZoneOrders = this.longZone.createOrders(
-      this.maxSteps,
+      this.options.maxSteps,
       this.options.symbol,
       amount,
       timestamp
@@ -114,7 +107,7 @@ export class MoneyPrinter extends StrategyBase {
       'sell'
     )
     this.shortZoneOrders = this.shortZone.createOrders(
-      this.maxSteps,
+      this.options.maxSteps,
       this.options.symbol,
       amount,
       timestamp
@@ -134,7 +127,7 @@ export class MoneyPrinter extends StrategyBase {
       // if (otherSide) otherSide.status = 'canceled'
     }
 
-    if (this.countFilled < this.maxSteps) {
+    if (this.countFilled < this.options.maxSteps) {
       this.currentOrder = this.createHedgOrder()
       // Fix for Backtester
       order.status = 'canceled'
@@ -163,7 +156,7 @@ export class MoneyPrinter extends StrategyBase {
       if (!win && this.isLive)
         console.log('Max steps reached', this.countFilled)
     }
-    if (win || this.countFilled >= this.maxSteps) {
+    if (win || this.countFilled >= this.options.maxSteps) {
       this.options.timestamp = Math.random()
       this.orders.push(...this.currentOrders)
       this.currentOrder = null
