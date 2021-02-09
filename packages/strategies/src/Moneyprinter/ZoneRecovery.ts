@@ -1,4 +1,4 @@
-import { OrderFutures } from '.'
+import { OrderFutures } from '@moneyprinter/models'
 
 export class ZoneRecovery {
   public initialTradeDirection: 'buy' | 'sell'

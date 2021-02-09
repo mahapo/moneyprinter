@@ -1,1 +1,1 @@
-export { MoneyPrinter } from './MoneyPrinter'
+export { MoneyPrinter } from './Moneyprinter'

@@ -1,5 +1,6 @@
-import { StrategyBase } from './StrategyBase'
-import { OrderFutures, ZoneRecovery } from '@moneyprinter/models'
+import { StrategyBase } from '../StrategyBase'
+import { ZoneRecovery } from './ZoneRecovery'
+import { OrderFutures } from '@moneyprinter/models'
 
 /*
   1. Place Buy_0 / Sell_0 
