@@ -18,19 +18,20 @@
     }
   },
   "dependencies": {
+    "@moneyprinter/models": "link:../packages/models",
     "@moneyprinter/runners": "link:../packages/runners",
     "@moneyprinter/strategies": "link:../packages/strategies",
-    "@moneyprinter/models": "link:../packages/models",
-    "@nuxtjs/axios": "^5.13.0",
-    "@nuxtjs/composition-api": "^0.19.1",
+    "@moneyprinter/utils": "link:../packages/utils",
+    "@nuxtjs/axios": "^5.13.1",
+    "@nuxtjs/composition-api": "^0.20.1",
     "@nuxtjs/dotenv": "^1.4.1",
     "@nuxtjs/firebase": "^7.4.1",
     "@tensorflow/tfjs": "^3.0.0",
     "chart.js": "^2.9.4",
     "core-js": "3",
     "cross-env": "^7.0.3",
-    "firebase": "^8.2.6",
-    "nuxt": "^2.14.12",
+    "firebase": "^8.2.7",
+    "nuxt": "^2.15.0",
     "socket.io-client": "^3.1.1",
     "vue-chartjs": "^3.5.1",
     "vue-class-component": "^7.2.6",
@@ -47,10 +48,10 @@
     "@types/chart.js": "^2.9.30",
     "@types/lodash": "^4.14.168",
     "@types/webpack": "^4.41.26",
-    "eslint": "^7.19.0",
+    "eslint": "^7.20.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-nuxt": ">=2.0.0",
     "eslint-plugin-prettier": "^3.3.1",
-    "stylelint": "^13.9.0"
+    "stylelint": "^13.10.0"
   }
 }

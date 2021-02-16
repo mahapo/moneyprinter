@@ -21,24 +21,15 @@ Object.defineProperty(Array.prototype, 'chunk_inefficient', {
   }
 })
 
-function getRange(start, end) {
-  console.log('Start:', parseInt(start, 16))
-  console.log('End:', parseInt(end, 16))
-  console.log('Addresses:', parseInt(end, 16) - parseInt(start, 16))
-  return range(parseInt(start, 16), parseInt(end, 16)).map(number =>
-    number.toString(16).padStart(64, '0')
+function getRange(start, end, pad = 0) {
+  return range(parseInt(start, 16), parseInt(end, 16) + 1).map(number =>
+    number
+      .toString(16)
+      .padStart(end.length, '0')
+      .padEnd(pad, '0')
+      .padStart(64, '0')
   )
 }
-
-const addressChunk = getRange('01', 'FFF')
-  .map(key => web3.eth.accounts.privateKeyToAccount(key))
-  .chunk_inefficient(200)
-  .map(chunck =>
-    chunck.reduce((a, key) => {
-      a[key.address] = key.privateKey
-      return a
-    }, {})
-  )
 
 // const addresses = {
 //   //   '0x22b7d4730f96a9e7a61efe05867d26f5636c3b65':
@@ -47,14 +38,32 @@ const addressChunk = getRange('01', 'FFF')
 // }
 const tokens = ['0x0000000000000000000000000000000000000000']
 ;(async () => {
-  for (const addresses of addressChunk) {
-    getAddressesBalances(web3, Object.keys(addresses), tokens).then(
-      balances => {
-        const filteredBalances = Object.entries(balances)
-          .filter(address => address[1][tokens[0]] !== '0')
-          .map(([address, balance]) => [address, addresses[address], balance])
-        if (filteredBalances.length) console.log(filteredBalances)
-      }
-    )
+  for (const pad of range(0, 1)) {
+    let addresses = getRange('01000', 'FFFF', pad)
+    // console.log('Addresses:', addresses.length)
+    console.log('Start:', addresses[0])
+    console.log('End:', addresses[addresses.length - 1])
+
+    let addressChunks = addresses
+      .map(key => web3.eth.accounts.privateKeyToAccount(key))
+      .chunk_inefficient(2000)
+      .map(chunck =>
+        chunck.reduce((a, key) => {
+          a[key.address] = key.privateKey
+          return a
+        }, {})
+      )
+    for (const addresses of addressChunks) {
+      await getAddressesBalances(web3, Object.keys(addresses), tokens).then(
+        balances => {
+          const filteredBalances = Object.entries(balances)
+            .filter(address => address[1][tokens[0]] !== '0')
+            .map(([address, balance]) => [address, addresses[address], balance])
+          if (filteredBalances.length) console.log(filteredBalances)
+        }
+      )
+    }
   }
+  console.log('End')
+  process.exit()
 })()

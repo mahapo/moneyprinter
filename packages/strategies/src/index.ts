@@ -1,1 +1,1 @@
-export { MoneyPrinter } from './Moneyprinter'
+export { MoneyPrinter, ZoneRecovery } from './Moneyprinter'

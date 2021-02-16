@@ -1,6 +1,6 @@
-import { OrderFutures, ZoneRecovery } from '@moneyprinter/models'
+import { OrderFutures } from '@moneyprinter/models'
 import { Runner } from './Runner'
-import { MoneyPrinter } from '@moneyprinter/strategies'
+import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
 import { Logger } from '@moneyprinter/utils/src/Logger'
 
 import * as colors from 'colors/safe'
@@ -67,7 +67,10 @@ export class TraderFutures extends Runner {
 
     try {
       // this.updateOrders(tick)
-      this.strategy.run(tick)
+      if(this.strategy.currentOrders.length === 0 ) {
+        this.onSignal(tick)
+        // await this.strategy.onSignal(tick)
+      }
     } catch (error) {
       console.log(error)
     }
@@ -103,12 +106,28 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([order])
+      await this.account.placeTpSLTs([this.strategy.currentOrder])
     } catch (error) {
       Logger.error(error)
       await this.reset()
     }
   }
+  
+    async onStopLoss(orderFromExchange) {
+      try {
+        const order = this.searchOrder(orderFromExchange)
+        Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
+  
+        this.strategy.onStopLoss(this.strategy.currentOrder)
+
+        await this.account.deleteOpenOrders(this.options.symbol)
+        await this.account.placeTpSLTs([this.strategy.currentOrder])
+        // this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
+      } catch (error) {
+        Logger.error(error)
+        await this.reset()
+      }
+    }
 
   async onTakeProfit(orderFromExchange) {
     try {
@@ -121,21 +140,6 @@ export class TraderFutures extends Runner {
     } catch (error) {
       Logger.error(error)
     } finally {
-      await this.reset()
-    }
-  }
-
-  async onStopLoss(orderFromExchange) {
-    try {
-      const order = this.searchOrder(orderFromExchange)
-      Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
-
-      await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder])
-      await this.strategy.onOrderFilled(this.strategy.currentOrder)
-      // this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
-    } catch (error) {
-      Logger.error(error)
       await this.reset()
     }
   }

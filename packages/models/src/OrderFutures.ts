@@ -38,7 +38,7 @@ export class OrderFutures implements Order {
 
   maxLossPercent = 50
 
-  constructor(options, public slug = 0) {
+  constructor(options, public slug = '') {
     this.status = 'open'
     this.filled = 0
     this.price = options.price
@@ -96,12 +96,13 @@ export class OrderFutures implements Order {
   }
 
   get clientOrderId(): string {
+    if(this.slug)
+      return this.slug
     return [
       this.timestamp,
       this.leverage,
       this.ratio,
-      this.side,
-      this.slug
+      this.side
     ].join('-')
   }
 

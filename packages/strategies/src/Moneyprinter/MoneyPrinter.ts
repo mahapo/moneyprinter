@@ -17,18 +17,6 @@ import { OrderFutures } from '@moneyprinter/models'
 
 */
 export class MoneyPrinter extends StrategyBase {
-  static idKeys = [
-    'id',
-    'time',
-    'price',
-    'priceTop',
-    'priceBottom',
-    'amount',
-    'leverage',
-    'count',
-    'ratio'
-  ]
-
   percentOfMaxRange: number = 80
   percentSlipperage: number = 0.01
 
@@ -96,7 +84,8 @@ export class MoneyPrinter extends StrategyBase {
       this.options.maxSteps,
       this.options.symbol,
       amount,
-      timestamp
+      timestamp,
+      this.isLive
     )
     this.currentOrders.push(this.longZoneOrders[0])
 
@@ -111,7 +100,8 @@ export class MoneyPrinter extends StrategyBase {
       this.options.maxSteps,
       this.options.symbol,
       amount,
-      timestamp
+      timestamp,
+      this.isLive
     )
     this.currentOrders.push(this.shortZoneOrders[0])
   }
@@ -119,50 +109,61 @@ export class MoneyPrinter extends StrategyBase {
   onOrderFilled(order: OrderFutures) {
     order.filled = order.amount
 
-    if (this.countFilled === 1) {
-      this.side = order.side
-      this.currentOrder = order
-      this.currentOrders = this.currentOrders.filter(
-        (order: OrderFutures) => order.side === this.side
-      )
-      // if (otherSide) otherSide.status = 'canceled'
-    }
+    this.side = order.side
+    this.currentOrder = order
+    this.currentOrders = this.currentOrders.filter(
+      (order: OrderFutures) => order.side === this.side
+    )
+    // if (this.countFilled === 1) {
+    //   // this.currentOrder.filled = this.currentOrder.amount
+    //   // this.currentOrder = this.createHedgOrder()
+    //   // if (otherSide) otherSide.status = 'canceled'
+    // } else {
+    //   this.reset()
+    // }
 
-    if (this.countFilled < this.options.maxSteps) {
-      this.currentOrder = this.createHedgOrder()
-      // Fix for Backtester
-      order.status = 'canceled'
-      this.currentOrder.filled = this.currentOrder.amount
-      this.currentOrders.push(this.currentOrder)
-    } else {
-      this.onOrderDone(order, true)
-    }
+    // if (this.countFilled < this.options.maxSteps) {
+    //   // Fix for Backtester
+    //   order.status = 'canceled'
+    //   this.currentOrder.filled = this.currentOrder.amount
+    //   this.currentOrders.push(this.currentOrder)
+    // } else {
+    //   this.onOrderDone(order, true)
+    // }
 
-    this.stats.amountMax = Math.max(this.stats.amountMax, order.amount)
-    this.stats.amountMin = Math.min(this.stats.amountMin, order.amount)
-    this.stats.countMax = Math.max(this.stats.countMax, this.countFilled)
+    // this.stats.amountMax = Math.max(this.stats.amountMax, order.amount)
+    // this.stats.amountMin = Math.min(this.stats.amountMin, order.amount)
+    // this.stats.countMax = Math.max(this.stats.countMax, this.countFilled)
   }
 
-  // onTakeProfit(order: OrderFutures) {
-  //   order.status = 'closed'
-  // }
+  onStopLoss(order: OrderFutures) {
+    order.status = 'closed'
+    order.filled = order.amount
+    this.currentOrder = this.createHedgOrder()
+    if(this.currentOrder) {
+      this.currentOrders.push(this.currentOrder)
+      this.currentOrder.filled = this.currentOrder.amount
+    } else {
+      if (this.isLive)
+        console.log('Max steps reached', this.countFilled)
+      this.reset()
+    }
+  }
 
   // TODO: Refactor this shit
-  onOrderDone(order: OrderFutures, win = false) {
+  onTakeProfit(order: OrderFutures, win = false) {
     order.status = 'closed'
-    if (win || this.countFilled === this.options.maxSteps) {
-      this.currentOrders.forEach((p: OrderFutures) => {
-        if (p.status === 'open') p.status = 'canceled'
-      })
-      if (!win && this.isLive)
-        console.log('Max steps reached', this.countFilled)
-    }
-    if (win || this.countFilled >= this.options.maxSteps) {
-      this.options.timestamp = Math.random()
-      this.orders.push(...this.currentOrders)
-      this.currentOrder = null
-      this.currentOrders = []
-    }
+    this.currentOrders.forEach((p: OrderFutures) => {
+      if (p.status === 'open') p.status = 'canceled'
+    })
+    this.reset()
+  }
+  
+  reset() {
+    this.options.timestamp = Math.random()
+    this.orders.push(...this.currentOrders)
+    this.currentOrder = null
+    this.currentOrders = []
   }
 
   printActiveOrders() {

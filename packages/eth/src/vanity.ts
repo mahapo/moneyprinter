@@ -9,7 +9,11 @@ const step = 500
  */
 export function privateToAddress(privateKey) {
   const pub = secp256k1.publicKeyCreate(privateKey, false).slice(1)
-  return keccak('keccak256').update(pub).digest().slice(-20).toString('hex')
+  return keccak('keccak256')
+    .update(Buffer.from(pub))
+    .digest()
+    .slice(-20)
+    .toString('hex')
 }
 
 /**
@@ -114,3 +118,6 @@ const getVanityWallet = (input, isChecksum, isSuffix, cb) => {
 // module.exports = {
 //   onmessage
 // }
+
+// --matching 0123456789ABCDEFXXXXXXXXXXXXXXXX
+// 0x02858633fad5f34dade1ce845f0b9d013880b953258637110d7a401c04e0f862 Address: 0x94f445d400abcdef732bcbe34344cbed36ff84d4

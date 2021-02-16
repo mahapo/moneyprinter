@@ -38,6 +38,22 @@ export class Firebase extends EventEmitter {
     return this.db.collection(`backtesting/${id}/balances`).add({ balances })
   }
 
+  deleteCollection(path) {
+    // Get a new write batch
+    var batch = this.db.batch()
+
+    this.db.collection(path).listDocuments().then(val => {
+      
+      val.map((val) => {
+          console.log(val.id);
+          this.deleteCollection(`${path}/${val.id}/balances`)
+          batch.delete(val)
+        })
+
+        batch.commit()
+    })
+}
+
   // async multipleImport(ref, array, idKey = null) {
   //   let index = 0
   //   for (const chunk of this.chunkArray(array, 500)) {

@@ -21,12 +21,12 @@ import { Binance } from '@moneyprinter/exchanges'
       const traderSettings = [
         {
           symbol: 'BTC/USDT',
-          leverage: 50
+          leverage: 75
         },
-        {
-          symbol: 'ETH/USDT',
-          leverage: 50
-        }
+        // {
+        //   symbol: 'ETH/USDT',
+        //   leverage: 50
+        // }
       ]
 
       for (let setting of traderSettings) {

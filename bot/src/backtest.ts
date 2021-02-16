@@ -16,21 +16,21 @@ const main = async function () {
     let settings = [
       {
         key: 'leverage',
-        start: 50,
+        start: 70,
         end: 100,
         step: 10
       },
       {
         key: 'ratio',
         start: 2,
-        end: 6,
+        end: 3,
         step: 1
       },
       {
         key: 'maxSteps',
-        start: 50,
-        end: 50,
-        step: 2
+        start: 6,
+        end: 10,
+        step: 1
       }
     ]
       .map(input => {
@@ -71,9 +71,10 @@ const main = async function () {
 
       if (save) {
         const { balances, ...rest } = result
+        // balances.length = 9000
         await firebase.saveBacktestResult(rest, balances)
       }
-      break
+      // break
     }
 
     console.log('Fin')

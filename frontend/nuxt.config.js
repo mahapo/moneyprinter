@@ -114,6 +114,7 @@ module.exports = {
       '@moneyprinter/runners',
       '@moneyprinter/strategies',
       '@moneyprinter/models',
+      '@moneyprinter/utils',
     ],
     extend(_config, _ctx) {},
   },
