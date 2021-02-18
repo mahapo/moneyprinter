@@ -85,6 +85,10 @@ export default {
   methods: {
     async handleClick(value) {
       try {
+        if (value.balances) {
+          this.$emit('balances', value.balances)
+          return
+        }
         const { docs } = await this.$fire.firestore
           .collection(`backtesting/${value.id}/balances`)
           .get()

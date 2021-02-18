@@ -34,7 +34,9 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [],
+  plugins: [
+    '~/plugins/axios'
+  ],
   /*
    ** Nuxt.js dev-modules
    */
@@ -76,6 +78,8 @@ module.exports = {
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv',
     '@nuxtjs/firebase',
+    '@nuxtjs/dayjs',
+    "@/modules/axCache",
   ],
   /*
    ** Axios module configuration

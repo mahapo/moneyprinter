@@ -18,13 +18,11 @@
     <v-col md="12">
       <v-card>
         <v-tabs v-model="tab">
-          <v-tab v-if="false">
-            <v-icon left>mdi-account</v-icon>Settings
-          </v-tab>
+          <v-tab> <v-icon left>mdi-account</v-icon>Settings </v-tab>
           <v-tab v-if="false"> <v-icon left>mdi-account</v-icon>Trades </v-tab>
           <v-tab> <v-icon left>mdi-money</v-icon>Results </v-tab>
 
-          <v-tab-item v-if="false">
+          <v-tab-item>
             <v-card flat>
               <v-card-text>
                 <v-row>
@@ -107,37 +105,13 @@
 </template>
 
 <script>
-// import { Backtester } from '@moneyprinter/runners'
+import { call } from 'vuex-pathify'
+import { Matrix } from '@moneyprinter/utils'
 
 export default {
-  sockets: {
-    files(files) {
-      if (!this.files.length) this.files = Array.from(files)
-    },
-    ticks(ticks) {
-      this.ticks = ticks
-    },
-    backtestFinish({ orders, balances }) {
-      this.orders = orders
-      this.balances = balances
-        .sort(function (a, b) {
-          return new Date(a.timestamp) - new Date(b.timestamp)
-        })
-        .filter((balance) => !!balance.timestamp)
-    },
-    backtestFinishMatrix(update) {
-      this.results.push(update)
-    },
-    backtestUpdate(update) {
-      this.progress = {
-        ...this.progress,
-        ...update,
-      }
-    },
-  },
   data() {
     return {
-      logarithmic: true,
+      logarithmic: false,
       tab: 0,
       strategies: [
         {
@@ -169,74 +143,26 @@ export default {
     }
   },
   async mounted() {
-    // this.generateChart()
-    // const results = await this.$fire.firestore
-    //   .collection('backtesting')
-    //   // .where('profitPercent', '>=', 100)
-    //   .get()
-    // this.results = results.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-
-    // const trader = new Backtester()
-    // const result = await trader.run(
-    //   { leverage: 100, maxSteps: 3 },
-    //   this.balances
-    // )
-    // console.log(result)
-
-    var storageRef = this.$fire.storage.ref()
-
-    console.log(storageRef)
-    // Points to 'images'
-    var listRef = storageRef
-      .child('BTC/BTCUSD_Gemini_Q1_2020_prints.csv')
-      .getDownloadURL()
-      .then((url) => {
-        // `url` is the download URL for 'images/stars.jpg'
-
-        // This can be downloaded directly:
-        var xhr = new XMLHttpRequest()
-        xhr.responseType = 'blob'
-        xhr.onload = async (event) => {
-          var blob = xhr.response
-          console.log(await blob.text())
-        }
-        xhr.open('GET', url)
-        xhr.send()
-      })
-      .catch((error) => {
-        // Handle any errors
-      })
+    // const ticks = await this.loadCSV('BTC/BTCUSD_Gemini_Q1_2020_prints.csv')
+    // this.saveTicks(ticks)
+    // this.ticks = await this.getSaveTicks()
+    // console.log(this.ticks);
+    // const result = await this.runBacktest(this.ticks)
+    // console.log(result);
+    // this.balances = result.balances
   },
   methods: {
-    generateChart() {
-      const limit = 1000
-      let y = 0
-      const dataPoints = []
-      for (let i = 0; i < limit; i += 1) {
-        y += Math.random() * 10 - 5
-        dataPoints.push({
-          timestamp: i - limit / 2,
-          balance: y,
-        })
+    ...call('backtester/*'),
+    async startBacktest() {
+      // const result = await this.runBacktest(this.ticks)
+      this.tab = 1
+      const ticks = await this.getSaveTicks()
+      let matrix = Matrix.createTestMatrix(this.testMatrix)
+      for (const setting of matrix) {
+        const result = await this.runBacktest({ setting, ticks })
+        this.results.push(result)
+        // const { balances, ...rest } = result
       }
-      this.balances = dataPoints
-      console.log(dataPoints)
-    },
-    showBalance(id) {
-      console.log(id)
-    },
-    startBacktest() {
-      this.results = []
-      this.tab = 2
-      let symbol
-
-      if (this.testOptions.file.includes('BTCUSDT')) symbol = 'BTC/USD'
-
-      this.$socket.client.emit('startBacktesthMatrix', {
-        ...this.testOptions,
-        symbol,
-        matrix: this.testMatrix,
-      })
     },
   },
 }
