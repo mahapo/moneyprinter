@@ -27,7 +27,10 @@ export class MoneyPrinter extends StrategyBase {
     leverage: 100,
     symbol: '',
     ratio: 2,
-    maxSteps: 6
+    maxSteps: 6,
+    recoveryGapInitial: 30,
+    recoveryGapDynamicAdd: 5,
+    recoveryGapDynamicCount: 3
   }
 
   stats = {
@@ -52,8 +55,6 @@ export class MoneyPrinter extends StrategyBase {
 
   constructor(options, public isLive = true) {
     super()
-
-    this.percentOfMaxRange = 40
 
     this.options = {
       ...this.options,
@@ -80,6 +81,9 @@ export class MoneyPrinter extends StrategyBase {
       this.options.ratio,
       'buy'
     )
+    this.longZone.recoveryGapInitial = this.options.recoveryGapInitial
+    this.longZone.recoveryGapDynamicAdd = this.options.recoveryGapDynamicAdd
+    this.longZone.recoveryGapDynamicCount = this.options.recoveryGapDynamicCount
     this.longZoneOrders = this.longZone.createOrders(
       this.options.maxSteps,
       this.options.symbol,
@@ -96,6 +100,9 @@ export class MoneyPrinter extends StrategyBase {
       this.options.ratio,
       'sell'
     )
+    this.shortZone.recoveryGapInitial = this.options.recoveryGapInitial
+    this.shortZone.recoveryGapDynamicAdd = this.options.recoveryGapDynamicAdd
+    this.shortZone.recoveryGapDynamicCount = this.options.recoveryGapDynamicCount
     this.shortZoneOrders = this.shortZone.createOrders(
       this.options.maxSteps,
       this.options.symbol,
@@ -140,12 +147,11 @@ export class MoneyPrinter extends StrategyBase {
     order.status = 'closed'
     order.filled = order.amount
     this.currentOrder = this.createHedgOrder()
-    if(this.currentOrder) {
+    if (this.currentOrder) {
       this.currentOrders.push(this.currentOrder)
       this.currentOrder.filled = this.currentOrder.amount
     } else {
-      if (this.isLive)
-        console.log('Max steps reached', this.countFilled)
+      if (this.isLive) console.log('Max steps reached', this.countFilled)
       this.reset()
     }
   }
@@ -158,7 +164,7 @@ export class MoneyPrinter extends StrategyBase {
     })
     this.reset()
   }
-  
+
   reset() {
     this.options.timestamp = Math.random()
     this.orders.push(...this.currentOrders)

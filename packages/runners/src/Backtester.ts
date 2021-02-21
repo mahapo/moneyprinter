@@ -29,7 +29,10 @@ export class Backtester extends Runner {
     file: '',
     update: false,
     matrix: false,
-    percentOfMaxRange: 80
+    percentOfMaxRange: 80,
+    recoveryGapInitial: 30,
+    recoveryGapDynamicAdd: 5,
+    recoveryGapDynamicCount: 3
   }
 
   run(options, ticks) {
@@ -47,8 +50,8 @@ export class Backtester extends Runner {
     this.options.risk = Math.round(lastStep.total) * 4
 
     this.strategy = new MoneyPrinter(this.options, false)
-    this.strategy.maxSteps = this.options.maxSteps
-    this.strategy.percentOfMaxRange = this.options.percentOfMaxRange
+    // this.strategy.maxSteps = this.options.maxSteps
+    // this.strategy.percentOfMaxRange = this.options.percentOfMaxRange
 
     this.balances = []
     this.balance = this.options.startBalance
@@ -69,7 +72,7 @@ export class Backtester extends Runner {
 
   onTick(tick) {
     try {
-      if(this.strategy.currentOrders.length === 0 ) {
+      if (this.strategy.currentOrders.length === 0) {
         this.strategy.onSignal(tick)
         this.onSignal(tick)
       }
@@ -104,17 +107,19 @@ export class Backtester extends Runner {
             if (isTakeProfit || isStopLoss) {
               order.status = 'closed'
               order.timestampExit = timestamp
-              
+
               order.priceExit = isTakeProfit ? order.takeProfit : order.stopLoss
               this.balance = this.balance + order.pnl
-              
+
               this.balances.push({
                 timestamp,
                 balance: this.balance.toFixed(2),
                 filled: this.strategy.countFilled,
                 price,
                 priceTop: Math.max(order.takeProfit, order.stopLoss).toFixed(3),
-                priceBottom: Math.min(order.takeProfit, order.stopLoss).toFixed(3),
+                priceBottom: Math.min(order.takeProfit, order.stopLoss).toFixed(
+                  3
+                ),
                 pnl: order.pnl.toFixed(3)
               })
               if (isTakeProfit) {
@@ -145,17 +150,19 @@ export class Backtester extends Runner {
 
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders)
-    
+
     // const balances = this.formatedBalances.map(b => b.balance)
     // const drawdowns = this.formatedBalances
     //   .filter(b => !!b.drawdown)
     //   .map(b => b.drawdown)
-    
+
     const timeStart = dayjs(this.ticks[0].timestamp)
     const timeEnd = dayjs(this.ticks[this.ticks.length - 1].timestamp)
     const days = dayjs.duration(timeEnd.diff(timeStart)).asDays()
-    
-    const maxFilled = Math.max(...this.balances.filter(b => b.filled).map(balance => balance.filled))
+
+    const maxFilled = Math.max(
+      ...this.balances.filter(b => b.filled).map(balance => balance.filled)
+    )
     const profitPercent = (this.balance / this.options.startBalance - 1) * 100
     const profitPercentPerDay = profitPercent / days
     const result = {

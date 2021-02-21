@@ -159,9 +159,10 @@ export default {
       const ticks = await this.getSaveTicks()
       let matrix = Matrix.createTestMatrix(this.testMatrix)
       for (const setting of matrix) {
-        const result = await this.runBacktest({ setting, ticks })
-        this.results.push(result)
-        // const { balances, ...rest } = result
+        console.log(JSON.stringify(setting))
+        this.runBacktest({ setting, ticks }).then((result) =>
+          this.results.push(result)
+        )
       }
     },
   },

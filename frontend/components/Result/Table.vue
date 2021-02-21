@@ -50,7 +50,7 @@ export default {
         },
         {
           text: 'Percent Of max range',
-          value: 'options.percentOfMaxRange',
+          value: 'options.recoveryGapInitial',
         },
         {
           text: 'Total Trades',

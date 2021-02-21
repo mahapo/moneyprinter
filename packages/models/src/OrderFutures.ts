@@ -38,6 +38,9 @@ export class OrderFutures implements Order {
 
   maxLossPercent = 50
 
+  callbackRate = 0.5
+  priceActivation: number
+
   constructor(options, public slug = '') {
     this.status = 'open'
     this.filled = 0
@@ -96,14 +99,8 @@ export class OrderFutures implements Order {
   }
 
   get clientOrderId(): string {
-    if(this.slug)
-      return this.slug
-    return [
-      this.timestamp,
-      this.leverage,
-      this.ratio,
-      this.side
-    ].join('-')
+    if (this.slug) return this.slug
+    return [this.timestamp, this.leverage, this.ratio, this.side].join('-')
   }
 
   get clientOrderIdTP(): string {
@@ -123,11 +120,9 @@ export class OrderFutures implements Order {
   }
 
   get pnl() {
-    const deltaPercent = this.priceExit/this.price-1
-    if (this.side === 'buy')
-      return deltaPercent * (this.amount )
-    else 
-      return -deltaPercent * (this.amount)
+    const deltaPercent = this.priceExit / this.price - 1
+    if (this.side === 'buy') return deltaPercent * this.amount
+    else return -deltaPercent * this.amount
   }
 
   get winTrade() {
