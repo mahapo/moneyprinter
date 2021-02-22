@@ -18,7 +18,7 @@ import { Binance } from '@moneyprinter/exchanges'
         recoveryGapDynamicAdd: 5,
         recoveryGapInitial: 10,
         maxSteps: 5,
-        ratio: 2
+        ratio: 4
       }
 
       const traderSettings = [
@@ -30,6 +30,9 @@ import { Binance } from '@moneyprinter/exchanges'
         },
         {
           symbol: 'BCH/USDT'
+        },
+        {
+          symbol: 'LTC/USDT'
         }
       ]
 

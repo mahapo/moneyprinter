@@ -253,7 +253,7 @@ export class Backtester extends Runner {
 
   get idealSize() {
     const maxSize = 1000
-    if (this.balance / this.options.risk > maxSize)
+    if (this.balance > maxSize)
       return (maxSize / this.options.risk) * this.options.leverage
 
     return (this.balance / this.options.risk) * this.options.leverage
