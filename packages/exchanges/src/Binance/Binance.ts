@@ -118,7 +118,7 @@ export class Binance extends ExchangeBase {
         const mainOrder = {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase(),
-          // positionSide: order.side.toUpperCase() === 'BUY' ? 'LONG' : 'SHORT',
+          positionSide: 'BOTH',
           type: 'STOP_MARKET',
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
@@ -159,10 +159,7 @@ export class Binance extends ExchangeBase {
         const takeProfit = {
           ...common,
           type: 'TAKE_PROFIT_MARKET',
-          quantity: this.instance.amountToPrecision(
-            order.symbol,
-            order.amountTakeProfit
-          ),
+          quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(
             order.symbol,
             order.takeProfit

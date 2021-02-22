@@ -87,10 +87,17 @@ export class ZoneRecovery {
     })
   }
 
-  createOrders(count, symbol, amount, timestamp, isLive = false): OrderFutures[] {
+  createOrders(
+    count,
+    symbol,
+    amount,
+    timestamp,
+    isLive = false
+  ): OrderFutures[] {
     const key = isLive ? 'total' : 'factor'
-    const nextZone = this.calcZones(count + 1)
-    return this.calcZones(count).map((zone, i) => {
+    const zones = this.calcZones(count + 1)
+    return zones.slice(0, count).map((zone, i) => {
+      const nextZone = zones[i + 1]
       const order = new OrderFutures(
         {
           price: zone.price,
@@ -99,11 +106,17 @@ export class ZoneRecovery {
           side: zone.side,
           symbol,
           amount: amount * zone[key],
-          amountLoss: nextZone[i + 1][key] * amount,
+          amountLoss: amount * nextZone[key],
           timestamp
         },
         // @ts-ignore
-        [i, String(this.price).replace('.','_'), this.leverage, this.recoveryGapFactor, this.initialTradeDirection].join('-')
+        [
+          i,
+          String(this.price).replace('.', '_'),
+          this.leverage,
+          this.recoveryGapFactor,
+          this.initialTradeDirection
+        ].join('-')
       )
       order.takeProfit = zone.priceTakeProfit
       order.stopLoss = zone.priceStopLoss
