@@ -69,7 +69,7 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
 
-    const percent = 50
+    const percent = 60
     this.priceRange = (percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
