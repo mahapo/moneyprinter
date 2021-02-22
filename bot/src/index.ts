@@ -14,23 +14,23 @@ import { Binance } from '@moneyprinter/exchanges'
       await account.startWebSocket()
 
       const commonSettings = {
-        ratio: 2,
-        maxSteps: 5
+        leverage: 75,
+        recoveryGapDynamicAdd: 5,
+        recoveryGapInitial: 10,
+        maxSteps: 5,
+        ratio: 2
       }
 
       const traderSettings = [
         {
-          symbol: 'BTC/USDT',
-          leverage: 80,
-          recoveryGapDynamicAdd: 5,
-          recoveryGapInitial: 10,
-          maxSteps: 5,
-          ratio: 2
+          symbol: 'BTC/USDT'
+        },
+        {
+          symbol: 'ETH/USDT'
+        },
+        {
+          symbol: 'BCH/USDT'
         }
-        // {
-        //   symbol: 'ETH/USDT',
-        //   leverage: 50
-        // }
       ]
 
       for (let setting of traderSettings) {
