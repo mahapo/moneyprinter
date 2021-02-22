@@ -34,9 +34,7 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [
-    '~/plugins/axios'
-  ],
+  plugins: ['~/plugins/axios', '~/plugins/vue-worker.client'],
   /*
    ** Nuxt.js dev-modules
    */
@@ -79,7 +77,7 @@ module.exports = {
     '@nuxtjs/dotenv',
     '@nuxtjs/firebase',
     '@nuxtjs/dayjs',
-    "@/modules/axCache",
+    '@/modules/axCache',
   ],
   /*
    ** Axios module configuration

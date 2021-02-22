@@ -23,11 +23,13 @@
       >
         <span
           v-if="isActive(index, 'buy')"
-          v-html="backtest ? step.factor * amount : step.total * amount"
+          v-html="
+            (backtest ? step.factor * amount : step.total * amount).toFixed(2)
+          "
         >
         </span>
       </div>
-      <div class="range" :style="stylesRange">{{ step.factor }}</div>
+      <div class="range" :style="stylesRange">{{ step.factor.toFixed(2) }}</div>
       <div
         class="short"
         :style="stylesOrder"
@@ -35,7 +37,9 @@
       >
         <span
           v-if="isActive(index, 'sell')"
-          v-html="backtest ? step.factor * amount : step.total * amount"
+          v-html="
+            (backtest ? step.factor * amount : step.total * amount).toFixed(2)
+          "
         ></span>
       </div>
     </div>
@@ -43,7 +47,7 @@
 </template>
 
 <script>
-// import { ZoneRecovery } from '../../../backend/src/models/ZoneRecovery'
+import { ZoneRecovery } from '@moneyprinter/strategies'
 
 export default {
   props: {
@@ -95,8 +99,7 @@ export default {
       }
     },
     steps() {
-      // return ZoneRecovery.calcSteps(this.maxSteps, this.ratio, this.breakeven)
-      return []
+      return ZoneRecovery.calcSteps(this.maxSteps, this.ratio, this.breakeven)
     },
     prices() {
       const prices = {

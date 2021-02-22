@@ -154,15 +154,12 @@ export default {
   methods: {
     ...call('backtester/*'),
     async startBacktest() {
-      // const result = await this.runBacktest(this.ticks)
       this.tab = 1
       const ticks = await this.getSaveTicks()
       let matrix = Matrix.createTestMatrix(this.testMatrix)
       for (const setting of matrix) {
-        console.log(JSON.stringify(setting))
-        this.runBacktest({ setting, ticks }).then((result) =>
-          this.results.push(result)
-        )
+        const result = await this.runBacktest({ ticks, setting })
+        this.results.push(result)
       }
     },
   },

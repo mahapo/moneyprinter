@@ -67,7 +67,7 @@ export class TraderFutures extends Runner {
 
     try {
       // this.updateOrders(tick)
-      if(this.strategy.currentOrders.length === 0 ) {
+      if (this.strategy.currentOrders.length === 0) {
         this.onSignal(tick)
         // await this.strategy.onSignal(tick)
       }
@@ -112,29 +112,29 @@ export class TraderFutures extends Runner {
       await this.reset()
     }
   }
-  
-    async onStopLoss(orderFromExchange) {
-      try {
-        const order = this.searchOrder(orderFromExchange)
-        Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
-  
-        this.strategy.onStopLoss(this.strategy.currentOrder)
 
-        await this.account.deleteOpenOrders(this.options.symbol)
-        await this.account.placeTpSLTs([this.strategy.currentOrder])
-        // this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
-      } catch (error) {
-        Logger.error(error)
-        await this.reset()
-      }
+  async onStopLoss(orderFromExchange) {
+    try {
+      const order = this.searchOrder(orderFromExchange)
+      Logger.info(`${colors.red('onStopLoss')}: ${order.toString()}`)
+
+      this.strategy.onStopLoss(this.strategy.currentOrder)
+
+      await this.account.deleteOpenOrders(this.options.symbol)
+      await this.account.placeTpSLTs([this.strategy.currentOrder])
+      // this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
+    } catch (error) {
+      Logger.error(error)
+      await this.reset()
     }
+  }
 
   async onTakeProfit(orderFromExchange) {
     try {
       const order = this.searchOrder(orderFromExchange)
       Logger.info(`${colors.green('onTakeProfit')}: ${order.toString()}`)
 
-      await this.strategy.onOrderDone(order, true)
+      await this.strategy.onTakeProfit(order)
 
       this.onTick()
     } catch (error) {
@@ -149,7 +149,7 @@ export class TraderFutures extends Runner {
       const order = this.searchOrder(orderFromExchange)
       console.log(colors.red('onLiquidation'), order?.toString())
 
-      await this.strategy.onOrderDone(order, false)
+      await this.strategy.onTakeProfit(order)
     } catch (error) {
       Logger.error(error)
     } finally {

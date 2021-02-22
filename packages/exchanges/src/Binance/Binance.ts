@@ -33,9 +33,9 @@ export class Binance extends ExchangeBase {
         const isTakeProfit = c.endsWith('-TP')
         const isStopLoss = c.endsWith('-SL')
         const isWebtrade = c.startsWith('web')
-        // console.log(x, X, ot, s, c, i)
         const order = { clientOrderId: c, id: i }
         if (X === 'FILLED' && !isWebtrade) {
+          console.table({ x, X, ot, s, c, i })
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)

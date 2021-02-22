@@ -49,8 +49,12 @@ export default {
           value: 'options.maxSteps',
         },
         {
-          text: 'Percent Of max range',
+          text: 'Recovery Gap Initial',
           value: 'options.recoveryGapInitial',
+        },
+        {
+          text: 'Recovery Gap Add',
+          value: 'options.recoveryGapDynamicAdd',
         },
         {
           text: 'Total Trades',

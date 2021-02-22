@@ -15,14 +15,18 @@ import { Binance } from '@moneyprinter/exchanges'
 
       const commonSettings = {
         ratio: 2,
-        maxSteps: 8
+        maxSteps: 5
       }
 
       const traderSettings = [
         {
           symbol: 'BTC/USDT',
-          leverage: 75
-        },
+          leverage: 80,
+          recoveryGapDynamicAdd: 5,
+          recoveryGapInitial: 10,
+          maxSteps: 5,
+          ratio: 2
+        }
         // {
         //   symbol: 'ETH/USDT',
         //   leverage: 50
