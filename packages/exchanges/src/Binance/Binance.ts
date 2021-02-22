@@ -197,6 +197,7 @@ export class Binance extends ExchangeBase {
         order.idStopLoss = results[1].orderId
 
         if (!results[0].orderId) {
+          console.table(results)
           throw 'TakeProfit' + results[0].msg
         }
 
