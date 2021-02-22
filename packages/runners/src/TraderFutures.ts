@@ -45,9 +45,9 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
     await this.account.setLeverage(symbol, this.options.leverage)
+    await this.reset()
     // await this.reset()
-    this.onTick()
-    // this.account.startTicker(symbol)
+    // this.onTick()
   }
 
   async reset() {
@@ -55,6 +55,8 @@ export class TraderFutures extends Runner {
     this.account.lastTime = 0
     // await this.account.cancelAllPositions(this.options.symbol)
     await this.account.deleteOpenOrders(this.options.symbol)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    await this.account.deleteOpenPositions(this.options.symbol)
     await new Promise(resolve => setTimeout(resolve, 20000))
     this.onTick()
   }

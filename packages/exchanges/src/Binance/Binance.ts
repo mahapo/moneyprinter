@@ -34,7 +34,7 @@ export class Binance extends ExchangeBase {
         const isStopLoss = c.endsWith('-SL')
         const isWebtrade = c.startsWith('web')
         const order = { clientOrderId: c, id: i }
-        if (X === 'FILLED' && !isWebtrade) {
+        if (X === 'FILLED' && !isWebtrade && ot !== 'MARKET') {
           console.table({ x, X, ot, s, c, i })
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
@@ -59,6 +59,36 @@ export class Binance extends ExchangeBase {
       await this.instance.fapiPrivateDeleteAllOpenOrders({
         symbol: symbol.replace('/', '')
       })
+    } catch (error) {
+      throw Logger.error(this.formatError(error))
+    }
+  }
+  async deleteOpenPositions(symbol) {
+    try {
+      Logger.info(`Clsoe open positions: ${symbol}`)
+      const positions = await this.instance.fapiPrivateV2GetPositionRisk({
+        symbol: symbol.replace('/', '')
+      })
+      console.log(positions)
+      const neworders = []
+      for (const position of positions) {
+        Logger.info(`Close Position: ${position.symbol}`)
+        const isBuy = parseFloat(position.positionAmt) > 0
+        const mainOrder = {
+          symbol: position.symbol,
+          side: isBuy ? 'SELL' : 'BUY',
+          type: 'MARKET',
+          quantity: isBuy
+            ? position.positionAmt
+            : parseFloat(position.positionAmt) * -1,
+          positionSide: 'BOTH'
+        }
+        neworders.push(mainOrder)
+      }
+      console.log(neworders)
+
+      const results = await this.placeBatchOrders(neworders)
+      console.log(results)
     } catch (error) {
       throw Logger.error(this.formatError(error))
     }
