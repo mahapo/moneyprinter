@@ -195,12 +195,11 @@ export class TraderFutures extends Runner {
         order.id === orderFromExchange.id ||
         order.idStopLoss === orderFromExchange.id ||
         order.idTakeProfit === orderFromExchange.id ||
-        order.id === orderFromExchange.orderId ||
         order.clientOrderId === orderFromExchange.clientOrderId ||
         order.clientOrderIdTP === orderFromExchange.clientOrderId ||
         order.clientOrderIdSL === orderFromExchange.clientOrderId
     )
-    if (order?.id) return order
+    if (order?.id || order?.idStopLoss || order?.idTakeProfit) return order
     else {
       console.table(orderFromExchange)
       console.table(order)
