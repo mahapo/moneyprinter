@@ -201,12 +201,11 @@ export class TraderFutures extends Runner {
         order.clientOrderIdSL === orderFromExchange.clientOrderId
     )
     if (order?.id) return order
-    else
-      throw new Error(
-        'Order not found:' +
-          orderFromExchange.clientOrderId +
-          ' ' +
-          JSON.stringify(order)
-      )
+    else {
+      console.table(orderFromExchange)
+      console.table(order)
+
+      throw new Error('Order not found:' + orderFromExchange.clientOrderId)
+    }
   }
 }
