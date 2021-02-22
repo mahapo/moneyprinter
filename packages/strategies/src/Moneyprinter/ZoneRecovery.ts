@@ -105,8 +105,8 @@ export class ZoneRecovery {
           ratio: this.recoveryGapFactor,
           side: zone.side,
           symbol,
-          amount: amount * zone[key],
-          amountLoss: amount * nextZone[key],
+          amount: amount * zone.factor,
+          amountLoss: amount * (zone.factor + nextZone.factor),
           timestamp
         },
         // @ts-ignore
