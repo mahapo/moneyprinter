@@ -34,7 +34,7 @@ export class TraderFutures extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 4
+    this.options.risk = Math.round(lastStep.total) * 10
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -80,7 +80,7 @@ export class TraderFutures extends Runner {
       const balance = await this.account.getCurrentBalance('USDT')
       const amount =
         ((balance / price) * this.options.leverage) / this.options.risk
-      console.log('onSignal', price, balance, amount)
+      console.log(`${colors.green('onSignal')}`, price, balance, amount)
 
       this.strategy.onSignal({
         price,
@@ -134,8 +134,6 @@ export class TraderFutures extends Runner {
       Logger.info(`${colors.green('onTakeProfit')}: ${order.toString()}`)
 
       await this.strategy.onTakeProfit(order)
-
-      this.onTick()
     } catch (error) {
       Logger.error(error)
     } finally {

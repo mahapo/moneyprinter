@@ -50,6 +50,10 @@
 // })
 
 export const Logger = {
-  info: (...args) => {console.info(args)},
-  error: (...args) => {console.error(args)}
+  info: (...args) => {
+    console.info(...args)
+  },
+  error: (...args) => {
+    console.error(...args)
+  }
 }
