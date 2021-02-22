@@ -167,8 +167,8 @@ export class Binance extends ExchangeBase {
             order.symbol,
             order.takeProfit
           ),
-          newClientOrderId: order.clientOrderIdTP,
-          reduceOnly: true
+          newClientOrderId: order.clientOrderIdTP
+          // reduceOnly: true
         }
 
         const stopLoss = {
