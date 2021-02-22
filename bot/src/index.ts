@@ -27,9 +27,6 @@ import { Binance } from '@moneyprinter/exchanges'
         },
         {
           symbol: 'ETH/USDT'
-        },
-        {
-          symbol: 'BCH/USDT'
         }
       ]
 
