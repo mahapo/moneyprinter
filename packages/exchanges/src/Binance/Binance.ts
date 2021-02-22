@@ -159,7 +159,10 @@ export class Binance extends ExchangeBase {
         const takeProfit = {
           ...common,
           type: 'TAKE_PROFIT_MARKET',
-          quantity: this.instance.amountToPrecision(order.symbol, order.amount),
+          quantity: this.instance.amountToPrecision(
+            order.symbol,
+            order.amount * 0.2
+          ),
           stopPrice: this.instance.priceToPrecision(
             order.symbol,
             order.takeProfit
