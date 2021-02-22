@@ -40,7 +40,7 @@ export class Binance extends ExchangeBase {
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
         } else {
-          Logger.info(`${ot}, ${X}, ${order.clientOrderId}`)
+          // Logger.info(`${ot}, ${X}, ${order.clientOrderId}`)
         }
       })
       socketApi.setHandler('ACCOUNT_UPDATE', () => {})
