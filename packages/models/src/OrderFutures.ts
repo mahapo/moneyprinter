@@ -119,6 +119,10 @@ export class OrderFutures implements Order {
     return this.price * this.priceExit
   }
 
+  get amountTakeProfit() {
+    return (this.amount / this.price) * this.takeProfit
+  }
+
   get pnl() {
     const deltaPercent = this.priceExit / this.price - 1
     if (this.side === 'buy') return deltaPercent * this.amount
