@@ -69,7 +69,6 @@ export class Binance extends ExchangeBase {
       const positions = await this.instance.fapiPrivateV2GetPositionRisk({
         symbol: symbol.replace('/', '')
       })
-      console.log(positions)
       const neworders = []
       for (const position of positions) {
         Logger.info(`Close Position: ${position.symbol}`)
@@ -85,7 +84,6 @@ export class Binance extends ExchangeBase {
         }
         neworders.push(mainOrder)
       }
-      console.log(neworders)
 
       const results = await this.placeBatchOrders(neworders)
       console.log(results)
@@ -219,24 +217,6 @@ export class Binance extends ExchangeBase {
         order.idStopLoss = null
       }
       return true
-    } catch (error) {
-      throw this.formatError(error)
-    }
-  }
-
-  async cancelAllPositions(symbol) {
-    try {
-      Logger.info(`cancelAllPositions: ${symbol}`)
-      const orders = ['BUY', 'SELL'].map(side => ({
-        symbol: symbol.replace('/', ''),
-        positionSide: 'BOTH',
-        quantity: 100,
-        reduceOnly: true,
-        side,
-        type: 'MARKET'
-      }))
-
-      const r = await this.placeBatchOrders(orders)
     } catch (error) {
       throw this.formatError(error)
     }
