@@ -119,8 +119,12 @@ export class OrderFutures implements Order {
     return this.price * this.priceExit
   }
 
+  get amountReal() {
+    return this.amount * this.price
+  }
+
   get amountTakeProfit() {
-    return (this.amount * this.price) / this.takeProfit
+    return this.takeProfit / this.amountReal
   }
 
   get pnl() {
