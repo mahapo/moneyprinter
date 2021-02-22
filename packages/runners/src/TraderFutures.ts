@@ -77,7 +77,8 @@ export class TraderFutures extends Runner {
 
   async onSignal({ timestamp, price }) {
     try {
-      const balance = await this.account.getCurrentBalance('USDT')
+      // const balance = await this.account.getCurrentBalance('USDT')
+      const balance = 1000
       const amount =
         ((balance / price) * this.options.leverage) / this.options.risk
       console.log(`${colors.green('onSignal')}`, price, balance, amount)
