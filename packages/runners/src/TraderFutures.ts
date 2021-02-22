@@ -54,7 +54,7 @@ export class TraderFutures extends Runner {
     await this.account.deleteOpenOrders(this.options.symbol)
     await new Promise(resolve => setTimeout(resolve, 1000))
     await this.account.deleteOpenPositions(this.options.symbol)
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     this.onTick()
   }
 

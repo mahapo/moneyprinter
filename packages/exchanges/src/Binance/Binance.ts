@@ -123,7 +123,7 @@ export class Binance extends ExchangeBase {
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
           newClientOrderId: order.clientOrderId,
-          workingType: 'MARK_PRICE'
+          workingType: 'CONTRACT_PRICE'
         }
         neworders.push(mainOrder)
       }
@@ -153,7 +153,7 @@ export class Binance extends ExchangeBase {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           // positionSide: 'BOTH',
-          workingType: 'MARK_PRICE'
+          workingType: 'CONTRACT_PRICE'
         }
 
         const takeProfit = {
