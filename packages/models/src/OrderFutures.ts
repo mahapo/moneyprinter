@@ -141,10 +141,10 @@ export class OrderFutures implements Order {
 
   toString(): string {
     const colored = this.side === 'buy' ? colors.green('L') : colors.red('S')
-    return `${colored} ${this.amount} ${this.symbol} (${this.amountReal.toFixed(
-      2
-    )}$) @ ${this.price} TP:${this.takeProfit} (${this.amountTakeProfit}) SL:${
-      this.stopLoss
-    } (${this.amountLoss}) ${this.clientOrderId}`
+    return `${colored}  ${this.symbol} (${this.amountReal.toFixed(2)}$) ${
+      this.amount
+    } @ ${this.price} TP:${this.takeProfit} SL:${this.stopLoss} (${
+      this.amountLoss
+    }) ${this.clientOrderId}`
   }
 }

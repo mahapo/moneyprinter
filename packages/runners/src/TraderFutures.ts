@@ -88,6 +88,10 @@ export class TraderFutures extends Runner {
         timestamp,
         amount
       })
+      this.strategy.longZoneOrders.map(o => this.account.round(o))
+      this.strategy.shortZoneOrders.map(o => this.account.round(o))
+      this.strategy.currentOrders.map(o => this.account.round(o))
+
       const newOrders = this.strategy.currentOrders.filter(
         order => order.status === 'open' && order.filled === 0
       )

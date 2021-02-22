@@ -110,6 +110,24 @@ export class Binance extends ExchangeBase {
     }
   }
 
+  round(order: OrderFutures) {
+    order.amount = this.instance.amountToPrecision(order.symbol, order.amount)
+    order.amountLoss = this.instance.amountToPrecision(
+      order.symbol,
+      order.amountLoss
+    )
+    order.price = this.instance.priceToPrecision(order.symbol, order.price)
+    order.stopLoss = this.instance.priceToPrecision(
+      order.symbol,
+      order.stopLoss
+    )
+    order.takeProfit = this.instance.priceToPrecision(
+      order.symbol,
+      order.takeProfit
+    )
+    return order
+  }
+
   async placeNewOrders(orders: OrderFutures[]) {
     try {
       const neworders = []
