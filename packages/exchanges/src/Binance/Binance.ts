@@ -29,13 +29,13 @@ export class Binance extends ExchangeBase {
           : 'wss://fstream.binance.com/'
       )
       socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
-        const { x, X, ot, s, c, i } = data.o
+        const { x, X, ot, s, c, i, q, l, z } = data.o
         const isTakeProfit = c.endsWith('-TP')
         const isStopLoss = c.endsWith('-SL')
         const isWebtrade = c.startsWith('web')
         const order = { clientOrderId: c, id: i }
         if (X === 'FILLED' && !isWebtrade && ot !== 'MARKET') {
-          // console.table({ x, X, ot, s, c, i })
+          // console.table({ q, l, z })
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
@@ -72,7 +72,6 @@ export class Binance extends ExchangeBase {
 
       const neworders = []
       for (const position of positions) {
-        Logger.info(`Close Position: ${position.symbol}`)
         const isBuy = parseFloat(position.positionAmt) > 0
         const mainOrder = {
           symbol: position.symbol,
@@ -83,7 +82,10 @@ export class Binance extends ExchangeBase {
             : parseFloat(position.positionAmt) * -1,
           positionSide: 'BOTH'
         }
-        if (parseFloat(position.positionAmt) !== 0) neworders.push(mainOrder)
+        if (parseFloat(position.positionAmt) !== 0) {
+          Logger.info(`Close Position: ${position.symbol}`)
+          neworders.push(mainOrder)
+        }
       }
       if (neworders.length) {
         const results = await this.placeBatchOrders(neworders)

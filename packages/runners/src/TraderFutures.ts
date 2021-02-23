@@ -44,18 +44,23 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
-    await this.account.setLeverage(symbol, this.options.leverage)
-    await this.reset()
+    // await this.account.setLeverage(symbol, this.options.leverage)
+    // await this.reset()
   }
 
   async reset() {
-    this.strategy.currentOrders = []
-    this.account.lastTime = 0
-    await this.account.deleteOpenOrders(this.options.symbol)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    await this.account.deleteOpenPositions(this.options.symbol)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    this.onTick()
+    try {
+      this.strategy.currentOrders = []
+      this.account.lastTime = 0
+      await this.account.deleteOpenOrders(this.options.symbol)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      await this.account.deleteOpenPositions(this.options.symbol)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      this.onTick()
+    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 10000))
+      this.reset()
+    }
   }
 
   async onTick(tick = null) {
@@ -79,10 +84,10 @@ export class TraderFutures extends Runner {
     try {
       // const balance = await this.account.getCurrentBalance('USDT')
       const balance = 1000
+      // price = this.account.priceRounder(this.options.symbol, price)
       let amount =
         ((balance / price) * this.options.leverage) / this.options.risk
       amount = this.account.amountRounder(this.options.symbol, amount)
-      // price = this.account.priceRounder(this.options.symbol, price)
       console.log(
         `${colors.green('onSignal')}`,
         this.options.symbol,
@@ -133,8 +138,11 @@ export class TraderFutures extends Runner {
       this.strategy.onStopLoss(this.strategy.currentOrder)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder])
-      // this.strategy.currentOrders.filled = this.strategy.currentOrders.amount
+      if (this.strategy.currentOrder) {
+        await this.account.placeTpSLTs([this.strategy.currentOrder])
+      } else {
+        this.reset()
+      }
     } catch (error) {
       Logger.error(error)
       await this.reset()
