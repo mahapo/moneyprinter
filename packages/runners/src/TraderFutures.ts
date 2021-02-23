@@ -44,8 +44,8 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
-    // await this.account.setLeverage(symbol, this.options.leverage)
-    // await this.reset()
+    await this.account.setLeverage(symbol, this.options.leverage)
+    await this.reset()
   }
 
   async reset() {
