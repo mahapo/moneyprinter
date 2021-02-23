@@ -83,8 +83,8 @@ export class TraderFutures extends Runner {
   async onSignal({ timestamp, price }) {
     try {
       let balance = await this.account.getCurrentBalance('USDT')
-      if (balance > 5000) {
-        balance = 5000
+      if (balance > 3500) {
+        balance = 3500
       }
       // price = this.account.priceRounder(this.options.symbol, price)
       let amount =
