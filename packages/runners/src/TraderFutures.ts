@@ -39,7 +39,7 @@ export class TraderFutures extends Runner {
     this.options.risk = Math.round(lastStep.total) * 8
 
     this.options.maxAmount = Math.floor(
-      this.options.limit / lastStep.factor / this.options.leverage
+      this.options.limit / lastStep.total / this.options.leverage
     )
     console.log(this.options)
 
