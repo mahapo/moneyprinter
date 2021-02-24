@@ -51,8 +51,8 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
-    await this.account.setLeverage(symbol, this.options.leverage)
-    await this.reset()
+    // await this.account.setLeverage(symbol, this.options.leverage)
+    // await this.reset()
   }
 
   async reset() {
@@ -91,21 +91,17 @@ export class TraderFutures extends Runner {
     try {
       const balance = await this.account.getCurrentBalance('USDT')
       // price = this.account.priceRounder(this.options.symbol, price)
-      let amountUsd = (balance * this.options.leverage) / this.options.risk
-      if (amountUsd > this.options.maxAmount) {
-        amountUsd = this.options.maxAmount
+      let amount = (balance * this.options.leverage) / this.options.risk / price
+      if (amount >= this.options.maxAmount) {
+        amount = this.options.maxAmount
       }
-      const amount = this.account.amountRounder(
-        this.options.symbol,
-        amountUsd / price
-      )
+      amount = this.account.amountRounder(this.options.symbol, amount)
       console.log(
         `${colors.green('onSignal')}`,
         this.options.symbol,
         price,
         balance,
-        amount,
-        `(${amountUsd}$)`
+        amount
       )
 
       this.strategy.onSignal({
@@ -190,34 +186,6 @@ export class TraderFutures extends Runner {
   onFinish() {
     console.info('Finish')
   }
-
-  // async updateOrders3() {
-  //   try {
-  //     // Close orders
-  //     const closeOrders = this.strategy.currentOrders.filter(
-  //       order => order.status === 'canceled' && order.id
-  //     )
-  //     closeOrders && (await this.account.cancelOrders(closeOrders))
-
-  //     // Set Stop Losses
-  //     const filledrders = this.strategy.currentOrders.filter(
-  //       order => order.status === 'open' && order.filled !== 0
-  //     )
-  //     filledrders && (await this.account.placeTpSLTs(filledrders))
-
-  //     if (this.strategy.countFilled === 0) {
-  //       // Set new Orders
-  //       const newOrders = this.strategy.currentOrders.filter(
-  //         order => order.status === 'open' && order.filled === 0
-  //       )
-  //       newOrders && (await this.account.placeNewOrders(newOrders))
-  //     }
-  //   } catch (error) {
-  //     console.log(error)
-
-  //     await this.reset()
-  //   }
-  // }
 
   searchOrder(orderFromExchange) {
     const order = this.strategy.currentOrders.find(
