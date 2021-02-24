@@ -93,7 +93,7 @@ export class TraderFutures extends Runner {
 
       let amountUsd = balance / this.options.risk
       if (amountUsd >= this.options.maxAmount) {
-        amountUsd = this.options.maxAmount / price
+        amountUsd = this.options.maxAmount
       }
       let amount = (amountUsd / price) * this.options.leverage
       amount = this.account.amountRounder(this.options.symbol, amount)
