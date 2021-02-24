@@ -143,8 +143,6 @@ export default {
     }
   },
   async mounted() {
-    // const ticks = await this.loadCSV('BTC/BTCUSD_Gemini_Q1_2020_prints.csv')
-    // this.saveTicks(ticks)
     // this.ticks = await this.getSaveTicks()
     // console.log(this.ticks);
     // const result = await this.runBacktest(this.ticks)
@@ -155,7 +153,12 @@ export default {
     ...call('backtester/*'),
     async startBacktest() {
       this.tab = 1
-      const ticks = await this.getSaveTicks()
+      let ticks = await this.getSaveTicks()
+      if (!ticks.length) {
+        ticks = await this.loadCSV('BTC/BTCUSD_Gemini_Q1_2020_prints.csv')
+        // this.saveTicks(ticks)
+        console.log(ticks)
+      }
       let matrix = Matrix.createTestMatrix(this.testMatrix)
       for (const setting of matrix) {
         const result = await this.runBacktest({ ticks, setting })

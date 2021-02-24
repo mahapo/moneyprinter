@@ -38,7 +38,7 @@ export class OrderFutures implements Order {
 
   maxLossPercent = 50
 
-  callbackRate = 0.5
+  callbackRate = 0.001
   priceActivation: number
 
   constructor(options, public slug = '') {
@@ -64,10 +64,34 @@ export class OrderFutures implements Order {
   }
 
   checkIfTriggersTakeProfit(price: number) {
+    if (this.priceActivation) return false
     return (
       (this.side === 'buy' && this.takeProfit <= price) ||
       (this.side === 'sell' && this.takeProfit >= price)
     )
+  }
+
+  checkIfTriggersActivationPrice(price: number) {
+    return (
+      (this.side === 'buy' && this.priceActivation >= price) ||
+      (this.side === 'sell' && this.priceActivation <= price)
+    )
+  }
+
+  updateTrailingStop(price: number) {
+    if (this.checkIfTriggersActivationPrice(price)) {
+      if (this.side === 'buy') {
+        const trailingstop = price * (1 - this.callbackRate)
+        if (trailingstop >= this.stopLoss) {
+          this.stopLoss = trailingstop
+        }
+      } else if (this.side === 'sell') {
+        const trailingstop = price * (1 + this.callbackRate)
+        if (trailingstop <= this.stopLoss) {
+          this.stopLoss = trailingstop
+        }
+      }
+    }
   }
 
   checkIfTriggersStopLoss(price: number) {

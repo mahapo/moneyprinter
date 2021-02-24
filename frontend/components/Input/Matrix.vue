@@ -52,17 +52,17 @@ export default {
         {
           name: 'Leverage',
           key: 'leverage',
-          start: 70,
+          start: 75,
           end: 80,
-          step: 10,
-          enabled: true,
+          step: 5,
+          enabled: false,
         },
         {
           name: 'Ratio',
           key: 'ratio',
           start: 2,
           end: 4,
-          step: 0.5,
+          step: 1,
           enabled: false,
         },
         {
@@ -71,7 +71,7 @@ export default {
           start: 5,
           end: 6,
           step: 1,
-          enabled: true,
+          enabled: false,
         },
         {
           name: 'Recovery Dynamic add',
@@ -79,7 +79,7 @@ export default {
           start: 5,
           end: 15,
           step: 5,
-          enabled: true,
+          enabled: false,
         },
         {
           name: 'Recovery initial gap',
@@ -87,7 +87,7 @@ export default {
           start: 10,
           end: 20,
           step: 10,
-          enabled: true,
+          enabled: false,
         },
       ],
     }

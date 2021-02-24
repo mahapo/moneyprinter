@@ -42,4 +42,30 @@ describe('Order Futures', () => {
     // expect(order.stopLossPrice).toBe(10100)
     // expect(order.takeProfitPrice).toBe(9500)
   })
+
+  test('Trailing stop: Buy', () => {
+    order.side = 'buy'
+    order.ratio = 2
+    order.leverage = 50
+    order.stopLoss = 9500
+    order.callbackRate = 0.05
+    order.priceActivation = 10500
+    order.updateTrailingStop(10500)
+    expect(order.stopLoss).toBe(9975)
+    order.updateTrailingStop(10200)
+    expect(order.stopLoss).toBe(9975)
+  })
+
+  test('Trailing stop: Sell', () => {
+    order.side = 'sell'
+    order.ratio = 2
+    order.leverage = 50
+    order.stopLoss = 10500
+    order.callbackRate = 0.05
+    order.priceActivation = 9500
+    order.updateTrailingStop(10500)
+    expect(order.stopLoss).toBe(10500)
+    order.updateTrailingStop(10200)
+    expect(order.stopLoss).toBe(10500)
+  })
 })

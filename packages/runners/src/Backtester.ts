@@ -102,8 +102,11 @@ export class Backtester extends Runner {
             })
             this.strategy.onOrderFilled(order)
           } else if (order.filled > 0) {
+            // order.updateTrailingStop(price)
             const isTakeProfit = order.checkIfTriggersTakeProfit(price)
             const isStopLoss = order.checkIfTriggersStopLoss(price)
+            // const isStopLoss = order.checkIfTriggersActivationPrice(price)
+
             if (isTakeProfit || isStopLoss) {
               order.status = 'closed'
               order.timestampExit = timestamp

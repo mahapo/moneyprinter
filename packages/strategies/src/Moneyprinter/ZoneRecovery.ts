@@ -119,6 +119,7 @@ export class ZoneRecovery {
         ].join('-')
       )
       order.takeProfit = zone.priceTakeProfit
+      // order.priceActivation = zone.priceTakeProfit
       order.stopLoss = zone.priceStopLoss
       return order
     })
