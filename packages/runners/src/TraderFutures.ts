@@ -15,7 +15,9 @@ export class TraderFutures extends Runner {
     symbol: '',
     maxSteps: 6,
     percentOfMaxRange: 80,
-    risk: 100
+    risk: 100,
+    limit: 10000,
+    maxAmount: 400
   }
 
   constructor(public account, options) {
@@ -36,6 +38,11 @@ export class TraderFutures extends Runner {
 
     this.options.risk = Math.round(lastStep.total) * 8
 
+    this.options.maxAmount = Math.floor(
+      this.options.limit / lastStep.factor / this.options.leverage
+    )
+    console.log(this.options)
+
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
     this.account.on(`${symbol}:Liquidation`, this.onLiquidation.bind(this))
@@ -44,8 +51,8 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
 
-    await this.account.setLeverage(symbol, this.options.leverage)
-    await this.reset()
+    // await this.account.setLeverage(symbol, this.options.leverage)
+    // await this.reset()
   }
 
   async reset() {
@@ -82,14 +89,14 @@ export class TraderFutures extends Runner {
 
   async onSignal({ timestamp, price }) {
     try {
-      let balance = await this.account.getCurrentBalance('USDT')
-      if (balance > 3500) {
-        balance = 3500
-      }
+      const balance = await this.account.getCurrentBalance('USDT')
       // price = this.account.priceRounder(this.options.symbol, price)
       let amount =
         ((balance / price) * this.options.leverage) / this.options.risk
       amount = this.account.amountRounder(this.options.symbol, amount)
+      if (amount > this.options.maxAmount) {
+        amount = this.options.maxAmount
+      }
       console.log(
         `${colors.green('onSignal')}`,
         this.options.symbol,

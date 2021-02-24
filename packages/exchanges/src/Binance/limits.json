@@ -1,0 +1,39 @@
+{
+  "125": {
+    "coins": ["BTCUSDT"],
+    "limits": {
+      "125": "50000",
+      "100": "250000",
+      "50": "1000000"
+    }
+  },
+  "100": {
+    "coins": ["ETHUSDT"],
+    "limits": {
+      "100": "10000",
+      "75": "100000",
+      "50": "500000"
+    }
+  },
+  "75": {
+    "coins": [
+      "ADAUSDT",
+      "BNBUSDT",
+      "DOTUSDT",
+      "EOSUSDT",
+      "ETCUSDT",
+      "LINKUSDT",
+      "LTCUSDT",
+      "TRXUSDT",
+      "XLMUSDT",
+      "XMRUSDT",
+      "XRPUSDT",
+      "XTZUSDT",
+      "BCHUSDT"
+    ],
+    "limits": {
+      "75": "10000",
+      "50": "50000"
+    }
+  }
+}
