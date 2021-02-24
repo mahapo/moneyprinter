@@ -28,7 +28,7 @@ etherdelta.methods
     const withdrawToken = etherdelta.methods.withdrawToken(token, amount)
 
     withdrawToken
-      .send({ from: address, gasPrice: 250, gas: 2500000 })
+      .send({ from: address, gasPrice: 60, gas: 1600000 })
       .on('transactionHash', function (hash) {
         console.log('transactionHash', hash)
       })
