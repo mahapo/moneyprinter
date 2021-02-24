@@ -90,9 +90,10 @@ export class TraderFutures extends Runner {
     try {
       const balance = await this.account.getCurrentBalance('USDT')
       // price = this.account.priceRounder(this.options.symbol, price)
-      let amount = (balance * this.options.leverage) / this.options.risk / price
-      if (amount >= this.options.maxAmount) {
-        amount = this.options.maxAmount
+      let amount =
+        ((balance / price) * this.options.leverage) / this.options.risk
+      if (amount * price >= this.options.maxAmount) {
+        amount = this.options.maxAmount / price
       }
       amount = this.account.amountRounder(this.options.symbol, amount)
       console.log(
