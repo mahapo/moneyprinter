@@ -39,7 +39,7 @@ export class TraderFutures extends Runner {
     this.options.risk = Math.round(lastStep.total) * 8
 
     this.options.maxAmount = Math.floor(
-      this.options.limit / lastStep.total / this.options.leverage
+      this.options.limit / lastStep.factor / this.options.leverage
     )
     console.log(this.options)
 
@@ -91,18 +91,21 @@ export class TraderFutures extends Runner {
     try {
       const balance = await this.account.getCurrentBalance('USDT')
       // price = this.account.priceRounder(this.options.symbol, price)
-      let amount =
-        ((balance / price) * this.options.leverage) / this.options.risk
-      amount = this.account.amountRounder(this.options.symbol, amount)
-      if (amount > this.options.maxAmount) {
-        amount = this.options.maxAmount
+      let amountUsd = (balance * this.options.leverage) / this.options.risk
+      if (amountUsd > this.options.maxAmount) {
+        amountUsd = this.options.maxAmount
       }
+      const amount = this.account.amountRounder(
+        this.options.symbol,
+        amountUsd / price
+      )
       console.log(
         `${colors.green('onSignal')}`,
         this.options.symbol,
         price,
         balance,
-        amount
+        amount,
+        `(${amountUsd}$)`
       )
 
       this.strategy.onSignal({
@@ -117,7 +120,7 @@ export class TraderFutures extends Runner {
       const newOrders = this.strategy.currentOrders.filter(
         order => order.status === 'open' && order.filled === 0
       )
-      newOrders && (await this.account.placeNewOrders(newOrders))
+      // newOrders && (await this.account.placeNewOrders(newOrders))
     } catch (error) {
       console.error(error)
       await this.reset()
