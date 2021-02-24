@@ -187,20 +187,6 @@ export class Binance extends ExchangeBase {
         const takeProfit = trailingstop
           ? {
               ...common,
-              type: 'TAKE_PROFIT_MARKET',
-              quantity: this.instance.amountToPrecision(
-                order.symbol,
-                order.amount
-              ),
-              stopPrice: this.instance.priceToPrecision(
-                order.symbol,
-                order.takeProfit
-              ),
-              newClientOrderId: order.clientOrderIdTP
-              // reduceOnly: true
-            }
-          : {
-              ...common,
               type: 'TRAILING_STOP_MARKET',
               quantity: this.instance.amountToPrecision(
                 order.symbol,
@@ -211,6 +197,20 @@ export class Binance extends ExchangeBase {
                 order.takeProfit
               ),
               callbackRate: 0.1,
+              newClientOrderId: order.clientOrderIdTP
+              // reduceOnly: true
+            }
+          : {
+              ...common,
+              type: 'TAKE_PROFIT_MARKET',
+              quantity: this.instance.amountToPrecision(
+                order.symbol,
+                order.amount
+              ),
+              stopPrice: this.instance.priceToPrecision(
+                order.symbol,
+                order.takeProfit
+              ),
               newClientOrderId: order.clientOrderIdTP
               // reduceOnly: true
             }
