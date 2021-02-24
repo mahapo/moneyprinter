@@ -171,7 +171,7 @@ export class Binance extends ExchangeBase {
     }
   }
 
-  async placeTpSLTs(orders: OrderFutures[]) {
+  async placeTpSLTs(orders: OrderFutures[], trailingstop = false) {
     try {
       let i = 0
       for (const order of orders) {
@@ -184,17 +184,36 @@ export class Binance extends ExchangeBase {
           workingType: 'MARK_PRICE'
         }
 
-        const takeProfit = {
-          ...common,
-          type: 'TAKE_PROFIT_MARKET',
-          quantity: this.instance.amountToPrecision(order.symbol, order.amount),
-          stopPrice: this.instance.priceToPrecision(
-            order.symbol,
-            order.takeProfit
-          ),
-          newClientOrderId: order.clientOrderIdTP
-          // reduceOnly: true
-        }
+        const takeProfit = trailingstop
+          ? {
+              ...common,
+              type: 'TAKE_PROFIT_MARKET',
+              quantity: this.instance.amountToPrecision(
+                order.symbol,
+                order.amount
+              ),
+              stopPrice: this.instance.priceToPrecision(
+                order.symbol,
+                order.takeProfit
+              ),
+              newClientOrderId: order.clientOrderIdTP
+              // reduceOnly: true
+            }
+          : {
+              ...common,
+              type: 'TRAILING_STOP_MARKET',
+              quantity: this.instance.amountToPrecision(
+                order.symbol,
+                order.amount
+              ),
+              activationPrice: this.instance.priceToPrecision(
+                order.symbol,
+                order.takeProfit
+              ),
+              callbackRate: 0.1,
+              newClientOrderId: order.clientOrderIdTP
+              // reduceOnly: true
+            }
 
         const stopLoss = {
           ...common,
