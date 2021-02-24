@@ -46,7 +46,7 @@ import { Binance } from '@moneyprinter/exchanges'
           ...commonSettings
         })
         trader.start()
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
     } catch (error) {
       throw new Error(error)

@@ -117,7 +117,7 @@ export class Binance extends ExchangeBase {
   }
 
   priceRounder(symbol, price) {
-    return this.instance.priceToPrecision(symbol, price)
+    return parseFloat(this.instance.priceToPrecision(symbol, price))
   }
 
   round(order: OrderFutures) {

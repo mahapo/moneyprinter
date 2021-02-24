@@ -42,9 +42,11 @@ export class TraderFutures extends Runner {
 
     this.options.risk = Math.round(lastStep.total) * 8
 
-    this.options.maxAmount = Math.floor(
-      this.options.limit / lastStep.total / this.options.leverage
-    )
+    this.options.maxAmount =
+      Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
+      1
+
+    console.table(this.options)
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -63,9 +65,9 @@ export class TraderFutures extends Runner {
       this.strategy.currentOrders = []
       this.account.lastTime = 0
       await this.account.deleteOpenOrders(this.options.symbol)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 500))
       await this.account.deleteOpenPositions(this.options.symbol)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 500))
       this.onTick()
     } catch (error) {
       await new Promise(resolve => setTimeout(resolve, 10000))
@@ -93,20 +95,22 @@ export class TraderFutures extends Runner {
   async onSignal({ timestamp, price }) {
     try {
       const balance = await this.account.getCurrentBalance('USDT')
-      // price = this.account.priceRounder(this.options.symbol, price)
+      price = this.account.priceRounder(this.options.symbol, price)
 
-      let amountUsd = balance / this.options.risk
+      let amountUsd = Math.floor(balance / this.options.risk)
+
       if (amountUsd >= this.options.maxAmount) {
         amountUsd = this.options.maxAmount
       }
       let amount = (amountUsd / price) * this.options.leverage
       amount = this.account.amountRounder(this.options.symbol, amount)
+
       console.log(
         `${colors.green('onSignal')}`,
         this.options.symbol,
         price,
-        balance,
-        amount
+        amount,
+        balance
       )
 
       this.strategy.onSignal({
