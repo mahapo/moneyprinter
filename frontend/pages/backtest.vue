@@ -25,6 +25,7 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
+                <backtest-settings></backtest-settings>
                 <v-row>
                   <v-col cols="12">
                     <v-select
@@ -163,7 +164,9 @@ export default {
       let matrix = Matrix.createTestMatrix(this.testMatrix)
       for await (const setting of matrix) {
         const result = await this.runBacktest({ ticks, setting })
-        this.results.push(result)
+        setTimeout(() => {
+          this.results.push(result)
+        }, 0)
       }
     },
   },
