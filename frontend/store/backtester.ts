@@ -1,29 +1,30 @@
 import { make } from 'vuex-pathify'
 import { Backtester } from '@moneyprinter/runners'
-import Dexie from 'dexie';
+import Dexie from 'dexie'
+import sortBy from 'lodash/sortBy'
 
 interface Tick {
-  id?: number;
-  timestamp?: number;
-  price?: number;
+  id?: number
+  timestamp?: number
+  price?: number
 }
 
 //
 // Declare Database
 //
 class TickDatabase extends Dexie {
-  public ticks: Dexie.Table<Tick, number>; // id is number in this case
+  public ticks: Dexie.Table<Tick, number> // id is number in this case
 
   public constructor() {
-      super("TickDatabase");
-      this.version(1).stores({
-        ticks: "++id, timestamp, price"
-      });
-      this.ticks = this.table("ticks");
+    super('TickDatabase')
+    this.version(1).stores({
+      ticks: '++id, timestamp, price',
+    })
+    this.ticks = this.table('ticks')
   }
 }
 
-const db = new TickDatabase();
+const db = new TickDatabase()
 
 export const state = () => ({})
 
@@ -31,20 +32,23 @@ export const getters = make.getters(state)
 export const mutations = make.mutations(state)
 export const actions = {
   ...make.actions(state),
-  async loadCSV({ dispatch }, filePath) {
+  async formatCsv({ dispatch }, data) {
     // @ts-ignore
-    const storageRef = this.$fire.storage.ref()
+    // const storageRef = this.$fire.storage.ref()
 
     try {
-      const url = await storageRef.child(filePath).getDownloadURL()
-      console.log(url)
+      // const url = await storageRef.child(filePath).getDownloadURL()
+      // console.log(url)
       // @ts-ignore
-      const { data } = await this.$axios.get(url)
+      // const { data } = await this.$axios.get(url)
       const ticks = await dispatch('csv2json', { data })
-      return ticks.map((tick) => ({
-        timestamp: parseInt(tick.unix),
-        price: parseFloat(tick.price),
-      }))
+      return sortBy(
+        ticks.map((tick) => ({
+          timestamp: parseInt(tick.unix),
+          price: parseFloat(tick.price),
+        })),
+        'timestamp'
+      )
     } catch (error) {
       console.error(error)
     }
@@ -67,7 +71,7 @@ export const actions = {
     try {
       await db.ticks.clear()
       const lastKey = await db.ticks.bulkAdd(ticks)
-      console.log("Last raindrop's id was: " + lastKey);
+      console.log("Last raindrop's id was: " + lastKey)
     } catch (error) {
       console.error(error)
     }
@@ -85,7 +89,7 @@ export const actions = {
     }
     return dataPoints
   },
-  async runBacktest({}, {ticks, setting}) {
+  async runBacktest({}, { ticks, setting }) {
     const trader = new Backtester()
     const result = await trader.run(setting, ticks)
     return result

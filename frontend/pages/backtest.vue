@@ -151,16 +151,17 @@ export default {
   },
   methods: {
     ...call('backtester/*'),
+    async loadFiles() {
+      let [fileHandle] = await window.showOpenFilePicker()
+      const file = await fileHandle.getFile()
+      const contents = await file.text()
+      return await this.formatCsv(contents)
+    },
     async startBacktest() {
+      const ticks = await this.loadFiles()
       this.tab = 1
-      let ticks = await this.getSaveTicks()
-      if (!ticks.length) {
-        ticks = await this.loadCSV('BTC/BTCUSD_Gemini_Q1_2020_prints.csv')
-        // this.saveTicks(ticks)
-        console.log(ticks)
-      }
       let matrix = Matrix.createTestMatrix(this.testMatrix)
-      for (const setting of matrix) {
+      for await (const setting of matrix) {
         const result = await this.runBacktest({ ticks, setting })
         this.results.push(result)
       }
