@@ -77,7 +77,7 @@ export class Binance extends ExchangeBase {
           symbol: position.symbol,
           side: isBuy ? 'SELL' : 'BUY',
           type: 'MARKET',
-          reduceOnly: true,
+          // reduceOnly: true,
           quantity: isBuy
             ? position.positionAmt
             : parseFloat(position.positionAmt) * -1,
