@@ -11,8 +11,8 @@ export class Binance extends ExchangeBase {
     this.instance = new BinanceCCXT({
       ...options,
       options: { defaultType: 'future', adjustForTimeDifference: true },
-      timeout: 30000
-      // enableRateLimit: true
+      timeout: 30000,
+      enableRateLimit: true
     })
     this.instance.setSandboxMode(this.demo)
   }
@@ -97,16 +97,15 @@ export class Binance extends ExchangeBase {
   }
 
   async setLeverage(symbol, leverage: number) {
-    try {
-      try {
-        const i = await this.instance.fapiPrivatePostMarginType({
-          symbol: symbol.replace('/', ''),
-          marginType: 'ISOLATED'
-        })
-      } catch (error) {
-        
-      }
+    // try {
+    //   await this.instance.fapiPrivatePostMarginType({
+    //     symbol: symbol.replace('/', ''),
+    //     marginType: 'ISOLATED'
+    //   })
+    // } catch (error) {
+    // }
 
+    try {
       await this.instance.fapiPrivatePostLeverage({
         symbol: symbol.replace('/', ''),
         leverage
