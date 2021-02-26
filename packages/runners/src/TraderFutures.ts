@@ -44,9 +44,7 @@ export class TraderFutures extends Runner {
 
     this.options.maxAmount =
       Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
-      1
-
-    console.table(this.options)
+      5
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -82,7 +80,6 @@ export class TraderFutures extends Runner {
     }
 
     try {
-      // this.updateOrders(tick)
       if (this.strategy.currentOrders.length === 0) {
         this.onSignal(tick)
         // await this.strategy.onSignal(tick)
