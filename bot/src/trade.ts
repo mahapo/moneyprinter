@@ -15,7 +15,7 @@ import { Binance } from '@moneyprinter/exchanges'
 
       const commonSettings = {
         leverage: 75,
-        recoveryGapDynamicAdd: 0,
+        recoveryGapDynamicAdd: 5,
         recoveryGapInitial: 10,
         maxSteps: 5,
         ratio: 4
@@ -50,10 +50,10 @@ import { Binance } from '@moneyprinter/exchanges'
         //   symbol: 'ETC/USDT',
         //   limit: 10000
         // },
-        {
-          symbol: 'LINK/USDT',
-          limit: 10000
-        },
+        // {
+        //   symbol: 'LINK/USDT',
+        //   limit: 10000
+        // },
         {
           symbol: 'LTC/USDT',
           limit: 10000
