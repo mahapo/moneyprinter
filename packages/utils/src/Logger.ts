@@ -50,6 +50,9 @@
 // })
 
 export const Logger = {
+  log: (...args) => {
+    console.log(...args)
+  },
   info: (...args) => {
     console.info(...args)
   },

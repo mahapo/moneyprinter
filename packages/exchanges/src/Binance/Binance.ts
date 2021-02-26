@@ -92,16 +92,20 @@ export class Binance extends ExchangeBase {
         const results = await this.placeBatchOrders(neworders)
       }
     } catch (error) {
-      throw Logger.error(this.formatError(error))
+      Logger.log(this.formatError(error))
     }
   }
 
   async setLeverage(symbol, leverage: number) {
     try {
-      // const i = await this.instance.fapiPrivatePostMarginType({
-      //   symbol: symbol.replace('/', ''),
-      //   marginType: 'ISOLATED'
-      // })
+      try {
+        const i = await this.instance.fapiPrivatePostMarginType({
+          symbol: symbol.replace('/', ''),
+          marginType: 'ISOLATED'
+        })
+      } catch (error) {
+        
+      }
 
       await this.instance.fapiPrivatePostLeverage({
         symbol: symbol.replace('/', ''),
