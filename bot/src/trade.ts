@@ -30,18 +30,18 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'ETH/USDT',
           limit: 100000
         },
-        {
-          symbol: 'ADA/USDT',
-          limit: 10000
-        },
-        {
-          symbol: 'BNB/USDT',
-          limit: 10000
-        },
-        {
-          symbol: 'DOT/USDT',
-          limit: 10000
-        },
+        // {
+        //   symbol: 'ADA/USDT',
+        //   limit: 10000
+        // },
+        // {
+        //   symbol: 'BNB/USDT',
+        //   limit: 10000
+        // },
+        // {
+        //   symbol: 'DOT/USDT',
+        //   limit: 10000
+        // },
         // {
         //   symbol: 'EOS/USDT',
         //   limit: 10000
@@ -54,10 +54,10 @@ import { Binance } from '@moneyprinter/exchanges'
         //   symbol: 'LINK/USDT',
         //   limit: 10000
         // },
-        {
-          symbol: 'LTC/USDT',
-          limit: 10000
-        },
+        // {
+        //   symbol: 'LTC/USDT',
+        //   limit: 10000
+        // },
         // {
         //   symbol: 'TRX/USDT',
         //   limit: 10000
@@ -66,10 +66,10 @@ import { Binance } from '@moneyprinter/exchanges'
         //   symbol: 'XLM/USDT',
         //   limit: 10000
         // },
-        {
-          symbol: 'XRP/USDT',
-          limit: 10000
-        },
+        // {
+        //   symbol: 'XRP/USDT',
+        //   limit: 10000
+        // },
         // {
         //   symbol: 'XTZ/USDT',
         //   limit: 10000
