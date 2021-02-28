@@ -26,18 +26,18 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'BTC/USDT',
           limit: 250000
         },
+        // {
+        //   symbol: 'ETH/USDT',
+        //   limit: 100000
+        // },
         {
-          symbol: 'ETH/USDT',
-          limit: 100000
+          symbol: 'ADA/USDT',
+          limit: 10000
         },
-        // {
-        //   symbol: 'ADA/USDT',
-        //   limit: 10000
-        // },
-        // {
-        //   symbol: 'BNB/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'BNB/USDT',
+          limit: 10000
+        },
         // {
         //   symbol: 'DOT/USDT',
         //   limit: 10000
