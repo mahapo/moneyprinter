@@ -14,7 +14,7 @@ import { Binance } from '@moneyprinter/exchanges'
       await account.startWebSocket()
 
       const commonSettings = {
-        leverage: 80,
+        leverage: 75,
         recoveryGapDynamicAdd: 5,
         recoveryGapInitial: 10,
         maxSteps: 5,
