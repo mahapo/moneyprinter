@@ -9,13 +9,15 @@ dayjs.locale('en')
 import { Runner } from './Runner'
 import { OrderFutures } from '@moneyprinter/models'
 import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
+import { IOHLCV, TradeTick, ticksToTickChart } from 'candlestick-convert'
 
 export class Backtester extends Runner {
   balances = []
   balance: number
 
   time: number = 0
-  ticks: any = []
+  ticks: TradeTick[]
+  candels: IOHLCV[]
 
   currentfile: string = ''
 
@@ -36,6 +38,9 @@ export class Backtester extends Runner {
 
   run(options, ticks) {
     this.ticks = ticks
+    this.candels = ticksToTickChart(ticks, 5) // return IOHLCV[]
+    // console.log(this.candels)
+
     this.options = {
       ...this.options,
       ...options
@@ -53,7 +58,7 @@ export class Backtester extends Runner {
     this.balance = this.options.startBalance
     this.balances = [
       {
-        timestamp: this.ticks[0].timestamp,
+        timestamp: this.ticks[0].time,
         balance: this.balance
       }
     ]
@@ -153,8 +158,8 @@ export class Backtester extends Runner {
     //   .filter(b => !!b.drawdown)
     //   .map(b => b.drawdown)
 
-    const timeStart = dayjs(this.ticks[0].timestamp)
-    const timeEnd = dayjs(this.ticks[this.ticks.length - 1].timestamp)
+    const timeStart = dayjs(this.ticks[0].time)
+    const timeEnd = dayjs(this.ticks[this.ticks.length - 1].time)
     const days = dayjs.duration(timeEnd.diff(timeStart)).asDays()
 
     const maxFilled = Math.max(

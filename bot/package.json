@@ -16,6 +16,7 @@
     "pm2:bot": "pm2 start yarn --interpreter bash --name bot -- trade"
   },
   "dependencies": {
+    "candlestick-convert": "^5.1.4",
     "colors": "^1.4.0",
     "dayjs": "^1.10.3",
     "dotenv": "^8.2.0",

@@ -64,7 +64,7 @@ export default {
               ticks = ticks.filter((tick) => !!tick.unix)
               ticks = sortBy(
                 ticks.map((tick) => ({
-                  timestamp: parseInt(tick.unix),
+                  time: parseInt(tick.unix),
                   price: parseFloat(tick.price),
                 })),
                 'timestamp'
@@ -72,8 +72,8 @@ export default {
               this.files.push({
                 name: fileHandle.name,
                 size: ticks.length,
-                start: this.$dayjs(ticks[0].timestamp).format('YYYY/MM/DD'),
-                end: this.$dayjs(ticks[ticks.length - 1].timestamp).format(
+                start: this.$dayjs(ticks[0].time).format('YYYY/MM/DD'),
+                end: this.$dayjs(ticks[ticks.length - 1].time).format(
                   'YYYY/MM/DD'
                 ),
                 ticks: ticks,

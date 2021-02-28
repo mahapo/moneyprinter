@@ -3,6 +3,7 @@ import { Runner } from './Runner'
 import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
 import { Logger } from '@moneyprinter/utils/src/Logger'
 
+import * as tulind from 'tulind'
 import * as colors from 'colors/safe'
 
 export class TraderFutures extends Runner {
@@ -81,7 +82,26 @@ export class TraderFutures extends Runner {
 
     try {
       if (this.strategy.currentOrders.length === 0) {
-        this.onSignal(tick)
+        const candels = await this.account.fetchOHLCV(this.options.symbol)
+        const rsi = await new Promise((resolve, reject) =>
+          tulind.indicators.rsi.indicator(
+            [candels.map(c => c[4])],
+            [14],
+            (err, results) => {
+              if (err) reject(err)
+              resolve(results[0][results.length - 1])
+            }
+          )
+        )
+        if (rsi > 70 || rsi < 30) {
+          this.onSignal(tick)
+        } else {
+          console.log(
+            `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
+          )
+          await new Promise(resolve => setTimeout(resolve, 60000))
+        }
+
         // await this.strategy.onSignal(tick)
       }
     } catch (error) {

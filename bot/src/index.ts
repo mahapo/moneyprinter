@@ -25,19 +25,19 @@ import { Binance } from '@moneyprinter/exchanges'
         {
           symbol: 'BTC/USDT',
           limit: 250000
-        },
-        {
-          symbol: 'ETH/USDT',
-          limit: 100000
-        },
-        {
-          symbol: 'BCH/USDT',
-          limit: 10000
-        },
-        {
-          symbol: 'LTC/USDT',
-          limit: 10000
         }
+        // {
+        //   symbol: 'ETH/USDT',
+        //   limit: 100000
+        // },
+        // {
+        //   symbol: 'BCH/USDT',
+        //   limit: 10000
+        // },
+        // {
+        //   symbol: 'LTC/USDT',
+        //   limit: 10000
+        // }
       ]
 
       for (let setting of traderSettings) {
