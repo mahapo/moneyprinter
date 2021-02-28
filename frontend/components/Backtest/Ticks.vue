@@ -12,7 +12,7 @@
         </v-btn>
       </template>
       <template v-slot:item.use="{ item }">
-        <v-simple-checkbox v-model="item.use" disabled></v-simple-checkbox>
+        <v-simple-checkbox v-model="item.use"></v-simple-checkbox>
       </template>
     </v-data-table>
   </div>
@@ -22,6 +22,12 @@
 import sortBy from 'lodash/sortBy'
 
 export default {
+  props: {
+    value: {
+      type: Array,
+      default: () => [],
+    },
+  },
   data() {
     return {
       loading: false,
@@ -34,6 +40,14 @@ export default {
         { text: 'Use', value: 'use', sortable: false },
       ],
     }
+  },
+  watch: {
+    files: {
+      immediate: true,
+      handler(newValue) {
+        this.$emit('input', newValue)
+      },
+    },
   },
   methods: {
     async loadFiles(dirHandle = null) {

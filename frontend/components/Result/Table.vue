@@ -90,7 +90,11 @@ export default {
     async handleClick(value) {
       try {
         if (value.balances) {
-          this.$emit('balances', value.balances)
+          console.log(value.balances)
+          this.$emit(
+            'balances',
+            value.balances.filter((balance) => balance.filled == 1)
+          )
           return
         }
         const { docs } = await this.$fire.firestore

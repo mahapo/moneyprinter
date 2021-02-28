@@ -25,35 +25,12 @@
           <v-tab-item>
             <v-card flat>
               <v-card-text>
-                <backtest-settings></backtest-settings>
+                <backtest-ticks v-model="ticks"></backtest-ticks>
                 <v-row>
                   <v-col cols="12">
-                    <v-select
-                      v-show="false"
-                      v-model="testOptions.strategy"
-                      :items="strategies"
-                      label="Strategy"
-                    ></v-select>
-                    <v-select
-                      v-model="testOptions.file"
-                      :items="files"
-                      label="Testfile"
-                    ></v-select>
                     <v-text-field
                       v-model="testOptions.startBalance"
                       label="Startbalance"
-                      type="number"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col v-if="false" cols="12">
-                    <v-text-field
-                      v-model="testOptions.leverage"
-                      label="Leverage"
-                      type="number"
-                    ></v-text-field>
-                    <v-text-field
-                      v-model="testOptions.ratio"
-                      label="Ratio"
                       type="number"
                     ></v-text-field>
                   </v-col>
@@ -159,7 +136,7 @@ export default {
       return await this.formatCsv(contents)
     },
     async startBacktest() {
-      const ticks = await this.loadFiles()
+      const ticks = this.ticks[0].ticks
       this.tab = 1
       let matrix = Matrix.createTestMatrix(this.testMatrix)
       for await (const setting of matrix) {

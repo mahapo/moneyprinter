@@ -14,7 +14,6 @@ export class Backtester extends Runner {
   balances = []
   balance: number
 
-  percent: number = 0
   time: number = 0
   ticks: any = []
 
@@ -50,22 +49,16 @@ export class Backtester extends Runner {
     this.options.risk = Math.round(lastStep.total) * 4
 
     this.strategy = new MoneyPrinter(this.options, false)
-    // this.strategy.maxSteps = this.options.maxSteps
-    // this.strategy.percentOfMaxRange = this.options.percentOfMaxRange
 
-    this.balances = []
     this.balance = this.options.startBalance
-
-    // const t0 = performance.now()
-    this.percent = 0
-    this.balances.push({
-      timestamp: this.ticks[0].timestamp,
-      balance: this.balance
-    })
+    this.balances = [
+      {
+        timestamp: this.ticks[0].timestamp,
+        balance: this.balance
+      }
+    ]
 
     this.ticks.forEach(this.onTick.bind(this))
-
-    // this.time = performance.now() - t0
 
     return this.onFinish()
   }
@@ -73,7 +66,7 @@ export class Backtester extends Runner {
   onTick(tick) {
     try {
       if (this.strategy.currentOrders.length === 0) {
-        this.strategy.onSignal(tick)
+        // this.strategy.onSignal(tick)
         this.onSignal(tick)
       }
       if (this.balance > 10) {
@@ -153,6 +146,7 @@ export class Backtester extends Runner {
 
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders)
+    console.log(this.strategy.orders)
 
     // const balances = this.formatedBalances.map(b => b.balance)
     // const drawdowns = this.formatedBalances

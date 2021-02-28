@@ -42,6 +42,9 @@ export class OrderFutures implements Order {
   priceActivation: number
 
   constructor(options, public slug = '') {
+    if (!options.amount) {
+      throw new Error('amount missing')
+    }
     this.status = 'open'
     this.filled = 0
     this.price = options.price
@@ -153,8 +156,8 @@ export class OrderFutures implements Order {
 
   get pnl() {
     const deltaPercent = this.priceExit / this.price - 1
-    if (this.side === 'buy') return deltaPercent * this.amount
-    else return -deltaPercent * this.amount
+    if (this.side === 'buy') return deltaPercent * this.amount * 0.9
+    else return -deltaPercent * this.amount * 0.9
   }
 
   get winTrade() {

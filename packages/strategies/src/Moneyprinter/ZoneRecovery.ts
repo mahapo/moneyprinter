@@ -98,17 +98,20 @@ export class ZoneRecovery {
     const zones = this.calcZones(count + 1)
     return zones.slice(0, count).map((zone, i) => {
       const nextZone = zones[i + 1]
+
+      const options = {
+        price: zone.price,
+        leverage: this.leverage,
+        ratio: this.recoveryGapFactor,
+        side: zone.side,
+        symbol,
+        amount: amount * zone.factor,
+        amountLoss: amount * (zone.factor + nextZone.factor),
+        timestamp
+      }
+
       const order = new OrderFutures(
-        {
-          price: zone.price,
-          leverage: this.leverage,
-          ratio: this.recoveryGapFactor,
-          side: zone.side,
-          symbol,
-          amount: amount * zone.factor,
-          amountLoss: amount * (zone.factor + nextZone.factor),
-          timestamp
-        },
+        options,
         // @ts-ignore
         [
           i,
