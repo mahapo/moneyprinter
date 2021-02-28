@@ -41,11 +41,11 @@ export class TraderFutures extends Runner {
     //   this.options.ratio
     // )
 
-    this.options.risk = Math.round(lastStep.total) * 8
+    this.options.risk = Math.round(lastStep.total) * 4
 
     this.options.maxAmount =
       Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
-      5
+      2
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
