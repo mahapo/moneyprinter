@@ -54,16 +54,16 @@ export default {
                 suggestedMin: 0,
               },
             },
-            {
-              id: 'drowdown',
-              display: true,
-              type: 'linear',
-              position: 'right',
-              ticks: {
-                suggestedMin: -100,
-                suggestedMax: 100,
-              },
-            },
+            // {
+            //   id: 'drowdown',
+            //   display: true,
+            //   type: 'linear',
+            //   position: 'right',
+            //   ticks: {
+            //     suggestedMin: -100,
+            //     suggestedMax: 100,
+            //   },
+            // },
           ],
         },
       }
