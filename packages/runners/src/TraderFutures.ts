@@ -93,7 +93,7 @@ export class TraderFutures extends Runner {
             }
           )
         )
-        if (rsi > 70 || rsi < 30) {
+        if (rsi > 80 || rsi < 20) {
           this.onSignal(tick)
         } else {
           console.log(
