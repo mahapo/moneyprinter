@@ -26,10 +26,10 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'BTC/USDT',
           limit: 250000
         },
-        // {
-        //   symbol: 'ETH/USDT',
-        //   limit: 100000
-        // },
+        {
+          symbol: 'ETH/USDT',
+          limit: 100000
+        },
         {
           symbol: 'ADA/USDT',
           limit: 10000
@@ -61,15 +61,15 @@ import { Binance } from '@moneyprinter/exchanges'
         {
           symbol: 'TRX/USDT',
           limit: 10000
-        }
+        },
         // {
         //   symbol: 'XLM/USDT',
         //   limit: 10000
         // },
-        // {
-        //   symbol: 'XRP/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'XRP/USDT',
+          limit: 10000
+        }
         // {
         //   symbol: 'XTZ/USDT',
         //   limit: 10000
@@ -86,7 +86,7 @@ import { Binance } from '@moneyprinter/exchanges'
           ...commonSettings
         })
         trader.start()
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 4000))
       }
     } catch (error) {
       throw new Error(error)
