@@ -15,8 +15,8 @@ import { Binance } from '@moneyprinter/exchanges'
 
       const commonSettings = {
         leverage: 75,
-        recoveryGapDynamicAdd: 5,
-        recoveryGapInitial: 10,
+        recoveryGapDynamicAdd: 0,
+        recoveryGapInitial: 12,
         maxSteps: 5,
         ratio: 5
       }
@@ -38,10 +38,10 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'BNB/USDT',
           limit: 10000
         },
-        // {
-        //   symbol: 'DOT/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'DOT/USDT',
+          limit: 10000
+        },
         // {
         //   symbol: 'EOS/USDT',
         //   limit: 10000
@@ -58,10 +58,10 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'LTC/USDT',
           limit: 10000
         },
-        // {
-        //   symbol: 'TRX/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'TRX/USDT',
+          limit: 10000
+        }
         // {
         //   symbol: 'XLM/USDT',
         //   limit: 10000
