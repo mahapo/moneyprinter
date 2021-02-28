@@ -54,10 +54,10 @@ import { Binance } from '@moneyprinter/exchanges'
         //   symbol: 'LINK/USDT',
         //   limit: 10000
         // },
-        // {
-        //   symbol: 'LTC/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'LTC/USDT',
+          limit: 10000
+        },
         // {
         //   symbol: 'TRX/USDT',
         //   limit: 10000
