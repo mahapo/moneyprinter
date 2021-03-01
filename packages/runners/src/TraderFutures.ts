@@ -56,21 +56,19 @@ export class TraderFutures extends Runner {
     this.account.on(`${symbol}:TakeProfit`, this.onTakeProfit.bind(this))
     this.account.on(`${symbol}:Finish`, this.onFinish.bind(this))
     this.account.on(`${symbol}:Filled`, this.onFilled.bind(this))
-
-    await this.account.setLeverage(symbol, this.options.leverage)
-    await this.reset()
+    this.reset()
   }
 
   async reset() {
     try {
       this.strategy.currentOrders = []
       this.account.lastTime = 0
+      await this.account.setupSymbol(this.options.symbol, this.options.leverage)
+      await new Promise(resolve => setTimeout(resolve, 500))
       await this.account.deleteOpenOrders(this.options.symbol)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      await this.account.deleteOpenPositions(this.options.symbol)
-      await new Promise(resolve => setTimeout(resolve, 500))
       this.onTick()
     } catch (error) {
+      console.error(colors.red('reset'), error)
       await new Promise(resolve => setTimeout(resolve, 10000))
       this.reset()
     }
@@ -95,13 +93,13 @@ export class TraderFutures extends Runner {
             }
           )
         )
-        if (rsi > 70 || rsi < 60) {
+        if (rsi > 80 || rsi < 20) {
           this.onSignal(tick)
         } else {
           console.log(
             `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
           )
-          await new Promise(resolve => setTimeout(resolve, 5000))
+          await new Promise(resolve => setTimeout(resolve, 60000))
           this.onTick()
         }
 
@@ -169,7 +167,7 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder], true)
+      await this.account.placeTpSLTs([this.strategy.currentOrder], false)
     } catch (error) {
       Logger.error(error)
       this.reset()
@@ -185,7 +183,7 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        await this.account.placeTpSLTs([this.strategy.currentOrder], true)
+        await this.account.placeTpSLTs([this.strategy.currentOrder], false)
       } else {
         this.reset()
       }
