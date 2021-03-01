@@ -83,7 +83,6 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         const candels = await this.account.fetchOHLCV(this.options.symbol)
-        console.log(candels)
 
         const rsi = await new Promise((resolve, reject) =>
           tulind.indicators.rsi.indicator(
