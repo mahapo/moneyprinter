@@ -29,6 +29,10 @@ export class TraderFutures extends Runner {
       ...options
     }
     this.strategy = new MoneyPrinter(this.options)
+    this.strategy.priceRounder = (price: number) =>
+      account.priceRounder(this.options.symbol, price)
+    this.strategy.amountRounder = (amount: number) =>
+      account.amountRounder(this.options.symbol, amount)
   }
 
   async start() {
@@ -36,16 +40,14 @@ export class TraderFutures extends Runner {
       this.options.maxSteps,
       this.options.ratio
     )
-    // const nextStep = ZoneRecovery.calcStep(
-    //   this.options.maxSteps + 1,
-    //   this.options.ratio
-    // )
 
-    this.options.risk = Math.round(lastStep.total) * 4
+    this.options.risk = Math.round(lastStep.total) * 8
 
     this.options.maxAmount =
       Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
       2
+
+    this.options.maxAmount = 1
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -93,19 +95,20 @@ export class TraderFutures extends Runner {
             }
           )
         )
-        if (rsi > 70 || rsi < 30) {
+        if (rsi > 70 || rsi < 60) {
           this.onSignal(tick)
         } else {
           console.log(
             `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
           )
-          await new Promise(resolve => setTimeout(resolve, 60000))
+          await new Promise(resolve => setTimeout(resolve, 5000))
+          this.onTick()
         }
 
         // await this.strategy.onSignal(tick)
       }
     } catch (error) {
-      console.log(error)
+      console.error(colors.red('onTick'), error)
     }
   }
 
@@ -144,8 +147,17 @@ export class TraderFutures extends Runner {
       )
       newOrders && (await this.account.placeNewOrders(newOrders))
     } catch (error) {
-      console.error(error)
-      await this.reset()
+      if (error.message?.msg?.includes('immediately trigger')) {
+        this.strategy.percent = this.strategy.percent + 5
+        Logger.info(
+          colors.red('onSignal'),
+          'Order would immediately trigger - increce gap:',
+          this.strategy.percent
+        )
+      } else {
+        Logger.error(colors.red('onSignal'), this.options.symbol, error)
+      }
+      this.reset()
     }
   }
 
@@ -157,10 +169,10 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+      await this.account.placeTpSLTs([this.strategy.currentOrder], true)
     } catch (error) {
       Logger.error(error)
-      await this.reset()
+      this.reset()
     }
   }
 
@@ -173,13 +185,13 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+        await this.account.placeTpSLTs([this.strategy.currentOrder], true)
       } else {
         this.reset()
       }
     } catch (error) {
       Logger.error(error)
-      await this.reset()
+      this.reset()
     }
   }
 
@@ -192,7 +204,7 @@ export class TraderFutures extends Runner {
     } catch (error) {
       Logger.error(error)
     } finally {
-      await this.reset()
+      this.reset()
     }
   }
 
@@ -205,7 +217,7 @@ export class TraderFutures extends Runner {
     } catch (error) {
       Logger.error(error)
     } finally {
-      await this.reset()
+      this.reset()
     }
   }
 
@@ -225,10 +237,10 @@ export class TraderFutures extends Runner {
     )
     if (order?.id || order?.idStopLoss || order?.idTakeProfit) return order
     else {
-      console.table(orderFromExchange)
-      console.table(order)
-
-      throw new Error('Order not found:' + orderFromExchange.clientOrderId)
+      console.table(this.strategy.currentOrders)
+      throw `${colors.red('searchOrder')}: ${
+        this.options.symbol
+      }: Order not found, ${orderFromExchange.clientOrderId}`
     }
   }
 }

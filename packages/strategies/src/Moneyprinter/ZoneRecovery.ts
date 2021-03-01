@@ -1,4 +1,5 @@
 import { OrderFutures } from '@moneyprinter/models'
+import { BigNumber } from 'bignumber.js'
 
 export class ZoneRecovery {
   public initialTradeDirection: 'buy' | 'sell'
@@ -94,19 +95,21 @@ export class ZoneRecovery {
     timestamp,
     isLive = false
   ): OrderFutures[] {
-    const key = isLive ? 'total' : 'factor'
+    // const key = isLive ? 'total' : 'factor'
     const zones = this.calcZones(count + 1)
     return zones.slice(0, count).map((zone, i) => {
       const nextZone = zones[i + 1]
 
+      const a = new BigNumber(amount).times(zone.factor)
+      const b = new BigNumber(amount).times(nextZone.factor)
       const options = {
         price: zone.price,
         leverage: this.leverage,
         ratio: this.recoveryGapFactor,
         side: zone.side,
         symbol,
-        amount: amount * zone.factor,
-        amountLoss: amount * (zone.factor + nextZone.factor),
+        amount: a.toNumber(),
+        amountLoss: a.plus(b).toNumber(),
         timestamp
       }
 

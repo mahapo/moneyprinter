@@ -49,9 +49,13 @@ export class MoneyPrinter extends StrategyBase {
   priceRange: number
   priceTop: number
   priceBottom: number
+  percent: number
 
   currentOrders = []
   currentOrder: OrderFutures
+
+  priceRounder: Function
+  amountRounder: Function
 
   constructor(options, public isLive = true) {
     super()
@@ -60,6 +64,8 @@ export class MoneyPrinter extends StrategyBase {
       ...this.options,
       ...options
     }
+
+    this.percent = 40
   }
 
   onSignal({ price, timestamp, amount }) {
@@ -68,11 +74,14 @@ export class MoneyPrinter extends StrategyBase {
       amount,
       timestamp
     }
-
-    const percent = 40
-    this.priceRange = (percent / 100 / this.options.leverage) * price
+    this.priceRange = (this.percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
+
+    if (this.priceRounder) {
+      this.priceTop = this.priceRounder(this.priceTop)
+      this.priceBottom = this.priceRounder(this.priceBottom)
+    }
 
     // Long
     this.longZone = new ZoneRecovery(

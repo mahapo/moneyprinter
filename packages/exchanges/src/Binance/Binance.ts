@@ -89,7 +89,13 @@ export class Binance extends ExchangeBase {
         }
       }
       if (neworders.length) {
+        console.table(neworders)
         const results = await this.placeBatchOrders(neworders)
+        for (const result of results) {
+          if (result.code === 400) {
+            throw new Error('Can not close Position')
+          }
+        }
       }
     } catch (error) {
       Logger.log(this.formatError(error))
@@ -208,7 +214,7 @@ export class Binance extends ExchangeBase {
                 order.symbol,
                 order.takeProfit
               ),
-              callbackRate: 0.1,
+              callbackRate: 1,
               newClientOrderId: order.clientOrderIdTP
               // reduceOnly: true
             }
@@ -286,6 +292,7 @@ export class Binance extends ExchangeBase {
 
   async placeBatchOrders(orders) {
     let results = []
+    let errors = []
     try {
       const params = {
         batchOrders: encodeURIComponent(JSON.stringify(orders))
@@ -298,15 +305,14 @@ export class Binance extends ExchangeBase {
           for (const order of orders) {
             results.push(await this.instance.fapiPrivatePostOrder(order))
           }
-          return results
+          if (!errors) return results
         } catch (error) {
-          // Logger.error(error)
-
-          throw this.formatError(error)
+          errors.push(error)
         }
       } else {
-        throw this.formatError(error)
+        errors.push(error)
       }
+      throw this.formatError(error)
     }
   }
 
