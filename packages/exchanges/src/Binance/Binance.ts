@@ -53,72 +53,58 @@ export class Binance extends ExchangeBase {
     })
   }
 
+  async setupSymbol(symbol, leverage) {
+    try {
+      const { info } = await this.instance.fetchBalance(symbol)
+      const position = info.positions.find(
+        pos => pos.symbol === symbol.replace('/', '')
+      )
+
+      if (parseFloat(position.positionAmt) !== 0) {
+        Logger.info(symbol, `: Close Position`)
+        const isBuy = parseFloat(position.positionAmt) >= 0
+        await this.instance.fapiPrivatePostOrder({
+          symbol: position.symbol,
+          side: isBuy ? 'SELL' : 'BUY',
+          type: 'MARKET',
+          reduceOnly: true,
+          quantity: isBuy
+            ? position.positionAmt
+            : parseFloat(position.positionAmt) * -1,
+          positionSide: 'BOTH'
+        })
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+
+      if (!position.isolated) {
+        console.log(symbol, ': Change mode to ISOLATED')
+
+        await this.instance.fapiPrivatePostMarginType({
+          symbol: symbol.replace('/', ''),
+          marginType: 'ISOLATED'
+        })
+      }
+
+      if (parseFloat(position.leverage) !== leverage) {
+        console.log(symbol, ': Change leverage to ', leverage)
+        await this.instance.fapiPrivatePostLeverage({
+          symbol: symbol.replace('/', ''),
+          leverage
+        })
+      }
+    } catch (error) {
+      throw Logger.error(this.formatError(error))
+    }
+  }
+
   async deleteOpenOrders(symbol) {
     try {
-      Logger.info(`Close open orders: ${symbol}`)
+      Logger.info(symbol, `: Close open orders`)
       await this.instance.fapiPrivateDeleteAllOpenOrders({
         symbol: symbol.replace('/', '')
       })
     } catch (error) {
       throw Logger.error(this.formatError(error))
-    }
-  }
-  async deleteOpenPositions(symbol) {
-    try {
-      // Logger.info(`Close open positions: ${symbol}`)
-      const positions = await this.instance.fapiPrivateV2GetPositionRisk({
-        symbol: symbol.replace('/', '')
-      })
-
-      const neworders = []
-      for (const position of positions) {
-        const isBuy = parseFloat(position.positionAmt) > 0
-        const mainOrder = {
-          symbol: position.symbol,
-          side: isBuy ? 'SELL' : 'BUY',
-          type: 'MARKET',
-          // reduceOnly: true,
-          quantity: isBuy
-            ? position.positionAmt
-            : parseFloat(position.positionAmt) * -1,
-          positionSide: 'BOTH'
-        }
-        if (parseFloat(position.positionAmt) !== 0) {
-          Logger.info(`Close Position: ${position.symbol}`)
-          neworders.push(mainOrder)
-        }
-      }
-      if (neworders.length) {
-        console.table(neworders)
-        const results = await this.placeBatchOrders(neworders)
-        for (const result of results) {
-          if (result.code === 400) {
-            throw new Error('Can not close Position')
-          }
-        }
-      }
-    } catch (error) {
-      Logger.log(this.formatError(error))
-    }
-  }
-
-  async setLeverage(symbol, leverage: number) {
-    // try {
-    //   await this.instance.fapiPrivatePostMarginType({
-    //     symbol: symbol.replace('/', ''),
-    //     marginType: 'ISOLATED'
-    //   })
-    // } catch (error) {
-    // }
-
-    try {
-      await this.instance.fapiPrivatePostLeverage({
-        symbol: symbol.replace('/', ''),
-        leverage
-      })
-    } catch (error) {
-      console.log(error)
-      // Logger.error(this.formatError(error))
     }
   }
 
@@ -214,7 +200,7 @@ export class Binance extends ExchangeBase {
                 order.symbol,
                 order.takeProfit
               ),
-              callbackRate: 1,
+              callbackRate: 0.1,
               newClientOrderId: order.clientOrderIdTP
               // reduceOnly: true
             }
