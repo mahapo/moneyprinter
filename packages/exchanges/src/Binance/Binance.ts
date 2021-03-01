@@ -134,7 +134,7 @@ export class Binance extends ExchangeBase {
     return order
   }
 
-  async fetchOHLCV(symbol: string, time = '3m', limit = 15) {
+  async fetchOHLCV(symbol: string, time = '1m', limit = 16) {
     try {
       return await this.instance.fetchOHLCV(symbol, time, undefined, limit)
     } catch (error) {

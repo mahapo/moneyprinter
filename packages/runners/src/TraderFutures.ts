@@ -47,7 +47,7 @@ export class TraderFutures extends Runner {
       Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
       2
 
-    this.options.maxAmount = 1
+    this.options.maxAmount = 2
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -83,22 +83,33 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         const candels = await this.account.fetchOHLCV(this.options.symbol)
+        console.log(candels)
+
         const rsi = await new Promise((resolve, reject) =>
           tulind.indicators.rsi.indicator(
             [candels.map(c => c[4])],
             [14],
             (err, results) => {
               if (err) reject(err)
-              resolve(results[0][results.length - 1])
+              resolve(results[0])
             }
           )
         )
-        if (rsi > 80 || rsi < 20) {
+
+        if (
+          (rsi[0] > 80 && rsi[0] > rsi[1]) ||
+          (rsi[0] < 20 && rsi[0] < rsi[1])
+        ) {
+          console.log(
+            `${colors.green('RSI')} ${
+              this.options.symbol
+            }: Signal found (${rsi})`
+          )
           this.onSignal(tick)
         } else {
-          console.log(
-            `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
-          )
+          // console.log(
+          //   `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
+          // )
           await new Promise(resolve => setTimeout(resolve, 60000))
           this.onTick()
         }

@@ -42,18 +42,18 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'DOT/USDT',
           limit: 10000
         },
-        // {
-        //   symbol: 'EOS/USDT',
-        //   limit: 10000
-        // },
-        // {
-        //   symbol: 'ETC/USDT',
-        //   limit: 10000
-        // },
-        // {
-        //   symbol: 'LINK/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'EOS/USDT',
+          limit: 10000
+        },
+        {
+          symbol: 'ETC/USDT',
+          limit: 10000
+        },
+        {
+          symbol: 'LINK/USDT',
+          limit: 10000
+        },
         {
           symbol: 'LTC/USDT',
           limit: 10000
@@ -62,22 +62,22 @@ import { Binance } from '@moneyprinter/exchanges'
           symbol: 'TRX/USDT',
           limit: 10000
         },
-        // {
-        //   symbol: 'XLM/USDT',
-        //   limit: 10000
-        // },
+        {
+          symbol: 'XLM/USDT',
+          limit: 10000
+        },
         {
           symbol: 'XRP/USDT',
           limit: 10000
+        },
+        {
+          symbol: 'XTZ/USDT',
+          limit: 10000
+        },
+        {
+          symbol: 'BCH/USDT',
+          limit: 10000
         }
-        // {
-        //   symbol: 'XTZ/USDT',
-        //   limit: 10000
-        // },
-        // {
-        //   symbol: 'BCH/USDT',
-        //   limit: 10000
-        // }
       ]
 
       for (let setting of traderSettings) {
