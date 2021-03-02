@@ -81,11 +81,13 @@ import { Binance } from '@moneyprinter/exchanges'
       ]
 
       for (let setting of traderSettings) {
-        const trader = new TraderFutures(account, {
-          ...setting,
-          ...commonSettings
-        })
-        trader.start()
+        setTimeout(() => {
+          const trader = new TraderFutures(account, {
+            ...setting,
+            ...commonSettings
+          })
+          trader.start()
+        }, 0)
         await new Promise(resolve => setTimeout(resolve, 4000))
       }
     } catch (error) {
