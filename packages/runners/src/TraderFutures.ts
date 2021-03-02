@@ -109,7 +109,7 @@ export class TraderFutures extends Runner {
         const rsiRange =
           (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
 
-        if (rsiRange && adx > 30) {
+        if (rsiRange && adx > 40) {
           console.log(
             `${colors.green('RSI/ADX')} ${
               this.options.symbol
