@@ -16,9 +16,9 @@ import { Binance } from '@moneyprinter/exchanges'
       const commonSettings = {
         leverage: 75,
         recoveryGapDynamicAdd: 0,
-        recoveryGapInitial: 12,
+        recoveryGapInitial: 10,
         maxSteps: 5,
-        ratio: 5
+        ratio: 4
       }
 
       const traderSettings = [
