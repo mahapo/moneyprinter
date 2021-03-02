@@ -41,13 +41,13 @@ export class TraderFutures extends Runner {
       this.options.ratio
     )
 
-    this.options.risk = Math.round(lastStep.total) * 8
+    this.options.risk = Math.round(lastStep.total) * 4
 
     this.options.maxAmount =
       Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
       2
 
-    this.options.maxAmount = 20
+    this.options.maxAmount = 10
 
     const symbol = this.options.symbol.replace('/', '')
     this.account.on(`${symbol}:Tick`, this.onTick.bind(this))
@@ -84,25 +84,36 @@ export class TraderFutures extends Runner {
       if (this.strategy.currentOrders.length === 0) {
         const candels = await this.account.fetchOHLCV(this.options.symbol)
 
+        const high = candels.map(c => c[2])
+        const low = candels.map(c => c[3])
+        const close = candels.map(c => c[4])
+
         const rsi = await new Promise((resolve, reject) =>
-          tulind.indicators.rsi.indicator(
-            [candels.map(c => c[4])],
-            [14],
+          tulind.indicators.rsi.indicator([close], [14], (err, results) => {
+            if (err) reject(err)
+            resolve(results[0])
+          })
+        )
+
+        const adx = await new Promise((resolve, reject) =>
+          tulind.indicators.adx.indicator(
+            [high, low, close],
+            [5],
             (err, results) => {
               if (err) reject(err)
-              resolve(results[0])
+              resolve(results[0][results.length - 1])
             }
           )
         )
 
-        if (
-          (rsi[0] > 80 && rsi[0] > rsi[1]) ||
-          (rsi[0] < 20 && rsi[0] < rsi[1])
-        ) {
+        const rsiRange =
+          (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
+
+        if (rsiRange && adx > 30) {
           console.log(
-            `${colors.green('RSI')} ${
+            `${colors.green('RSI/ADX')} ${
               this.options.symbol
-            }: Signal found (${rsi})`
+            }: Signal found (${rsi}/${adx})`
           )
           this.onSignal(tick)
         } else {
