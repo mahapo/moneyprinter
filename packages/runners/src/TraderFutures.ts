@@ -190,8 +190,8 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      // await this.account.placeTpSLTs([this.strategy.currentOrder], true)
-      await this.account.placeSlTs(this.strategy.currentOrder)
+      await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+      // await this.account.placeSlTs(this.strategy.currentOrder)
     } catch (error) {
       Logger.error(error)
       this.reset()
@@ -207,8 +207,8 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        // await this.account.placeTpSLTs([this.strategy.currentOrder], true)
-        await this.account.placeSlTs(this.strategy.currentOrder)
+        await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+        // await this.account.placeSlTs(this.strategy.currentOrder)
       } else {
         this.reset()
       }
