@@ -1,6 +1,11 @@
 import { Firebase } from './models/Firebase'
 import { TraderFutures } from '@moneyprinter/runners'
 import { Binance } from '@moneyprinter/exchanges'
+import * as Sentry from '@sentry/node'
+Sentry.init({
+  dsn:
+    'https://4a350580542f46bdb422be3fe3db3901@o395422.ingest.sentry.io/5247177'
+})
 ;(async () => {
   const firebase = new Firebase()
   firebase.refAccounts.doc('real-2').onSnapshot(async doc => {
