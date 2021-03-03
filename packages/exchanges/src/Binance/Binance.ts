@@ -185,11 +185,11 @@ export class Binance extends ExchangeBase {
       let price = order.takeProfit
 
       if (side === 'buy') {
-        price = price * 1.001
+        price = price * 1.075
       }
 
       if (side === 'sell') {
-        price = price * 0.099
+        price = price * 0.025
       }
 
       const orderStopLoss = await this.instance.createOrder(
