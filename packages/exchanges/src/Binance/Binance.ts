@@ -179,6 +179,16 @@ export class Binance extends ExchangeBase {
     try {
       Logger.info(`Set Stop Loss/Trailing Stop: ${order.toString()}`)
       const side = order.side === 'buy' ? 'sell' : 'buy'
+      let price = order.stopLoss
+
+      if (side === 'buy') {
+        price = price * 1.001
+      }
+
+      if (side === 'sell') {
+        price = price * 0.099
+      }
+
       const orderStopLoss = await this.instance.createOrder(
         order.symbol,
         'STOP_MARKET',
@@ -186,10 +196,7 @@ export class Binance extends ExchangeBase {
         this.instance.amountToPrecision(order.symbol, order.amountLoss),
         null,
         {
-          stopPrice: this.instance.priceToPrecision(
-            order.symbol,
-            order.stopLoss
-          ),
+          stopPrice: this.instance.priceToPrecision(order.symbol, price),
           workingType: 'MARK_PRICE',
           newClientOrderId: order.clientOrderIdTP
         }
