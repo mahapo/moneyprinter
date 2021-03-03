@@ -175,6 +175,49 @@ export class Binance extends ExchangeBase {
     }
   }
 
+  async placeSlTs(order: OrderFutures) {
+    try {
+      Logger.info(`Set Stop Loss/Trailing Stop: ${order.toString()}`)
+      const side = order.side === 'buy' ? 'sell' : 'buy'
+      const orderStopLoss = await this.instance.createOrder(
+        order.symbol,
+        'STOP_MARKET',
+        side,
+        this.instance.amountToPrecision(order.symbol, order.amountLoss),
+        null,
+        {
+          stopPrice: this.instance.priceToPrecision(
+            order.symbol,
+            order.stopLoss
+          ),
+          workingType: 'MARK_PRICE',
+          newClientOrderId: order.clientOrderIdTP
+        }
+      )
+      const orderTailingStop = await this.instance.createOrder(
+        order.symbol,
+        'TRAILING_STOP_MARKET',
+        side,
+        this.instance.amountToPrecision(order.symbol, order.amount),
+        null,
+        {
+          stopPrice: this.instance.priceToPrecision(
+            order.symbol,
+            order.takeProfit
+          ),
+          callbackRate: 0.1,
+          workingType: 'MARK_PRICE',
+          newClientOrderId: order.clientOrderIdSL
+        }
+      )
+
+      order.idTakeProfit = orderStopLoss.id
+      order.idStopLoss = orderTailingStop.id
+    } catch (error) {
+      throw this.formatError(error)
+    }
+  }
+
   async placeTpSLTs(orders: OrderFutures[], trailingstop = false) {
     try {
       let i = 0
@@ -196,7 +239,7 @@ export class Binance extends ExchangeBase {
                 order.symbol,
                 order.amount
               ),
-              activationPrice: this.instance.priceToPrecision(
+              stopPrice: this.instance.priceToPrecision(
                 order.symbol,
                 order.takeProfit
               ),

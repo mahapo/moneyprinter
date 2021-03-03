@@ -82,46 +82,48 @@ export class TraderFutures extends Runner {
 
     try {
       if (this.strategy.currentOrders.length === 0) {
-        const candels = await this.account.fetchOHLCV(this.options.symbol)
+        const ta = false
+        if (ta) {
+          const candels = await this.account.fetchOHLCV(this.options.symbol)
 
-        const high = candels.map(c => c[2])
-        const low = candels.map(c => c[3])
-        const close = candels.map(c => c[4])
+          const high = candels.map(c => c[2])
+          const low = candels.map(c => c[3])
+          const close = candels.map(c => c[4])
 
-        const rsi = await new Promise((resolve, reject) =>
-          tulind.indicators.rsi.indicator([close], [14], (err, results) => {
-            if (err) reject(err)
-            resolve(results[0])
-          })
-        )
-
-        const adx = await new Promise((resolve, reject) =>
-          tulind.indicators.adx.indicator(
-            [high, low, close],
-            [5],
-            (err, results) => {
+          const rsi = await new Promise((resolve, reject) =>
+            tulind.indicators.rsi.indicator([close], [14], (err, results) => {
               if (err) reject(err)
-              resolve(results[0][results.length - 1])
-            }
+              resolve(results[0])
+            })
           )
-        )
 
-        const rsiRange =
-          (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
-
-        if (rsiRange && adx > 40) {
-          console.log(
-            `${colors.green('RSI/ADX')} ${
-              this.options.symbol
-            }: Signal found (${rsi}/${adx})`
+          const adx = await new Promise((resolve, reject) =>
+            tulind.indicators.adx.indicator(
+              [high, low, close],
+              [5],
+              (err, results) => {
+                if (err) reject(err)
+                resolve(results[0][results.length - 1])
+              }
+            )
           )
-          this.onSignal(tick)
+
+          const rsiRange =
+            (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
+
+          if (rsiRange && adx > 40) {
+            console.log(
+              `${colors.green('RSI/ADX')} ${
+                this.options.symbol
+              }: Signal found (${rsi}/${adx})`
+            )
+            this.onSignal(tick)
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 60000))
+            this.onTick()
+          }
         } else {
-          // console.log(
-          //   `${colors.red('RSI')} ${this.options.symbol}: out of Range (${rsi})`
-          // )
-          await new Promise(resolve => setTimeout(resolve, 60000))
-          this.onTick()
+          this.onSignal(tick)
         }
 
         // await this.strategy.onSignal(tick)
@@ -188,7 +190,8 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+      // await this.account.placeTpSLTs([this.strategy.currentOrder], true)
+      await this.account.placeSlTs(this.strategy.currentOrder)
     } catch (error) {
       Logger.error(error)
       this.reset()
@@ -204,7 +207,8 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+        // await this.account.placeTpSLTs([this.strategy.currentOrder], true)
+        await this.account.placeSlTs(this.strategy.currentOrder)
       } else {
         this.reset()
       }

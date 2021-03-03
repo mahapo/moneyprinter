@@ -19,7 +19,7 @@ Sentry.init({
       await account.startWebSocket()
 
       const commonSettings = {
-        leverage: 75,
+        leverage: 90,
         recoveryGapDynamicAdd: 0,
         recoveryGapInitial: 10,
         maxSteps: 5,
