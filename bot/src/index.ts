@@ -19,7 +19,7 @@ Sentry.init({
       await account.startWebSocket()
 
       const commonSettings = {
-        leverage: 90,
+        leverage: 75,
         recoveryGapDynamicAdd: 0,
         recoveryGapInitial: 10,
         maxSteps: 5,
@@ -34,15 +34,15 @@ Sentry.init({
         {
           symbol: 'ETH/USDT',
           limit: 100000
+        },
+        {
+          symbol: 'BCH/USDT',
+          limit: 10000
+        },
+        {
+          symbol: 'LTC/USDT',
+          limit: 10000
         }
-        // {
-        //   symbol: 'BCH/USDT',
-        //   limit: 10000
-        // },
-        // {
-        //   symbol: 'LTC/USDT',
-        //   limit: 10000
-        // }
       ]
 
       for (let setting of traderSettings) {
