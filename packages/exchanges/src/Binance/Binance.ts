@@ -171,6 +171,9 @@ export class Binance extends ExchangeBase {
         }
       }
     } catch (error) {
+      if (error instanceof ExchangeNotAvailable) {
+        throw 'ExchangeNotAvailable'
+      }
       throw this.formatError(error)
     }
   }
