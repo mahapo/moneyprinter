@@ -19,7 +19,8 @@ export class TraderFutures extends Runner {
     risk: 100,
     limit: 10000,
     maxAmount: 400,
-    useLimit: false
+    useLimit: false,
+    ta: true
   }
 
   constructor(public account, options) {
@@ -83,8 +84,7 @@ export class TraderFutures extends Runner {
 
     try {
       if (this.strategy.currentOrders.length === 0) {
-        const ta = false
-        if (ta) {
+        if (this.options.ta) {
           const candels = await this.account.fetchOHLCV(this.options.symbol)
 
           const high = candels.map(c => c[2])
