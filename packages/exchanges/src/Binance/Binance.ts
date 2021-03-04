@@ -247,7 +247,7 @@ export class Binance extends ExchangeBase {
         const takeProfits = [...new Array(4)].map((t, i, a) => {
           // @ts-ignore
           const stepStop = parseFloat(order.takeProfit) * 0.001
-          const stepPrice = stepStop / 2
+          const stepPrice = stepStop / 4
 
           let stopPrice
           let price
@@ -256,12 +256,12 @@ export class Binance extends ExchangeBase {
             stopPrice =
               // @ts-ignore
               parseFloat(order.takeProfit) - stepStop * i
-            price = stopPrice + stepPrice
+            price = stopPrice - stepPrice
           } else {
             stopPrice =
               // @ts-ignore
               parseFloat(order.takeProfit) + stepStop * i
-            price = stopPrice - stepPrice
+            price = stopPrice + stepPrice
           }
 
           const o = {
