@@ -266,7 +266,7 @@ export class Binance extends ExchangeBase {
 
           const o = {
             ...common,
-            type: 'TAKE_PROFIT',
+            type: 'STOp',
             quantity: this.instance.amountToPrecision(
               order.symbol,
               order.amount
