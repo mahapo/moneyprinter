@@ -76,8 +76,6 @@ export class MoneyPrinter extends StrategyBase {
       timestamp
     }
     this.priceRange = (this.percent / 100 / this.options.leverage) * price
-    this.priceTop = price + this.priceRange / 2
-    this.priceBottom = price - this.priceRange / 2
 
     if (this.options.useLimit) {
       this.priceTop = price - this.priceRange / 2
@@ -139,26 +137,6 @@ export class MoneyPrinter extends StrategyBase {
     this.currentOrders = this.currentOrders.filter(
       (order: OrderFutures) => order.side === this.side
     )
-    // if (this.countFilled === 1) {
-    //   // this.currentOrder.filled = this.currentOrder.amount
-    //   // this.currentOrder = this.createHedgOrder()
-    //   // if (otherSide) otherSide.status = 'canceled'
-    // } else {
-    //   this.reset()
-    // }
-
-    // if (this.countFilled < this.options.maxSteps) {
-    //   // Fix for Backtester
-    //   order.status = 'canceled'
-    //   this.currentOrder.filled = this.currentOrder.amount
-    //   this.currentOrders.push(this.currentOrder)
-    // } else {
-    //   this.onOrderDone(order, true)
-    // }
-
-    // this.stats.amountMax = Math.max(this.stats.amountMax, order.amount)
-    // this.stats.amountMin = Math.min(this.stats.amountMin, order.amount)
-    // this.stats.countMax = Math.max(this.stats.countMax, this.countFilled)
   }
 
   onStopLoss(order: OrderFutures) {
@@ -174,7 +152,6 @@ export class MoneyPrinter extends StrategyBase {
     }
   }
 
-  // TODO: Refactor this shit
   onTakeProfit(order: OrderFutures, win = false) {
     order.status = 'closed'
     this.currentOrders.forEach((p: OrderFutures) => {

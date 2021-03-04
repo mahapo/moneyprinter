@@ -6,7 +6,7 @@ import SocketClient from './socketClient'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
-  workingType: 'CONTRACT_PRICE'
+  workingType: 'MARK_PRICE'
 
   constructor(options, private demo) {
     super(options)

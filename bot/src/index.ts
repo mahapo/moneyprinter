@@ -24,7 +24,7 @@ Sentry.init({
         recoveryGapInitial: 10,
         maxSteps: 5,
         ratio: 3.5,
-        useLimit: true
+        useLimit: false
       }
 
       const traderSettings = [
