@@ -19,11 +19,12 @@ Sentry.init({
       await account.startWebSocket()
 
       const commonSettings = {
-        leverage: 100,
+        leverage: 75,
         recoveryGapDynamicAdd: 0,
         recoveryGapInitial: 10,
         maxSteps: 5,
-        ratio: 3.5
+        ratio: 3.5,
+        useLimit: false
       }
 
       const traderSettings = [
