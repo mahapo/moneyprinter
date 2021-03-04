@@ -6,6 +6,8 @@ import SocketClient from './socketClient'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
+  workingType: 'MARK_PRICE'
+
   constructor(options, private demo) {
     super(options)
     this.instance = new BinanceCCXT({
@@ -30,12 +32,12 @@ export class Binance extends ExchangeBase {
       )
       socketApi.setHandler('ORDER_TRADE_UPDATE', ({ data }) => {
         const { x, X, ot, s, c, i, q, l, z } = data.o
-        const isTakeProfit = c.endsWith('-TP')
+        const isTakeProfit = c.includes('-TP')
         const isStopLoss = c.endsWith('-SL')
         const isWebtrade = c.startsWith('web')
         const order = { clientOrderId: c, id: i }
         if (X === 'FILLED' && !isWebtrade && ot !== 'MARKET') {
-          // console.table({ q, l, z })
+          console.table(order)
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
@@ -155,7 +157,7 @@ export class Binance extends ExchangeBase {
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
           newClientOrderId: order.clientOrderId,
-          workingType: 'MARK_PRICE'
+          workingType: this.workingType
         }
         neworders.push(mainOrder)
       }
@@ -165,6 +167,7 @@ export class Binance extends ExchangeBase {
       for (const result of results) {
         if (result.orderId) {
           orders[i].id = result.orderId
+          orders[i].idExchange.push(result.orderId)
           i++
         } else {
           throw result.msg || result
@@ -216,7 +219,7 @@ export class Binance extends ExchangeBase {
         {
           stopPrice: this.instance.priceToPrecision(order.symbol, price),
           callbackRate: 0.1,
-          workingType: 'MARK_PRICE',
+          workingType: this.workingType,
           newClientOrderId: order.clientOrderIdSL
         }
       )
@@ -238,39 +241,47 @@ export class Binance extends ExchangeBase {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           // positionSide: 'BOTH',
-          workingType: 'MARK_PRICE'
+          workingType: this.workingType
         }
 
-        const takeProfit = trailingstop
-          ? {
-              ...common,
-              type: 'TRAILING_STOP_MARKET',
-              quantity: this.instance.amountToPrecision(
-                order.symbol,
-                order.amount
-              ),
-              stopPrice: this.instance.priceToPrecision(
-                order.symbol,
-                order.takeProfit
-              ),
-              callbackRate: 0.1,
-              newClientOrderId: order.clientOrderIdTP
-              // reduceOnly: true
-            }
-          : {
-              ...common,
-              type: 'TAKE_PROFIT_MARKET',
-              quantity: this.instance.amountToPrecision(
-                order.symbol,
-                order.amount
-              ),
-              stopPrice: this.instance.priceToPrecision(
-                order.symbol,
-                order.takeProfit
-              ),
-              newClientOrderId: order.clientOrderIdTP
-              // reduceOnly: true
-            }
+        const takeProfits = [...new Array(4)].map((t, i, a) => {
+          // @ts-ignore
+          const stepStop = parseFloat(order.takeProfit) * 0.001
+          const stepPrice = stepStop / 2
+
+          let stopPrice
+          let price
+
+          if (common.side === 'BUY') {
+            stopPrice =
+              // @ts-ignore
+              parseFloat(order.takeProfit) - stepStop * i
+            price = stopPrice + stepPrice
+          } else {
+            stopPrice =
+              // @ts-ignore
+              parseFloat(order.takeProfit) + stepStop * i
+            price = stopPrice - stepPrice
+          }
+
+          const o = {
+            ...common,
+            type: 'TAKE_PROFIT',
+            quantity: this.instance.amountToPrecision(
+              order.symbol,
+              order.amount
+            ),
+            stopPrice: this.instance.priceToPrecision(order.symbol, stopPrice),
+            price: this.instance.priceToPrecision(order.symbol, price),
+            newClientOrderId: order.clientOrderIdTP + i
+            // reduceOnly: true
+          }
+          if (a.length - 1 === i) {
+            o.type = 'TAKE_PROFIT_MARKET'
+            delete o.price
+          }
+          return o
+        })
 
         const stopLoss = {
           ...common,
@@ -293,16 +304,17 @@ export class Binance extends ExchangeBase {
         // Logger.info(
         //   `Set StopLoss:  ${stopLoss.quantity} @ ${stopLoss.stopPrice}`
         // )
-        const results = await this.placeBatchOrders([takeProfit, stopLoss])
-        order.idTakeProfit = results[0].orderId
-        order.idStopLoss = results[1].orderId
+        const results = await this.placeBatchOrders([stopLoss, ...takeProfits])
+        order.idStopLoss = results[0].orderId
+        order.idTakeProfit = results[1].orderId
 
-        if (!results[0].orderId) {
-          console.table(results)
+        results.forEach(result => order.idExchange.push(result.orderId))
+
+        if (!results[1].orderId) {
           throw 'TakeProfit' + results[0].msg
         }
 
-        if (!results[1].orderId) {
+        if (!results[0].orderId) {
           throw 'StopLoss' + results[1].msg
         }
       }
@@ -339,19 +351,19 @@ export class Binance extends ExchangeBase {
       return await this.instance.fapiPrivatePostBatchOrders(params)
     } catch (error) {
       if (error instanceof ExchangeNotAvailable) {
-        // Logger.error('ExchangeNotAvailable')
-        try {
-          for (const order of orders) {
+        Logger.error('ExchangeNotAvailable')
+        for (const order of orders) {
+          try {
             results.push(await this.instance.fapiPrivatePostOrder(order))
+          } catch (error2) {
+            errors.push(error2)
           }
-          if (!errors) return results
-        } catch (error) {
-          errors.push(error)
         }
+        if (!errors.length) return results
+        else throw this.formatError(errors)
       } else {
         errors.push(error)
       }
-      throw this.formatError(error)
     }
   }
 

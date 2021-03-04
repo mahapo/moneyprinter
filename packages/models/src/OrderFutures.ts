@@ -6,6 +6,7 @@ export class OrderFutures implements Order {
   id: string
   idStopLoss: string
   idTakeProfit: string
+  idExchange: string[] = []
   // clientOrderId: string
   datetime: string
   timestamp: number

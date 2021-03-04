@@ -251,6 +251,7 @@ export class TraderFutures extends Runner {
   searchOrder(orderFromExchange) {
     const order = this.strategy.currentOrders.find(
       (order: OrderFutures) =>
+        order.idExchange.includes(orderFromExchange.id) ||
         order.id === orderFromExchange.id ||
         order.idStopLoss === orderFromExchange.id ||
         order.idTakeProfit === orderFromExchange.id ||
