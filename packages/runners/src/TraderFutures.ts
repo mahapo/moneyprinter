@@ -168,7 +168,7 @@ export class TraderFutures extends Runner {
       )
       newOrders && (await this.account.placeNewOrders(newOrders))
     } catch (error) {
-      if (error.message?.msg?.includes('immediately trigger')) {
+      if (JSON.stringify(error).includes('immediately trigger')) {
         this.strategy.percent = this.strategy.percent + 5
         Logger.info(
           colors.red('onSignal'),
@@ -190,8 +190,8 @@ export class TraderFutures extends Runner {
       this.strategy.onOrderFilled(order)
 
       await this.account.deleteOpenOrders(this.options.symbol)
-      await this.account.placeTpSLTs([this.strategy.currentOrder], false)
-      // await this.account.placeSlTs(this.strategy.currentOrder)
+      // await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+      await this.account.placeSlTs(this.strategy.currentOrder)
     } catch (error) {
       Logger.error(error)
       this.reset()
@@ -207,8 +207,8 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        await this.account.placeTpSLTs([this.strategy.currentOrder], false)
-        // await this.account.placeSlTs(this.strategy.currentOrder)
+        // await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+        await this.account.placeSlTs(this.strategy.currentOrder)
       } else {
         this.reset()
       }

@@ -37,7 +37,6 @@ export class Binance extends ExchangeBase {
         const isWebtrade = c.startsWith('web')
         const order = { clientOrderId: c, id: i }
         if (X === 'FILLED' && !isWebtrade && ot !== 'MARKET') {
-          console.table(order)
           if (isTakeProfit) this.emit(`${s}:TakeProfit`, order)
           else if (isStopLoss) this.emit(`${s}:StopLoss`, order)
           else this.emit(`${s}:Filled`, order)
@@ -185,16 +184,6 @@ export class Binance extends ExchangeBase {
     try {
       Logger.info(`Set Stop Loss/Trailing Stop: ${order.toString()}`)
       const side = order.side === 'buy' ? 'sell' : 'buy'
-      let price = order.takeProfit
-
-      if (side === 'buy') {
-        price = price * 1.01
-      }
-
-      if (side === 'sell') {
-        price = price * 0.99
-      }
-
       const orderStopLoss = await this.instance.createOrder(
         order.symbol,
         'STOP_MARKET',
@@ -206,10 +195,19 @@ export class Binance extends ExchangeBase {
             order.symbol,
             order.stopLoss
           ),
-          workingType: 'MARK_PRICE',
-          newClientOrderId: order.clientOrderIdTP
+          workingType: this.workingType,
+          newClientOrderId: order.clientOrderIdSL
         }
       )
+
+      let price = order.takeProfit
+      const callbackRate = 0.1
+
+      if (side === 'buy') {
+        price = price * (1 - callbackRate / 100)
+      } else {
+        price = price * (1 + callbackRate / 100)
+      }
       const orderTailingStop = await this.instance.createOrder(
         order.symbol,
         'TRAILING_STOP_MARKET',
@@ -218,14 +216,18 @@ export class Binance extends ExchangeBase {
         null,
         {
           stopPrice: this.instance.priceToPrecision(order.symbol, price),
+          activationPrice: this.instance.priceToPrecision(order.symbol, price),
           callbackRate: 0.1,
           workingType: this.workingType,
-          newClientOrderId: order.clientOrderIdSL
+          newClientOrderId: order.clientOrderIdTP
         }
       )
 
       order.idTakeProfit = orderStopLoss.id
       order.idStopLoss = orderTailingStop.id
+
+      order.idExchange.push(orderStopLoss.id)
+      order.idExchange.push(orderTailingStop.id)
     } catch (error) {
       throw this.formatError(error)
     }
@@ -241,13 +243,13 @@ export class Binance extends ExchangeBase {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           // positionSide: 'BOTH',
-          workingType: this.workingType
+          workingType: 'CONTRACT_PRICE'
         }
 
         const takeProfits = [...new Array(4)].map((t, i, a) => {
           // @ts-ignore
-          const stepStop = parseFloat(order.takeProfit) * 0.001
-          const stepPrice = stepStop / 4
+          const stepStop = parseFloat(order.takeProfit) * 0.0002
+          const stepPrice = stepStop / 8
 
           let stopPrice
           let price
@@ -256,17 +258,17 @@ export class Binance extends ExchangeBase {
             stopPrice =
               // @ts-ignore
               parseFloat(order.takeProfit) - stepStop * i
-            price = stopPrice - stepPrice
+            price = stopPrice + stepPrice
           } else {
             stopPrice =
               // @ts-ignore
               parseFloat(order.takeProfit) + stepStop * i
-            price = stopPrice + stepPrice
+            price = stopPrice - stepPrice
           }
 
           const o = {
             ...common,
-            type: 'STOP',
+            type: 'TAKE_PROFIT',
             quantity: this.instance.amountToPrecision(
               order.symbol,
               order.amount
@@ -274,6 +276,7 @@ export class Binance extends ExchangeBase {
             stopPrice: this.instance.priceToPrecision(order.symbol, stopPrice),
             price: this.instance.priceToPrecision(order.symbol, price),
             newClientOrderId: order.clientOrderIdTP + i
+            // priceProtect: true
             // reduceOnly: true
           }
           if (a.length - 1 === i) {
@@ -298,12 +301,6 @@ export class Binance extends ExchangeBase {
           newClientOrderId: order.clientOrderIdSL
         }
 
-        // Logger.info(
-        //   `Set TakeProfit:  ${takeProfit.quantity} @ ${takeProfit.stopPrice}`
-        // )
-        // Logger.info(
-        //   `Set StopLoss:  ${stopLoss.quantity} @ ${stopLoss.stopPrice}`
-        // )
         const results = await this.placeBatchOrders([stopLoss, ...takeProfits])
         order.idStopLoss = results[0].orderId
         order.idTakeProfit = results[1].orderId
@@ -311,6 +308,7 @@ export class Binance extends ExchangeBase {
         results.forEach(result => order.idExchange.push(result.orderId))
 
         if (!results[1].orderId) {
+          console.table(results)
           throw 'TakeProfit' + results[0].msg
         }
 
@@ -318,24 +316,6 @@ export class Binance extends ExchangeBase {
           throw 'StopLoss' + results[1].msg
         }
       }
-    } catch (error) {
-      throw this.formatError(error)
-    }
-  }
-
-  async cancelOrders(orders: OrderFutures[]) {
-    try {
-      for (const order of orders) {
-        Logger.info(`Delete: ${order.toString()}`)
-        // TODO: Fix this
-        await this.instance.fapiPrivateDeleteAllOpenOrders({
-          symbol: order.symbol.replace('/', '')
-        })
-        order.id = null
-        order.idTakeProfit = null
-        order.idStopLoss = null
-      }
-      return true
     } catch (error) {
       throw this.formatError(error)
     }
@@ -366,8 +346,6 @@ export class Binance extends ExchangeBase {
       }
     }
   }
-
-  formatedOrder(orderFromExchange) {}
 
   formatError(error) {
     try {

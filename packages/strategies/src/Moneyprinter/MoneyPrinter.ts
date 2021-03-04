@@ -65,7 +65,7 @@ export class MoneyPrinter extends StrategyBase {
       ...options
     }
 
-    this.percent = 30
+    this.percent = 10
   }
 
   onSignal({ price, timestamp, amount }) {
