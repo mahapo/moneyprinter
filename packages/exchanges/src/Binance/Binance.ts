@@ -6,7 +6,7 @@ import SocketClient from './socketClient'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
-  workingType: 'MARK_PRICE'
+  workingType: 'CONTRACT_PRICE'
 
   constructor(options, private demo) {
     super(options)
@@ -143,7 +143,7 @@ export class Binance extends ExchangeBase {
     }
   }
 
-  async placeNewOrders(orders: OrderFutures[]) {
+  async placeNewOrders(orders: OrderFutures[], useLimit = false) {
     try {
       const neworders = []
       for (const order of orders) {
@@ -156,7 +156,14 @@ export class Binance extends ExchangeBase {
           quantity: this.instance.amountToPrecision(order.symbol, order.amount),
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
           newClientOrderId: order.clientOrderId,
-          workingType: this.workingType
+          workingType: this.workingType,
+          price: '0',
+          timeInForce: 'GTC'
+        }
+        if (useLimit) {
+          mainOrder.type = 'LIMIT'
+          mainOrder.price = mainOrder.stopPrice
+          delete mainOrder.stopPrice
         }
         neworders.push(mainOrder)
       }
@@ -243,7 +250,7 @@ export class Binance extends ExchangeBase {
           symbol: order.symbol.replace('/', ''),
           side: order.side.toUpperCase() === 'BUY' ? 'SELL' : 'BUY',
           // positionSide: 'BOTH',
-          workingType: 'CONTRACT_PRICE'
+          workingType: this.workingType
         }
 
         const takeProfits = [...new Array(4)].map((t, i, a) => {

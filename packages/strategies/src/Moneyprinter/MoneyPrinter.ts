@@ -30,7 +30,8 @@ export class MoneyPrinter extends StrategyBase {
     maxSteps: 6,
     recoveryGapInitial: 30,
     recoveryGapDynamicAdd: 5,
-    recoveryGapDynamicCount: 3
+    recoveryGapDynamicCount: 3,
+    useLimit: false
   }
 
   stats = {
@@ -77,6 +78,14 @@ export class MoneyPrinter extends StrategyBase {
     this.priceRange = (this.percent / 100 / this.options.leverage) * price
     this.priceTop = price + this.priceRange / 2
     this.priceBottom = price - this.priceRange / 2
+
+    if (this.options.useLimit) {
+      this.priceTop = price - this.priceRange / 2
+      this.priceBottom = price + this.priceRange / 2
+    } else {
+      this.priceTop = price + this.priceRange / 2
+      this.priceBottom = price - this.priceRange / 2
+    }
 
     if (this.priceRounder) {
       this.priceTop = this.priceRounder(this.priceTop)

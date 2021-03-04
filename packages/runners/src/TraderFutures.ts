@@ -18,7 +18,8 @@ export class TraderFutures extends Runner {
     percentOfMaxRange: 80,
     risk: 100,
     limit: 10000,
-    maxAmount: 400
+    maxAmount: 400,
+    useLimit: false
   }
 
   constructor(public account, options) {
@@ -166,7 +167,8 @@ export class TraderFutures extends Runner {
       const newOrders = this.strategy.currentOrders.filter(
         order => order.status === 'open' && order.filled === 0
       )
-      newOrders && (await this.account.placeNewOrders(newOrders))
+      newOrders &&
+        (await this.account.placeNewOrders(newOrders, this.options.useLimit))
     } catch (error) {
       if (JSON.stringify(error).includes('immediately trigger')) {
         this.strategy.percent = this.strategy.percent + 5
