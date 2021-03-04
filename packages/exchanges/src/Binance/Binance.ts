@@ -157,12 +157,11 @@ export class Binance extends ExchangeBase {
           stopPrice: this.instance.priceToPrecision(order.symbol, order.price),
           newClientOrderId: order.clientOrderId,
           workingType: this.workingType,
-          price: '0',
           timeInForce: 'GTC'
         }
         if (useLimit) {
           mainOrder.type = 'LIMIT'
-          mainOrder.price = mainOrder.stopPrice
+          mainOrder['price'] = mainOrder.stopPrice
           delete mainOrder.stopPrice
         }
         neworders.push(mainOrder)
