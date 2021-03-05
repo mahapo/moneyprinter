@@ -144,7 +144,8 @@ export class ZoneRecovery {
       profitTotal: ratio - 1
     }
     return [...Array(index)].reduce((step, _, i) => {
-      step.factor = (step.profitTotal + lastStep.total) / step.profitTotal
+      step.factor =
+        ((step.profitTotal + lastStep.total) / step.profitTotal) * 1.1
       step.total = lastStep.total + step.factor
       step.profit = step.factor * step.profitTotal
       lastStep = step
