@@ -1,10 +1,5 @@
 import * as firebase from 'firebase-admin'
-import * as dayjs from 'dayjs'
 import { EventEmitter } from 'events'
-
-// Add the Firebase services that you want to use
-// import 'firebase/auth'
-// import 'firebase/firestore'
 
 export class Firebase extends EventEmitter {
   app: firebase.app.App
@@ -20,7 +15,9 @@ export class Firebase extends EventEmitter {
   constructor() {
     super()
     this.app = firebase.initializeApp({
-      credential: firebase.credential.cert(require('../config/firebase.json'))
+      credential: firebase.credential.cert(
+        require('@moneyprinter/config/firebase.json')
+      )
     })
 
     this.db = this.app.firestore()
@@ -42,17 +39,19 @@ export class Firebase extends EventEmitter {
     // Get a new write batch
     var batch = this.db.batch()
 
-    this.db.collection(path).listDocuments().then(val => {
-      
-      val.map((val) => {
-          console.log(val.id);
+    this.db
+      .collection(path)
+      .listDocuments()
+      .then(val => {
+        val.map(val => {
+          console.log(val.id)
           this.deleteCollection(`${path}/${val.id}/balances`)
           batch.delete(val)
         })
 
         batch.commit()
-    })
-}
+      })
+  }
 
   // async multipleImport(ref, array, idKey = null) {
   //   let index = 0

@@ -21,11 +21,9 @@
     "colors": "^1.4.0",
     "dayjs": "^1.10.3",
     "dotenv": "^8.2.0",
-    "firebase-admin": "^9.4.2",
     "pm2": "^4.5.4",
     "socket.io": "^3.0.5",
     "socketio-wildcard": "^2.0.0",
-    "tulind": "^0.8.18",
     "ws": "^7.4.2"
   },
   "devDependencies": {

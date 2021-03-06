@@ -1,6 +1,6 @@
 import { binance as Binance } from 'ccxt'
 import { sortBy } from 'lodash'
-import { Firebase } from './models/Firebase'
+import { Firebase } from '@moneyprinter/adapters'
 ;(async () => {
   const firebase = new Firebase()
   // const exchange = new Binance({

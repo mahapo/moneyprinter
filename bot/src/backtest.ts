@@ -1,6 +1,6 @@
 require('dotenv').config()
 import { Backtester } from '@moneyprinter/runners'
-import { Firebase } from './models/Firebase'
+import { Firebase } from '@moneyprinter/adapters'
 import { Matrix, TickLoader } from '@moneyprinter/utils'
 
 const main = async function () {

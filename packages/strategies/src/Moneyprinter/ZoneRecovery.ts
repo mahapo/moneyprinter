@@ -57,14 +57,14 @@ export class ZoneRecovery {
 
       if (i !== 0) {
         price = priceStopLoss
-        factor = (profitTotal + total) / profitTotal
+        factor = ((profitTotal + total) / profitTotal) * 1.1
         total = total + factor
         profit = factor * profitTotal
       }
 
       gapPercent = this.recoveryGapPercentage(i)
       gap = ((gapPercent / 100) * this.price) / this.leverage
-      gapProfit = gap * this.recoveryGapFactor
+      gapProfit = gap * this.recoveryGapFactor * 1.1
       side = isEven ? 'buy' : 'sell'
       priceStopLoss = isEven ? price - gap : price + gap
       priceTakeProfit = isEven ? price + gapProfit : price - gapProfit

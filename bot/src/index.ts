@@ -1,4 +1,4 @@
-import { Firebase } from './models/Firebase'
+import { Firebase } from '@moneyprinter/adapters'
 import { TraderFutures } from '@moneyprinter/runners'
 import { Binance } from '@moneyprinter/exchanges'
 import * as Sentry from '@sentry/node'
