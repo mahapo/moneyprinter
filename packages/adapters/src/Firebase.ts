@@ -11,6 +11,7 @@ export class Firebase extends EventEmitter {
   refAccounts: any
   refBacktesting: any
   refBalances: any
+  refTa: any
 
   constructor() {
     super()
@@ -27,12 +28,19 @@ export class Firebase extends EventEmitter {
     this.refBinance = this.db.collection('binance')
     this.refAccounts = this.db.collection('accounts')
     this.refBacktesting = this.db.collection('backtesting')
-    // this.refBalances = this.db.collection('balances')
+    this.refTa = this.db.collection('ta')
   }
 
   async saveBacktestResult(result, balances) {
     const { id } = await this.refBacktesting.add(result)
     return this.db.collection(`backtesting/${id}/balances`).add({ balances })
+  }
+
+  async saveTa(symbol, ta) {
+    return this.db
+      .collection('ta')
+      .doc(symbol.replace('/', ''))
+      .set(ta, { merge: true })
   }
 
   deleteCollection(path) {

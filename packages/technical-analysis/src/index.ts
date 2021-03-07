@@ -1,3 +1,2 @@
-export { Matrix } from './Matrix'
-export { Logger } from './Logger'
-// export { TickLoader } from './TickLoader'
+export { rsi } from './rsi'
+export { rvoi } from './rvoi'
