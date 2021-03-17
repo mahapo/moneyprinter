@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import range from 'lodash/range'
+
 export default {
   props: {
     value: {
@@ -108,9 +110,7 @@ export default {
           try {
             return {
               key: input.key,
-              steps: [...Array(input.total)].map((_step, index) =>
-                parseFloat((input.start + input.step * index).toFixed(1))
-              ),
+              steps: range(input.start, input.end, input.step),
             }
           } catch (error) {
             return {
