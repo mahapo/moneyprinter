@@ -70,7 +70,7 @@ export default {
     },
     datacollection() {
       return {
-        labels: this.balances.map((balance) => balance.timestamp),
+        labels: this.balances.map((balance) => balance.time),
         datasets: [
           {
             label: 'Balance',

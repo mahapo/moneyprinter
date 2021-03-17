@@ -67,7 +67,7 @@ export default {
                   time: parseInt(tick.unix),
                   price: parseFloat(tick.price),
                 })),
-                'timestamp'
+                'time'
               )
               this.files.push({
                 name: fileHandle.name,

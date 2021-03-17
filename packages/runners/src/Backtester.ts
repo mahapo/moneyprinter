@@ -9,7 +9,7 @@ dayjs.locale('en')
 import { Runner } from './Runner'
 import { OrderFutures } from '@moneyprinter/models'
 import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
-import { IOHLCV, TradeTick, ticksToTickChart } from 'candlestick-convert'
+import { IOHLCV, TradeTick, batchTicksToCandle } from 'candlestick-convert'
 
 export class Backtester extends Runner {
   balances = []
@@ -30,6 +30,7 @@ export class Backtester extends Runner {
     file: '',
     update: false,
     matrix: false,
+    ta: true,
     percentOfMaxRange: 80,
     recoveryGapInitial: 30,
     recoveryGapDynamicAdd: 5,
@@ -38,8 +39,6 @@ export class Backtester extends Runner {
 
   run(options, ticks) {
     this.ticks = ticks
-    this.candels = ticksToTickChart(ticks, 5) // return IOHLCV[]
-    // console.log(this.candels)
 
     this.options = {
       ...this.options,
@@ -58,20 +57,43 @@ export class Backtester extends Runner {
     this.balance = this.options.startBalance
     this.balances = [
       {
-        timestamp: this.ticks[0].time,
+        time: this.ticks[0].time,
         balance: this.balance
       }
     ]
 
-    this.ticks.forEach(this.onTick.bind(this))
+    if (this.options.ta) {
+      this.candels = batchTicksToCandle(ticks, 60)
+      this.candels.forEach(this.onCandel.bind(this))
+    } else {
+      this.ticks.forEach(this.onTick.bind(this))
+    }
 
     return this.onFinish()
   }
 
-  onTick(tick) {
+  onCandel(candel: IOHLCV) {
     try {
       if (this.strategy.currentOrders.length === 0) {
-        // this.strategy.onSignal(tick)
+        this.onSignal({
+          time: candel.time,
+          price: candel.open
+        } as TradeTick)
+      }
+      if (this.balance > 10) {
+        this.updateOrders({
+          time: candel.time,
+          price: candel.open
+        } as TradeTick)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  onTick(tick: TradeTick) {
+    try {
+      if (this.strategy.currentOrders.length === 0) {
         this.onSignal(tick)
       }
       if (this.balance > 10) {
@@ -82,41 +104,39 @@ export class Backtester extends Runner {
     }
   }
 
-  updateOrders({ price, timestamp }) {
+  updateOrders(tick: TradeTick) {
     try {
       this.strategy.currentOrders
         .filter(x => x.status === 'open')
         .forEach((order: OrderFutures) => {
-          if (order.filled === 0 && order.checkIfFilled(price)) {
-            order.timestampFilled = timestamp
+          if (order.filled === 0 && order.checkIfFilled(tick.price)) {
+            order.timestampFilled = tick.time
 
             this.balances.push({
-              timestamp,
+              ...tick,
               balance: this.balance.toFixed(2),
               filled: 1,
-              price,
               priceTop: Math.max(order.takeProfit, order.stopLoss).toFixed(3),
               priceBottom: Math.min(order.takeProfit, order.stopLoss).toFixed(3)
             })
             this.strategy.onOrderFilled(order)
           } else if (order.filled > 0) {
             // order.updateTrailingStop(price)
-            const isTakeProfit = order.checkIfTriggersTakeProfit(price)
-            const isStopLoss = order.checkIfTriggersStopLoss(price)
+            const isTakeProfit = order.checkIfTriggersTakeProfit(tick.price)
+            const isStopLoss = order.checkIfTriggersStopLoss(tick.price)
             // const isStopLoss = order.checkIfTriggersActivationPrice(price)
 
             if (isTakeProfit || isStopLoss) {
               order.status = 'closed'
-              order.timestampExit = timestamp
+              order.timestampExit = tick.price
 
               order.priceExit = isTakeProfit ? order.takeProfit : order.stopLoss
               this.balance = this.balance + order.pnl
 
               this.balances.push({
-                timestamp,
+                ...tick,
                 balance: this.balance.toFixed(2),
                 filled: this.strategy.countFilled,
-                price,
                 priceTop: Math.max(order.takeProfit, order.stopLoss).toFixed(3),
                 priceBottom: Math.min(order.takeProfit, order.stopLoss).toFixed(
                   3
@@ -136,11 +156,11 @@ export class Backtester extends Runner {
     }
   }
 
-  onSignal({ price, timestamp }) {
+  onSignal({ price, time }) {
     try {
       this.strategy.onSignal({
         price,
-        timestamp,
+        timestamp: time,
         amount: this.idealSize,
         ...this.options
       })
@@ -192,6 +212,7 @@ export class Backtester extends Runner {
     console.log(`Days: ${days.toFixed(1)}`)
     console.log(`Trades: ${this.strategy.orders.length}`)
     console.log(`Max filled: ${maxFilled}`)
+    console.log(`TA: ${this.options.ta}`)
     return result
   }
 
@@ -230,7 +251,7 @@ export class Backtester extends Runner {
     return this.balances
       .filter(balance => !!balance.timestamp)
       .sort(function (a, b) {
-        return a.timestamp - b.timestamp
+        return a.time - b.time
       })
       .map((balance, index) => {
         if (!index) {
