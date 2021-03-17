@@ -20,8 +20,8 @@ Sentry.init({
 
       const commonSettings = {
         leverage: 75,
-        recoveryGapDynamicAdd: 0,
-        recoveryGapInitial: 10,
+        recoveryGapDynamicAdd: 5,
+        recoveryGapInitial: 30,
         maxSteps: 5,
         ratio: 3.5,
         useLimit: false,
