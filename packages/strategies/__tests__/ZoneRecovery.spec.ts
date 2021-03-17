@@ -2,51 +2,65 @@ import { ZoneRecovery } from '../src/MoneyPrinter/ZoneRecovery'
 
 describe('ZoneRecovery', () => {
   // Ratio 2
-  // ┌─────────┬────────┬────────┬───────┬─────────────┐
-  // │ (index) │ factor │ profit │ total │ profitTotal │
-  // ├─────────┼────────┼────────┼───────┼─────────────┤
-  // │    0    │   1    │   1    │   1   │      1      │
-  // │    1    │   2    │   2    │   3   │      1      │
-  // │    2    │   4    │   4    │   7   │      1      │
-  // │    3    │   8    │   8    │  15   │      1      │
-  // │    4    │   16   │   16   │  31   │      1      │
-  // │    5    │   32   │   32   │  63   │      1      │
-  // │    6    │   64   │   64   │  127  │      1      │
-  // │    7    │  128   │  128   │  255  │      1      │
-  // │    8    │  256   │  256   │  511  │      1      │
-  // │    9    │  512   │  512   │ 1023  │      1      │
-  // └─────────┴────────┴────────┴───────┴─────────────┘
+  // ┌─────────┬────────┬───────┐
+  // │ (index) │ factor │ total │
+  // ├─────────┼────────┼───────┤
+  // │    0    │   1    │   1   │
+  // │    1    │   3    │   4   │
+  // │    2    │   6    │  10   │
+  // │    3    │   12   │  22   │
+  // │    4    │   24   │  46   │
+  // │    5    │   48   │  94   │
+  // │    6    │   96   │  190  │
+  // │    7    │  192   │  382  │
+  // │    8    │  384   │  766  │
+  // │    9    │  768   │ 1534  │
+  //    └─────────┴────────┴───────┘
   test('Ratio: 2: First Step', () => {
     expect(ZoneRecovery.calcStep(0, 2).total).toBe(1)
     expect(ZoneRecovery.calcStep(0, 2).factor).toBe(1)
-    expect(ZoneRecovery.calcStep(0, 2).profit).toBe(1)
-    expect(ZoneRecovery.calcStep(0, 2).profitTotal).toBe(1)
-    expect(ZoneRecovery.calcStep(5, 2).profitTotal).toBe(1)
-    expect(ZoneRecovery.calcStep(5, 2).factor).toBe(32)
+    expect(ZoneRecovery.calcStep(5, 2).factor).toBe(48)
   })
-  // ┌─────────┬──────────────┬─────────────┬───────────────┬─────────────┐
-  // │ (index) │    factor    │   profit    │     total     │ profitTotal │
-  // ├─────────┼──────────────┼─────────────┼───────────────┼─────────────┤
-  // │    0    │      1       │      2      │       1       │      2      │
-  // │    1    │     1.5      │      3      │      2.5      │      2      │
-  // │    2    │     2.25     │     4.5     │     4.75      │      2      │
-  // │    3    │    3.375     │    6.75     │     8.125     │      2      │
-  // │    4    │    5.0625    │   10.125    │    13.1875    │      2      │
-  // │    5    │   7.59375    │   15.1875   │   20.78125    │      2      │
-  // │    6    │  11.390625   │  22.78125   │   32.171875   │      2      │
-  // │    7    │  17.0859375  │  34.171875  │  49.2578125   │      2      │
-  // │    8    │ 25.62890625  │ 51.2578125  │  74.88671875  │      2      │
-  // │    9    │ 38.443359375 │ 76.88671875 │ 113.330078125 │      2      │
-  // └─────────┴──────────────┴─────────────┴───────────────┴─────────────┘
+  // ┌─────────┬────────────┬─────────────┐
+  // │ (index) │   factor   │    total    │
+  // ├─────────┼────────────┼─────────────┤
+  // │    0    │     1      │      1      │
+  // │    1    │     2      │      3      │
+  // │    2    │     3      │      6      │
+  // │    3    │    4.5     │    10.5     │
+  // │    4    │    6.75    │    17.25    │
+  // │    5    │   10.125   │   27.375    │
+  // │    6    │  15.1875   │   42.5625   │
+  // │    7    │  22.78125  │  65.34375   │
+  // │    8    │ 34.171875  │  99.515625  │
+  // │    9    │ 51.2578125 │ 150.7734375 │
+  // └─────────┴────────────┴─────────────┘
   test('Ratio: 3: First Step', () => {
     expect(ZoneRecovery.calcStep(0, 3).total).toBe(1)
     expect(ZoneRecovery.calcStep(0, 3).factor).toBe(1)
-    expect(ZoneRecovery.calcStep(0, 3).profit).toBe(2)
-    expect(ZoneRecovery.calcStep(0, 3).profitTotal).toBe(2)
   })
 
   test('RecoveryZone', () => {
-    const zone = new ZoneRecovery(10000, 50, 2, 'sell')
-    // console.table(zone.calcZones(10))
+    const zone = new ZoneRecovery(10000, 75, 5.5, 'buy')
+    zone.recoveryGapInitial = 30
+    const orders1 = zone.createOrders(7, 'BTC/USDT', 1000, 2)
+    const stats = {
+      win: 0,
+      loss: 0,
+      fator: 0,
+      winRound: 0,
+      lossTotal: 0
+    }
+    for (const order of orders1) {
+      order.priceExit = order.takeProfit
+      stats.winRound = order.pnl
+      stats.win = stats.winRound - stats.lossTotal
+
+      order.priceExit = order.stopLoss
+      stats.loss = order.pnl
+      stats.lossTotal += stats.loss
+      stats.fator = stats.win / stats.loss
+      console.table(stats)
+    }
   })
 })

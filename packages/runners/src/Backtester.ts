@@ -151,7 +151,6 @@ export class Backtester extends Runner {
 
   onFinish() {
     this.strategy.orders.push(...this.strategy.currentOrders)
-    console.log(this.strategy.orders)
 
     // const balances = this.formatedBalances.map(b => b.balance)
     // const drawdowns = this.formatedBalances

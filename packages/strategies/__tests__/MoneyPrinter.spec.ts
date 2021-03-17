@@ -23,11 +23,11 @@ describe('MoneyPrinter', () => {
     expect(strategy.countFilled).toBe(0)
 
     strategy.onOrderFilled(strategy.currentOrders[0])
-    expect(strategy.currentOrder.slug).toMatch('0-1003')
+    expect(strategy.currentOrder.slug).toMatch('0-1001')
     expect(strategy.countFilled).toBe(1)
 
     strategy.onStopLoss(strategy.currentOrder)
-    expect(strategy.currentOrder.slug).toMatch('1-1003')
+    expect(strategy.currentOrder.slug).toMatch('1-1001')
     expect(strategy.countFilled).toBe(2)
 
     strategy.onStopLoss(strategy.currentOrder)
@@ -57,11 +57,11 @@ describe('MoneyPrinter', () => {
     expect(strategy.countFilled).toBe(0)
 
     strategy.onOrderFilled(strategy.currentOrders[1])
-    expect(strategy.currentOrder.slug).toMatch('0-997')
+    expect(strategy.currentOrder.slug).toMatch('0-998')
     expect(strategy.countFilled).toBe(1)
 
     strategy.onStopLoss(strategy.currentOrder)
-    expect(strategy.currentOrder.slug).toMatch('1-997')
+    expect(strategy.currentOrder.slug).toMatch('1-998')
     expect(strategy.countFilled).toBe(2)
 
     strategy.onTakeProfit(strategy.currentOrder)

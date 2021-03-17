@@ -47,9 +47,7 @@ export class ZoneRecovery {
     let gapPercent: number
 
     let factor = 1
-    let profit = this.recoveryGapFactor - 1
     let total = 1
-    let profitTotal = this.recoveryGapFactor - 1
 
     return [...Array(count)].map((_, i) => {
       let isEven = i % 2 === 0
@@ -57,14 +55,13 @@ export class ZoneRecovery {
 
       if (i !== 0) {
         price = priceStopLoss
-        factor = ((profitTotal + total) / profitTotal) * 1.1
+        factor = (this.recoveryGapFactor + total) / (this.recoveryGapFactor - 1)
         total = total + factor
-        profit = factor * profitTotal
       }
 
       gapPercent = this.recoveryGapPercentage(i)
       gap = ((gapPercent / 100) * this.price) / this.leverage
-      gapProfit = gap * this.recoveryGapFactor * 1.1
+      gapProfit = gap * this.recoveryGapFactor * 1.2
       side = isEven ? 'buy' : 'sell'
       priceStopLoss = isEven ? price - gap : price + gap
       priceTakeProfit = isEven ? price + gapProfit : price - gapProfit
@@ -81,9 +78,7 @@ export class ZoneRecovery {
         gapProfit,
 
         factor,
-        profit,
-        total,
-        profitTotal
+        total
       }
     })
   }
@@ -139,15 +134,11 @@ export class ZoneRecovery {
     // @ts-ignore
     let lastStep = {
       factor: 1,
-      profit: ratio - 1,
-      total: 1,
-      profitTotal: ratio - 1
+      total: 1
     }
     return [...Array(index)].reduce((step, _, i) => {
-      step.factor =
-        ((step.profitTotal + lastStep.total) / step.profitTotal) * 1.1
+      step.factor = (ratio + lastStep.total) / (ratio - 1)
       step.total = lastStep.total + step.factor
-      step.profit = step.factor * step.profitTotal
       lastStep = step
       return step
     }, lastStep)
