@@ -17,10 +17,11 @@ describe('Order Futures', () => {
     order.side = 'buy'
     order.ratio = 2
     order.leverage = 100
-    order.amount = 1
-    order.price = 10000
-    order.priceExit = 11000
-    // expect(order.pnl).toBe(10)
+    order.amount = 5968.98
+    order.price = 55268.29
+    order.priceExit = 55284.67
+    expect(order.fees.toFixed(3)).toBe('2.388')
+    expect(order.profit.toFixed(3)).toBe('1.769')
     // expect(order.priceDeltaProfit).toBe(200)
     // expect(order.stopLossPrice).toBe(9900)
     // expect(order.takeProfitPrice).toBe(10200)
