@@ -6,7 +6,8 @@ export function rsi(candels) {
   return new Promise((resolve, reject) =>
     tulind.indicators.rsi.indicator([close], [14], (err, results) => {
       if (err) reject(err)
-      resolve(results[0][results.length - 1])
+      const rsi = results[0][results.length - 1]
+      resolve(parseFloat(rsi.toFixed(3)))
     })
   )
 }

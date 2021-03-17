@@ -3,7 +3,7 @@ import { Runner } from './Runner'
 import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
 import { Logger } from '@moneyprinter/utils/src/Logger'
 
-import * as tulind from 'tulind'
+// import * as tulind from 'tulind'
 import * as colors from 'colors/safe'
 
 export class TraderFutures extends Runner {
@@ -85,44 +85,39 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         if (this.options.ta) {
-          const candels = await this.account.fetchOHLCV(this.options.symbol)
-
-          const high = candels.map(c => c[2])
-          const low = candels.map(c => c[3])
-          const close = candels.map(c => c[4])
-
-          const rsi = await new Promise((resolve, reject) =>
-            tulind.indicators.rsi.indicator([close], [14], (err, results) => {
-              if (err) reject(err)
-              resolve(results[0])
-            })
-          )
-
-          const adx = await new Promise((resolve, reject) =>
-            tulind.indicators.adx.indicator(
-              [high, low, close],
-              [5],
-              (err, results) => {
-                if (err) reject(err)
-                resolve(results[0][results.length - 1])
-              }
-            )
-          )
-
-          const rsiRange =
-            (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
-
-          if (rsiRange && adx > 30) {
-            console.log(
-              `${colors.green('RSI/ADX')} ${
-                this.options.symbol
-              }: Signal found (${rsi}/${adx})`
-            )
-            this.onSignal(tick)
-          } else {
-            await new Promise(resolve => setTimeout(resolve, 60000))
-            this.onTick()
-          }
+          // const candels = await this.account.fetchOHLCV(this.options.symbol)
+          // const high = candels.map(c => c[2])
+          // const low = candels.map(c => c[3])
+          // const close = candels.map(c => c[4])
+          // const rsi = await new Promise((resolve, reject) =>
+          //   tulind.indicators.rsi.indicator([close], [14], (err, results) => {
+          //     if (err) reject(err)
+          //     resolve(results[0])
+          //   })
+          // )
+          // const adx = await new Promise((resolve, reject) =>
+          //   tulind.indicators.adx.indicator(
+          //     [high, low, close],
+          //     [5],
+          //     (err, results) => {
+          //       if (err) reject(err)
+          //       resolve(results[0][results.length - 1])
+          //     }
+          //   )
+          // )
+          // const rsiRange =
+          //   (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
+          // if (rsiRange && adx > 30) {
+          //   console.log(
+          //     `${colors.green('RSI/ADX')} ${
+          //       this.options.symbol
+          //     }: Signal found (${rsi}/${adx})`
+          //   )
+          //   this.onSignal(tick)
+          // } else {
+          //   await new Promise(resolve => setTimeout(resolve, 60000))
+          //   this.onTick()
+          // }
         } else {
           this.onSignal(tick)
         }
