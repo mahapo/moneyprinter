@@ -13,8 +13,8 @@ const main = async function () {
     }
 
     const account = new Binance(options, isDemo)
-    await account.init()
-    await account.startWebSocket()
+    // await account.init()
+    // await account.startWebSocket()
 
     const commonSettings = {
       ratio: 2,
@@ -22,57 +22,17 @@ const main = async function () {
       percentOfMaxRange: 30
     }
 
-    const traderSettings = [
-      {
-        symbol: 'BTC/USDT',
-        leverage: 100
-      }
-      // {
-      //   symbol: 'ETH/USDT',
-      //   leverage: 100
-      // }
-      // {
-      //   symbol: 'BCH/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'XRP/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'EOS/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'BNB/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'LTC/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'SNX/USDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'XMRUSDT',
-      //   leverage: 50
-      // },
-      // {
-      //   symbol: 'NEO/USDT',
-      //   leverage: 50
-      // }
-    ]
+    const traderSettings = await account.leverageBracket(75, 75)
+    console.log(traderSettings)
 
-    for (let setting of traderSettings) {
-      const trader = new TraderFutures(account, {
-        ...setting,
-        ...commonSettings
-      })
-      trader.start()
-      await new Promise(resolve => setTimeout(resolve, 2000))
-    }
+    // for (let setting of traderSettings) {
+    //   const trader = new TraderFutures(account, {
+    //     ...setting,
+    //     ...commonSettings
+    //   })
+    //   trader.start()
+    //   await new Promise(resolve => setTimeout(resolve, 2000))
+    // }
   } catch (error) {
     throw new Error(error)
   }
