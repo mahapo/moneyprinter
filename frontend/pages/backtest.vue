@@ -85,6 +85,7 @@
 <script>
 import { call } from 'vuex-pathify'
 import { Matrix } from '@moneyprinter/utils'
+import { Backtester } from '@moneyprinter/runners'
 
 export default {
   data() {
@@ -139,8 +140,9 @@ export default {
       const ticks = this.ticks[0].ticks
       this.tab = 1
       let matrix = Matrix.createTestMatrix(this.testMatrix)
-      for await (const setting of matrix) {
-        const result = await this.runBacktest({ ticks, setting })
+      const trader = new Backtester()
+      for (const setting of matrix) {
+        const result = await trader.run(setting, ticks)
         setTimeout(() => {
           this.results.push(result)
         }, 0)
