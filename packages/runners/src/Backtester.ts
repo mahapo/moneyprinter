@@ -63,7 +63,9 @@ export class Backtester extends Runner {
     ]
 
     if (this.options.ta) {
-      this.candels = batchTicksToCandle(ticks, 60)
+      if (!this.candels) {
+        this.candels = batchTicksToCandle(ticks, 60)
+      }
       this.candels.forEach(this.onCandel.bind(this))
     } else {
       this.ticks.forEach(this.onTick.bind(this))

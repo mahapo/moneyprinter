@@ -3,6 +3,7 @@ import { OrderFutures } from '@moneyprinter/models'
 import { binance as BinanceCCXT, ExchangeNotAvailable } from 'ccxt'
 import { Logger } from '@moneyprinter/utils'
 import SocketClient from './socketClient'
+import { sortBy, maxBy } from 'lodash'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
 
@@ -94,6 +95,8 @@ export class Binance extends ExchangeBase {
         })
       }
     } catch (error) {
+      console.log(symbol)
+
       throw Logger.error(this.formatError(error))
     }
   }
@@ -135,7 +138,7 @@ export class Binance extends ExchangeBase {
     return order
   }
 
-  async fetchOHLCV(symbol: string, time = '3m', limit = 16) {
+  async fetchOHLCV(symbol: string, time = '3m', limit = 300) {
     try {
       return await this.instance.fetchOHLCV(symbol, time, undefined, limit)
     } catch (error) {
@@ -350,6 +353,47 @@ export class Binance extends ExchangeBase {
       } else {
         errors.push(error)
       }
+    }
+  }
+
+  async leverageBracket(min = 50, max = 120) {
+    try {
+      const data = await this.instance.fapiPrivateGetLeverageBracket()
+      await this.instance.loadMarkets()
+
+      return sortBy(
+        data
+          .filter(
+            ({ symbol }) => !symbol.includes('_') && symbol.includes('USDT')
+          )
+          .map(market => {
+            const symbol = market.symbol.replace('USD', '/USD')
+            let active = false
+            try {
+              active = this.instance.market(symbol).active
+            } catch (error) {}
+
+            const bracket = maxBy(
+              market.brackets.filter(
+                bracket =>
+                  bracket.initialLeverage >= min &&
+                  bracket.initialLeverage <= max
+              ),
+              'initialLeverage'
+            )
+            return {
+              symbol,
+              active,
+              leverage: bracket?.initialLeverage,
+              notionalCap: bracket?.notionalCap
+            }
+          }),
+        'leverage'
+      )
+        .reverse()
+        .filter(({ active, leverage }) => active && leverage)
+    } catch (error) {
+      console.log(error)
     }
   }
 

@@ -70,11 +70,9 @@ export class MoneyPrinter extends StrategyBase {
   }
 
   onSignal({ price, timestamp, amount }) {
-    this.options = {
-      ...this.options,
-      amount,
-      timestamp
-    }
+    this.options.amount = amount
+    this.options.timestamp = timestamp
+
     this.priceRange = (this.percent / 100 / this.options.leverage) * price
 
     if (this.options.useLimit) {

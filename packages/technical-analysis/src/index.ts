@@ -1,2 +1,2 @@
-export { rsi } from './rsi'
-export { rvoi } from './rvoi'
+export * from './indicators'
+export * from './strategies'

@@ -1,5 +1,5 @@
 import { binance } from 'ccxt'
-import { rsi, rvoi } from '@moneyprinter/technical-analysis'
+import { intrend } from '@moneyprinter/technical-analysis'
 import { Firebase } from '@moneyprinter/adapters'
 ;(async () => {
   try {
@@ -13,7 +13,8 @@ import { Firebase } from '@moneyprinter/adapters'
       options: { defaultType: 'future', adjustForTimeDifference: true }
     })
 
-    const times = ['5m', '15m', '30m', '1h', '4h']
+    const times = ['1m', '5m', '15m', '30m']
+    // const times = ['5m', '15m', '30m', '1h', '4h']
     // const times = ['15m', '30m', '1h', '4h', '1d']
     const firebase = new Firebase()
     const markets = await furure.fetchMarkets()
@@ -26,15 +27,15 @@ import { Firebase } from '@moneyprinter/adapters'
             market.symbol,
             time,
             undefined,
-            100
+            300
           )
-          temp[time] = {
-            rvoi: await rvoi(candels),
-            rsi: await rsi(candels)
+          temp[time] = await intrend(candels)
+          if (temp[time].signal !== 0) {
+            console.log(`${market.symbol}: ${time} ${temp[time].signal}`)
           }
         }
-        firebase.saveTa(market.symbol, temp)
-        console.table(temp)
+        // console.table(temp)
+        // firebase.saveTa(market.symbol, temp)
       } catch (error) {
         console.log(error)
       }

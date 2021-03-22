@@ -47,7 +47,7 @@ class SocketClient {
               cb(message)
             })
           } else {
-            console.warn('Unprocessed method', method)
+            // console.warn('Unprocessed method', method)
           }
         } else {
           // console.warn('Unprocessed method', method)

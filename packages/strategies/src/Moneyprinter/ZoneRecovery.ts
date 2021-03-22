@@ -95,17 +95,25 @@ export class ZoneRecovery {
     return zones.slice(0, count).map((zone, i) => {
       const nextZone = zones[i + 1]
 
-      const a = new BigNumber(amount).times(zone.factor)
-      const b = new BigNumber(amount).times(nextZone.factor)
       const options = {
         price: zone.price,
         leverage: this.leverage,
         ratio: this.recoveryGapFactor,
         side: zone.side,
         symbol,
-        amount: a.toNumber(),
-        amountLoss: a.plus(b).toNumber(),
-        timestamp
+        timestamp,
+        amount: 0,
+        amountLoss: 0
+      }
+
+      if (isLive) {
+        const a = new BigNumber(amount).times(zone.factor)
+        const b = new BigNumber(amount).times(nextZone.factor)
+        options.amount = a.toNumber()
+        options.amountLoss = a.plus(b).toNumber()
+      } else {
+        options.amount = amount * zone.factor
+        options.amountLoss = amount + options.amount
       }
 
       const order = new OrderFutures(

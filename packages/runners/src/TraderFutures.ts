@@ -2,6 +2,7 @@ import { OrderFutures } from '@moneyprinter/models'
 import { Runner } from './Runner'
 import { MoneyPrinter, ZoneRecovery } from '@moneyprinter/strategies'
 import { Logger } from '@moneyprinter/utils/src/Logger'
+import { intrend } from '@moneyprinter/technical-analysis'
 
 // import * as tulind from 'tulind'
 import * as colors from 'colors/safe'
@@ -17,7 +18,7 @@ export class TraderFutures extends Runner {
     maxSteps: 6,
     percentOfMaxRange: 80,
     risk: 100,
-    limit: 10000,
+    notionalCap: 10000,
     maxAmount: 400,
     useLimit: false,
     ta: true
@@ -46,8 +47,9 @@ export class TraderFutures extends Runner {
     this.options.risk = Math.round(lastStep.total) * 3
 
     this.options.maxAmount =
-      Math.floor(this.options.limit / lastStep.factor / this.options.leverage) -
-      2
+      Math.floor(
+        this.options.notionalCap / lastStep.factor / this.options.leverage
+      ) - 2
 
     this.options.maxAmount = 10
 
@@ -67,7 +69,7 @@ export class TraderFutures extends Runner {
       this.account.lastTime = 0
       await this.account.setupSymbol(this.options.symbol, this.options.leverage)
       await new Promise(resolve => setTimeout(resolve, 500))
-      await this.account.deleteOpenOrders(this.options.symbol)
+
       this.onTick()
     } catch (error) {
       console.error(colors.red('reset'), error)
@@ -85,41 +87,27 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         if (this.options.ta) {
-          // const candels = await this.account.fetchOHLCV(this.options.symbol)
-          // const high = candels.map(c => c[2])
-          // const low = candels.map(c => c[3])
-          // const close = candels.map(c => c[4])
-          // const rsi = await new Promise((resolve, reject) =>
-          //   tulind.indicators.rsi.indicator([close], [14], (err, results) => {
-          //     if (err) reject(err)
-          //     resolve(results[0])
-          //   })
-          // )
-          // const adx = await new Promise((resolve, reject) =>
-          //   tulind.indicators.adx.indicator(
-          //     [high, low, close],
-          //     [5],
-          //     (err, results) => {
-          //       if (err) reject(err)
-          //       resolve(results[0][results.length - 1])
-          //     }
-          //   )
-          // )
-          // const rsiRange =
-          //   (rsi[0] > 80 && rsi[0] > rsi[1]) || (rsi[0] < 20 && rsi[0] < rsi[1])
-          // if (rsiRange && adx > 30) {
-          //   console.log(
-          //     `${colors.green('RSI/ADX')} ${
-          //       this.options.symbol
-          //     }: Signal found (${rsi}/${adx})`
-          //   )
-          //   this.onSignal(tick)
-          // } else {
-          //   await new Promise(resolve => setTimeout(resolve, 60000))
-          //   this.onTick()
-          // }
+          const times = ['1m', '5m', '15m', '30m']
+          let signal
+          for (const market of times) {
+            const candels = await this.account.fetchOHLCV(
+              this.options.symbol,
+              market,
+              300
+            )
+            signal = await intrend(candels)
+            if (signal.signal !== 0) break
+          }
+
+          if (signal.signal !== 0) {
+            console.log(`${this.options.symbol}: Signal found (${signal})`)
+            this.onSignal(tick)
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 60000))
+            this.onTick()
+          }
         } else {
-          this.onSignal(tick)
+          // this.onSignal(tick)
         }
 
         // await this.strategy.onSignal(tick)
@@ -131,6 +119,7 @@ export class TraderFutures extends Runner {
 
   async onSignal({ timestamp, price }) {
     try {
+      await this.account.deleteOpenOrders(this.options.symbol)
       const balance = await this.account.getCurrentBalance('USDT')
       price = this.account.priceRounder(this.options.symbol, price)
 
