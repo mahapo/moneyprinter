@@ -88,7 +88,7 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         if (this.options.ta) {
-          const times = ['3m', '5m', '15m', '30m'].reverse()
+          const times = ['5m', '15m', '30m', '1h', '4h'].reverse()
 
           let signal
           let time
@@ -186,8 +186,8 @@ export class TraderFutures extends Runner {
 
       this.strategy.onOrderFilled(order)
 
-      await this.account.deleteOpenOrders(this.options.symbol)
-      // await this.account.placeTpSLTs([this.strategy.currentOrder], false)
+      // await this.account.deleteOpenOrders(this.options.symbol)
+      await this.account.placeTpSLTs([this.strategy.currentOrder])
       await this.account.placeSlTs(this.strategy.currentOrder)
     } catch (error) {
       Logger.error(error)
@@ -204,8 +204,8 @@ export class TraderFutures extends Runner {
 
       await this.account.deleteOpenOrders(this.options.symbol)
       if (this.strategy.currentOrder) {
-        // await this.account.placeTpSLTs([this.strategy.currentOrder], false)
-        await this.account.placeSlTs(this.strategy.currentOrder)
+        await this.account.placeTpSLTs([this.strategy.currentOrder])
+        // await this.account.placeSlTs(this.strategy.currentOrder)
       } else {
         this.reset()
       }

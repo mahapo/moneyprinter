@@ -12,21 +12,19 @@ Sentry.init({
     var { options } = doc.data()
 
     try {
-      const isDemo = false
-
-      const account = new Binance(options, isDemo)
+      const account = new Binance(options, false)
       await account.init()
       await account.startWebSocket()
 
       const commonSettings = {
         recoveryGapDynamicAdd: 5,
-        recoveryGapInitial: 30,
+        recoveryGapInitial: 20,
         maxSteps: 5,
-        ratio: 3.5,
+        ratio: 3,
         useLimit: false
       }
 
-      const markets = await account.leverageBracket(50, 100)
+      const markets = await account.leverageBracket(50, 50)
       markets.length = 30
       console.table(markets)
       for (let setting of markets) {
@@ -37,6 +35,7 @@ Sentry.init({
           })
           trader.start()
         }, 0)
+        await new Promise(resolve => setTimeout(resolve, 300))
       }
     } catch (error) {
       throw new Error(error)
