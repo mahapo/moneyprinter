@@ -186,9 +186,9 @@ export class TraderFutures extends Runner {
 
       this.strategy.onOrderFilled(order)
 
-      // await this.account.deleteOpenOrders(this.options.symbol)
+      await this.account.deleteOpenOrders(this.options.symbol)
       await this.account.placeTpSLTs([this.strategy.currentOrder])
-      await this.account.placeSlTs(this.strategy.currentOrder)
+      // await this.account.placeSlTs(this.strategy.currentOrder)
     } catch (error) {
       Logger.error(error)
       this.reset()
