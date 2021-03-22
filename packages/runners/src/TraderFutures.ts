@@ -8,6 +8,8 @@ import { intrend } from '@moneyprinter/technical-analysis'
 import * as colors from 'colors/safe'
 
 export class TraderFutures extends Runner {
+  static scanner = true
+
   ticker: any
   currentCandle: any
 
@@ -20,6 +22,7 @@ export class TraderFutures extends Runner {
     risk: 100,
     notionalCap: 10000,
     maxAmount: 400,
+    minAmount: 1,
     useLimit: false,
     ta: true
   }
@@ -65,11 +68,9 @@ export class TraderFutures extends Runner {
 
   async reset() {
     try {
+      TraderFutures.scanner = true
       this.strategy.currentOrders = []
       this.account.lastTime = 0
-      await this.account.setupSymbol(this.options.symbol, this.options.leverage)
-      await new Promise(resolve => setTimeout(resolve, 500))
-
       this.onTick()
     } catch (error) {
       console.error(colors.red('reset'), error)
@@ -87,27 +88,35 @@ export class TraderFutures extends Runner {
     try {
       if (this.strategy.currentOrders.length === 0) {
         if (this.options.ta) {
-          const times = ['1m', '5m', '15m', '30m']
+          const times = ['3m', '5m', '15m', '30m'].reverse()
+
           let signal
-          for (const market of times) {
+          let time
+
+          for (time of times) {
+            if (!TraderFutures.scanner) break
+
             const candels = await this.account.fetchOHLCV(
               this.options.symbol,
-              market,
+              time,
               300
             )
+
             signal = await intrend(candels)
+
             if (signal.signal !== 0) break
           }
 
-          if (signal.signal !== 0) {
-            console.log(`${this.options.symbol}: Signal found (${signal})`)
+          if (signal?.signal !== 0) {
+            TraderFutures.scanner = false
+            console.log(`${this.options.symbol}: Signal found @ ${time}`)
             this.onSignal(tick)
           } else {
             await new Promise(resolve => setTimeout(resolve, 60000))
             this.onTick()
           }
         } else {
-          // this.onSignal(tick)
+          this.onSignal(tick)
         }
 
         // await this.strategy.onSignal(tick)
@@ -120,10 +129,12 @@ export class TraderFutures extends Runner {
   async onSignal({ timestamp, price }) {
     try {
       await this.account.deleteOpenOrders(this.options.symbol)
+      await this.account.setupSymbol(this.options.symbol, this.options.leverage)
       const balance = await this.account.getCurrentBalance('USDT')
       price = this.account.priceRounder(this.options.symbol, price)
 
       let amountUsd = Math.floor(balance / this.options.risk)
+      // let amountUsd = 1
 
       if (amountUsd >= this.options.maxAmount) {
         amountUsd = this.options.maxAmount
@@ -135,8 +146,7 @@ export class TraderFutures extends Runner {
         `${colors.green('onSignal')}`,
         this.options.symbol,
         price,
-        amount,
-        balance
+        amount
       )
 
       this.strategy.onSignal({
@@ -153,6 +163,7 @@ export class TraderFutures extends Runner {
       )
       newOrders &&
         (await this.account.placeNewOrders(newOrders, this.options.useLimit))
+      TraderFutures.scanner = true
     } catch (error) {
       if (JSON.stringify(error).includes('immediately trigger')) {
         this.strategy.percent = this.strategy.percent + 5

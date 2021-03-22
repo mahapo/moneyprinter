@@ -14,7 +14,7 @@ export class Binance extends ExchangeBase {
     this.instance = new BinanceCCXT({
       ...options,
       options: { defaultType: 'future', adjustForTimeDifference: true },
-      timeout: 30000,
+      // timeout: 30000,
       enableRateLimit: true
     })
     this.instance.setSandboxMode(this.demo)
