@@ -3,6 +3,7 @@
   "version": "0.4.0",
   "main": "src/index.ts",
   "dependencies": {
-    "ccxt": "^1.42.53"
+    "ccxt": "^1.42.53",
+    "ccxws": "^0.43.0"
   }
 }

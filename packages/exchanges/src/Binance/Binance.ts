@@ -1,16 +1,19 @@
 import { ExchangeBase } from '..'
 import { OrderFutures } from '@moneyprinter/models'
 import { binance as BinanceCCXT, ExchangeNotAvailable } from 'ccxt'
+import { binance as BinanceWS } from 'ccxws'
 import { Logger } from '@moneyprinter/utils'
 import SocketClient from './socketClient'
 import { sortBy, maxBy } from 'lodash'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
+  ws: BinanceWS
 
   workingType: 'MARK_PRICE'
 
-  constructor(options, private demo) {
+  constructor(options = {}, private demo = false) {
     super(options)
+    this.ws = new BinanceWS()
     this.instance = new BinanceCCXT({
       ...options,
       options: { defaultType: 'future', adjustForTimeDifference: true },

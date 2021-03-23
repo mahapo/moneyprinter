@@ -1,0 +1,11 @@
+{
+  "name": "@moneyprinter/server",
+  "version": "0.4.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node-dev --respawn ./src/index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.0.0"
+  }
+}
