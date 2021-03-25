@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events'
 import { Market, Exchange, Balances, Order, Trade } from 'ccxt'
 import * as WebSocket from 'ws'
+import { duration } from 'moment'
 
 export class ExchangeBase extends EventEmitter {
   instance: Exchange
@@ -53,5 +54,34 @@ export class ExchangeBase extends EventEmitter {
 
   get openOrders(): Order[] {
     return this.orders.filter(order => order.status === 'open')
+  }
+
+  get periods() {
+    return [
+      '1m',
+      // '2m',
+      '3m',
+      '5m'
+      // '15m',
+      // '30m',
+      // '1h',
+      // '2h',
+      // '4h',
+      // '6h',
+      // '8h',
+      // '12h',
+      // '1d',
+      // '3d',
+      // '1w',
+      // '2w',
+      // '1M'
+    ].reduce((acc, val) => {
+      acc[val] = duration(
+        parseInt(val),
+        // @ts-ignore
+        val[val.length - 1] as string
+      ).asMilliseconds()
+      return acc
+    }, {})
   }
 }

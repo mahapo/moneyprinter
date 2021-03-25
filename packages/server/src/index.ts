@@ -1,73 +1,60 @@
 import { Binance } from '@moneyprinter/exchanges'
-import { duration } from 'moment'
 const app = require('http').createServer()
 const io = require('socket.io')(app)
+import { OHLCV } from 'candlestick-convert'
 
 app.listen(5000)
 ;(async () => {
   const exchange = new Binance({})
-  exchange.ws.subscribeCandles({
-    id: 'BTCUSDT'
-  })
-  //   exchange.ws.subscribeCandles({
-  //     id: 'ETHUSDT'
-  //   })
+  const periods = exchange.periods
+  const candels = {}
+  const lastCandels = {}
+  const currentCandels = {}
+  const symbols = ['BTC/USDT']
 
-  const periods = [
-    '1m',
-    '2m',
-    '3m',
-    '5m',
-    '15m',
-    '30m',
-    '1h',
-    '2h',
-    '4h',
-    '6h',
-    '8h',
-    '12h',
-    '1d',
-    '3d',
-    '1w',
-    '2w',
-    '1M'
-  ].reduce((acc, val) => {
-    acc[val] = duration(
-      parseInt(val),
-      // @ts-ignore
-      val[val.length - 1] as string
-    ).asMilliseconds()
-    return acc
-  }, {})
-  //   console.log(duration(1, 'M').asMilliseconds())
+  for (const symbol of symbols) {
+    const id = symbol.replace('/', '')
+    candels[id] = {}
+    currentCandels[id] = {}
+    for (const period of Object.keys(periods)) {
+      const c = await exchange.fetchOHLCV(symbol, period, 3)
+      candels[id][period] = c
+      currentCandels[id][period] = candels[id][period][c.length - 1]
+      candels[id][period].pop()
+    }
+    exchange.ws.subscribeCandles({
+      id
+    })
+    console.table(candels[id]['1m'])
+  }
 
-  const lastCandel = {}
-  const currentCandel = {}
   exchange.ws.on('candle', (candle, { id }) => {
-    if (lastCandel[id] && lastCandel[id].timestampMs !== candle.timestampMs) {
-      if (candle.timestampMs) {
-        console.log('new candle')
-        currentCandel[id] ??= {}
+    candle = Object.values(candle).map(number => parseFloat(number as string))
 
-        for (const [period, time] of Object.entries(periods)) {
-          let current = currentCandel[id][period]
-          // @ts-ignore
-          if (parseInt(candle.timestampMs) % time === 0) {
-            if (current) console.log(period, current)
-            else console.log(period, 'not set yet')
-            current = candle
-          } else if (current) {
-            current.high = Math.max(current.high, candle.high)
-            current.low = Math.min(current.low, candle.low)
-            current.close = candle.close
-            current.volume =
-              parseFloat(candle.volume) + parseFloat(current.volume)
-          }
-          currentCandel[id][period] = current
+    if (lastCandels[id] && lastCandels[id][0] !== candle[0]) {
+      console.log('new candle')
+
+      for (const [period, time] of Object.entries(periods)) {
+        let current = currentCandels[id][period]
+        // @ts-ignore
+        if (parseInt(candle[0]) % time === 0) {
+          if (current) {
+            candels[id][period].push(current)
+            console.log(period)
+            console.table(candels[id][period])
+          } else console.log(period, 'not set yet')
+          current = [...candle]
+        } else if (current) {
+          console.log(period, 'update')
+          current[2] = Math.max(current[2], candle[2])
+          current[3] = Math.min(current[3], candle[3])
+          current[4] = candle[4]
+          current[5] = parseFloat(candle[5]) + parseFloat(current[5])
+          currentCandels[id][period] = [...current]
         }
       }
     }
-    lastCandel[id] = candle
+    lastCandels[id] = candle
   })
 
   io.on('connection', async socket => {

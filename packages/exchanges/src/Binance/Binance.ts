@@ -5,6 +5,7 @@ import { binance as BinanceWS } from 'ccxws'
 import { Logger } from '@moneyprinter/utils'
 import SocketClient from './socketClient'
 import { sortBy, maxBy } from 'lodash'
+import { OHLCV } from 'candlestick-convert'
 export class Binance extends ExchangeBase {
   instance: BinanceCCXT
   ws: BinanceWS
@@ -16,7 +17,7 @@ export class Binance extends ExchangeBase {
     this.ws = new BinanceWS()
     this.instance = new BinanceCCXT({
       ...options,
-      options: { defaultType: 'future', adjustForTimeDifference: true },
+      // options: { defaultType: 'future', adjustForTimeDifference: true },
       // timeout: 30000,
       enableRateLimit: true
     })
@@ -141,7 +142,7 @@ export class Binance extends ExchangeBase {
     return order
   }
 
-  async fetchOHLCV(symbol: string, time = '3m', limit = 300) {
+  async fetchOHLCV(symbol: string, time = '3m', limit = 300): Promise<OHLCV[]> {
     try {
       return await this.instance.fetchOHLCV(symbol, time, undefined, limit)
     } catch (error) {
