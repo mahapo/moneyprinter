@@ -6,7 +6,7 @@
     "dev": "ts-node-dev --respawn ./src/index.ts",
     "bot": "ts-node-dev --respawn ./src/bot.ts",
     "connect": "ssh -i 'binance-bot-main.pem' ubuntu@ec2-18-183-203-79.ap-northeast-1.compute.amazonaws.com",
-    "pm2:server-bot": "pm2 start yarn --interpreter bash --name server-bot -- bot"
+    "pm2:server-bot": "pm2 start yarn --interpreter bash --watch --name server-bot -- bot "
   },
   "dependencies": {
     "fastify": "^3.14.0",
