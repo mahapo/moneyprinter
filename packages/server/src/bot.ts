@@ -17,4 +17,4 @@ app.ready(err => {
   app.io.on('connect', socket => console.info('Socket connected!', socket.id))
 })
 
-app.listen(8000)
+app.listen(8080)
