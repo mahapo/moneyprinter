@@ -5,6 +5,11 @@ const app = fastify({ logger: false })
 
 app.register(socketioServer)
 
+app.get('/', async (req, reply) => {
+  reply.header('content-type', 'application/json')
+  reply.send(true)
+})
+
 app.post('/webhook', async (req, reply) => {
   console.table(req.body)
   reply.header('content-type', 'application/json')
@@ -17,4 +22,4 @@ app.ready(err => {
   app.io.on('connect', socket => console.info('Socket connected!', socket.id))
 })
 
-app.listen(8080)
+app.listen(1337)
