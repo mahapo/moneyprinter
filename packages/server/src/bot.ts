@@ -23,4 +23,4 @@ app.ready(err => {
   app.io.on('connect', socket => console.info('Socket connected!', socket.id))
 })
 
-app.listen(1337, '0.0.0.0')
+app.listen(80, '0.0.0.0')
