@@ -3,6 +3,9 @@ import socketioServer from 'fastify-socket.io'
 
 const app = fastify({ logger: false })
 
+// symbol: BTCUSD; timestamp: 1616769660000; period: 1; price: 53240.5925934; id: v3; side: long; tp: 54492.4789816; sl: 48528.0618064; action: entry;
+// symbol: BTCUSD; timestamp: 1616770740000; period: 1; price: 53557.704564; id: v3; side: long; tp: 54486.0739374; sl: 48522.3578196; action: close;
+
 app.register(socketioServer)
 
 app.get('/', async (req, reply) => {
