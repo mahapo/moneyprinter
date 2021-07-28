@@ -9,7 +9,7 @@
     "strict": false,
     "noImplicitAny": false,
     "strictNullChecks": false,
-    "lib": ["es2016", "esnext.asynciterable"],
+    "lib": ["es2019", "esnext.asynciterable"],
     "experimentalDecorators": true,
     "noImplicitThis": true,
     "alwaysStrict": true,

@@ -13,9 +13,9 @@ import { Firebase } from '@moneyprinter/adapters'
       options: { defaultType: 'future', adjustForTimeDifference: true }
     })
 
-    const times = ['1m', '5m', '15m', '30m']
-    // const times = ['5m', '15m', '30m', '1h', '4h']
-    // const times = ['15m', '30m', '1h', '4h', '1d']
+    // const times = ['1m', '5m', '15m', '30m']
+    const times = ['15m', '30m', '1h', '2h']
+    // const times = ['1h', '4h', '1d']
     const firebase = new Firebase()
     const markets = await furure.fetchMarkets()
 
@@ -30,14 +30,25 @@ import { Firebase } from '@moneyprinter/adapters'
             300
           )
           temp[time] = await intrend(candels)
-          if (temp[time].signal !== 0) {
-            console.log(`${market.symbol}: ${time} ${temp[time].signal}`)
+
+          if (temp[time].indicator.rvoi > 3) {
+            console.log(
+              `0: ${market.symbol}: ${time} ${temp[time].indicator.rvoi}`
+            )
+          }
+          candels.pop()
+
+          temp[time] = await intrend(candels)
+
+          if (temp[time].indicator.rvoi > 3) {
+            console.log(
+              `-1: ${market.symbol}: ${time} ${temp[time].indicator.rvoi}`
+            )
           }
         }
-        // console.table(temp)
         // firebase.saveTa(market.symbol, temp)
       } catch (error) {
-        console.log(error)
+        // console.log(error)
       }
     }
   } catch (error) {

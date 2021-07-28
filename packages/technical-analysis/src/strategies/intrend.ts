@@ -2,7 +2,7 @@ import { rsi, rvoi } from '../indicators'
 
 export async function intrend(candels) {
   const indicator = {
-    // rvoi: await rvoi(candels),
+    rvoi: await rvoi(candels),
     rsi10: await rsi(candels, 10),
     rsi250: await rsi(candels, 250)
   }

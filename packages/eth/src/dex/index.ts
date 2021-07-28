@@ -17,7 +17,7 @@ import * as UniswapPair from '../abis/UniswapPair.abi.json'
 
     const contract = await getUniswapContract(uniswapFactoryAddress)
     const contractPair = await getUniswapPairContract(
-      await contract.allPairs(0)
+      await contract.allPairs(100)
     )
 
     const reserves = await contractPair.getReserves()
