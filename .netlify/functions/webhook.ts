@@ -44,9 +44,9 @@ const handler: Handler = async (event, context) => {
     amount = binance.amountToPrecision(options.symbol, amount)
 
     if (options.buy || options.buy_strong) {
-      binance.placeOrder(options.ticker, true, amount)
+      await binance.placeOrder(options.ticker, true, amount)
     } else if (options.sell || options.sell_strong) {
-      binance.placeOrder(options.ticker, false, amount)
+      await binance.placeOrder(options.ticker, false, amount)
     }
 
     return {

@@ -23,14 +23,13 @@ export class Binance extends BinanceCCXT {
     )
     let quantity = Math.abs(position?.positionAmt || 0) + amount
 
-    if (
-      parseFloat(position.leverage) !== this.leverage &&
-      parseFloat(position.positionAmt) === 0
-    ) {
-      await this.fapiPrivatePostLeverage({
-        symbol: symbol.replace('/', ''),
-        leverage: this.leverage
-      })
+    if (parseFloat(position.leverage) !== this.leverage) {
+      try {
+        await this.fapiPrivatePostLeverage({
+          symbol: symbol.replace('/', ''),
+          leverage: this.leverage
+        })
+      } catch (error) {}
     }
 
     if (!isBuy) {
