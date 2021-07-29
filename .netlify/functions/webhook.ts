@@ -47,11 +47,9 @@ const handler: Handler = async (event, context) => {
       let amount = await binance.calcAmount(options.symbol, 20)
       await binance.placeOrder(options.ticker, false, amount)
     } else if (options.buy) {
-      let amount = await binance.calcAmount(options.symbol, 50)
-      await binance.placeOrder(options.ticker, true, amount)
+      await binance.placeOrder(options.ticker, true, 0)
     } else if (options.sell) {
-      let amount = await binance.calcAmount(options.symbol, 50)
-      await binance.placeOrder(options.ticker, false, amount)
+      await binance.placeOrder(options.ticker, false, 0)
     }
 
     return {
