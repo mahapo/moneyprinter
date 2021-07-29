@@ -25,6 +25,8 @@ const handler: Handler = async (event, context) => {
       options.symbol = options.ticker.replace('USDT', '/USDT')
     } else if (options.ticker.includes('USD')) {
       options.symbol = options.ticker.replace('USD', '/USDT')
+    } else if (options.ticker.includes('PERP')) {
+      options.symbol = options.ticker.replace('PERP', '/USDT')
     }
     const binance = new Binance({
       apiKey:
