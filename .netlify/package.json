@@ -5,8 +5,8 @@
     "dev": "netlify-lambda serve functions",
     "build": "netlify-lambda build functions",
     "ts-check": "tsc --noEmit --lib ES2015 ./functions/*.ts",
-    "buy": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BNBUSDT;buy:1;sell:0;buy_strong:0;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
-    "sell": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BNBUSDT;buy:0;sell:1;buy_strong:0;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
+    "buy": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:LTCUSD;buy:0;sell:0;buy_strong:1;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
+    "sell": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:LTCUSD;buy:0;sell:1;buy_strong:0;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
     "buy:live": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BTCUSD;buy:1;sell:0;buy_strong:0;sell_strong:0;interval:1' -X POST https://moneyprinter.netlify.app/.netlify/functions/webhook",
     "sell:live": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BTCUSD;buy:1;sell:0;buy_strong:0;sell_strong:0;interval:1' -X POST https://moneyprinter.netlify.app/.netlify/functions/webhook"
   },

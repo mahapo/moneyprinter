@@ -6,6 +6,14 @@ export class Binance extends BinanceCCXT {
     this.leverage = 25
   }
 
+  async calcAmount(symbol, risk = 20) {
+    const balance = await this.getCurrentBalance('USDT')
+    const price = await this.getLastPrice(symbol)
+
+    let amount = (balance / risk / price) * this.leverage
+    return this.amountToPrecision(symbol, amount)
+  }
+
   async getCurrentBalance(coin) {
     const { free } = await this.fetchBalance({ recvWindow: 10000000 })
     return free[coin]
@@ -21,8 +29,6 @@ export class Binance extends BinanceCCXT {
     const position = info.positions.find(
       pos => pos.symbol === symbol.replace('/', '')
     )
-    let quantity = Math.abs(position?.positionAmt || 0) + amount
-
     if (parseFloat(position.leverage) !== this.leverage) {
       try {
         await this.fapiPrivatePostLeverage({
@@ -30,10 +36,6 @@ export class Binance extends BinanceCCXT {
           leverage: this.leverage
         })
       } catch (error) {}
-    }
-
-    if (!isBuy) {
-      quantity = quantity + -1
     }
 
     if (position) {
@@ -45,12 +47,32 @@ export class Binance extends BinanceCCXT {
       }
     }
 
-    await this.fapiPrivatePostOrder({
+    let quantity = Math.abs(position?.positionAmt || 0) + amount
+
+    if (!isBuy) {
+      quantity = quantity + -1
+    }
+
+    if (amount === 0) {
+      quantity =
+        parseFloat(position.positionAmt) >= 0
+          ? position.positionAmt
+          : parseFloat(position.positionAmt) * -1
+    }
+    const options = {
       symbol,
       side: isBuy ? 'BUY' : 'SELL',
       type: 'MARKET',
       quantity,
-      positionSide: 'BOTH'
-    })
+      positionSide: 'BOTH',
+      reduceOnly: amount === 0
+    }
+
+    try {
+      const t = await this.fapiPrivatePostOrder(options)
+      console.log(t)
+    } catch (error) {
+      console.log(error)
+    }
   }
 }

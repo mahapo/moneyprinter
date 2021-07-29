@@ -39,15 +39,18 @@ const handler: Handler = async (event, context) => {
       options: { defaultType: 'future', adjustForTimeDifference: true }
       // verbose: true
     })
-    const balance = await binance.getCurrentBalance('USDT')
-    const price = await binance.getLastPrice(options.ticker)
 
-    let amount = (balance / 20 / price) * binance.leverage
-    amount = binance.amountToPrecision(options.symbol, amount)
-
-    if (options.buy || options.buy_strong) {
+    if (options.buy_strong) {
+      let amount = await binance.calcAmount(options.symbol, 20)
       await binance.placeOrder(options.ticker, true, amount)
-    } else if (options.sell || options.sell_strong) {
+    } else if (options.sell_strong) {
+      let amount = await binance.calcAmount(options.symbol, 20)
+      await binance.placeOrder(options.ticker, false, amount)
+    } else if (options.buy) {
+      let amount = await binance.calcAmount(options.symbol, 50)
+      await binance.placeOrder(options.ticker, true, amount)
+    } else if (options.sell) {
+      let amount = await binance.calcAmount(options.symbol, 50)
       await binance.placeOrder(options.ticker, false, amount)
     }
 
