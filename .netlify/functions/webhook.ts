@@ -19,17 +19,19 @@ function objectFromMessage(message) {
 }
 
 const handler: Handler = async (event, context) => {
-  const options = objectFromMessage(event.body)
-  options.symbol = options.ticker.replace('USD', '/USD')
-
-  const binance = new Binance({
-    apiKey: 'pFRG137adrt0DbZvf9whB7kXB62ceVV9xFuub6hAa7Zh0Sil1clxhRPF0zy3kUcK',
-    secret: 'BVmZcqP64sqcYMLMiZIRIlv6AsCKdCdEJBNyhCVkBCJtz5ZqmMVXGYaEVAD3qR0o',
-    enableRateLimit: true,
-    options: { defaultType: 'future', adjustForTimeDifference: true }
-    // verbose: true
-  })
   try {
+    const options = objectFromMessage(event.body)
+    options.symbol = options.ticker.replace('USD', '/USD')
+
+    const binance = new Binance({
+      apiKey:
+        'pFRG137adrt0DbZvf9whB7kXB62ceVV9xFuub6hAa7Zh0Sil1clxhRPF0zy3kUcK',
+      secret:
+        'BVmZcqP64sqcYMLMiZIRIlv6AsCKdCdEJBNyhCVkBCJtz5ZqmMVXGYaEVAD3qR0o',
+      enableRateLimit: true,
+      options: { defaultType: 'future', adjustForTimeDifference: true }
+      // verbose: true
+    })
     const balance = await binance.getCurrentBalance('USDT')
     const price = await binance.getLastPrice(options.ticker)
 

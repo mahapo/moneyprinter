@@ -7,7 +7,7 @@ export class Binance extends BinanceCCXT {
   }
 
   async getCurrentBalance(coin) {
-    const { free } = await this.fetchBalance()
+    const { free } = await this.fetchBalance({ recvWindow: 10000000 })
     return free[coin]
   }
 
