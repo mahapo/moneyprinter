@@ -2,12 +2,17 @@
   "name": "functions",
   "version": "1.0.0",
   "scripts": {
-    "dev": "netlify-lambda serve src",
-    "build": "netlify-lambda build src",
-    "ts-check": "tsc --noEmit --lib ES2015 ./src/*.ts"
+    "dev": "netlify-lambda serve functions",
+    "build": "netlify-lambda build functions",
+    "ts-check": "tsc --noEmit --lib ES2015 ./functions/*.ts",
+    "buy": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BNBUSDT;buy:1;sell:0;buy_strong:0;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
+    "sell": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'ticker:BNBUSDT;buy:0;sell:1;buy_strong:0;sell_strong:0;interval:1' -X POST http://localhost:9000/.netlify/functions/webhook",
+    "debug:live": "curl -H 'Content-Type: text/plain; charset=utf-8' -d 'BTCUSD Greater Than 9000' -X POST https://moneyprinter.netlify.app/.netlify/functions/webhook "
   },
   "dependencies": {
+    "@moneyprinter/exchanges": "link:../packages/exchanges",
     "@netlify/functions": "^0.7.2",
+    "ccxt": "^1.53.78",
     "netlify-lambda": "^2.0.12"
   },
   "devDependencies": {
