@@ -21,8 +21,11 @@ function objectFromMessage(message) {
 const handler: Handler = async (event, context) => {
   try {
     const options = objectFromMessage(event.body)
-    options.symbol = options.ticker.replace('USD', '/USD')
-
+    if (options.ticker.includes('USDT')) {
+      options.symbol = options.ticker.replace('USDT', '/USDT')
+    } else if (options.ticker.includes('USD')) {
+      options.symbol = options.ticker.replace('USD', '/USDT')
+    }
     const binance = new Binance({
       apiKey:
         'pFRG137adrt0DbZvf9whB7kXB62ceVV9xFuub6hAa7Zh0Sil1clxhRPF0zy3kUcK',
@@ -49,7 +52,6 @@ const handler: Handler = async (event, context) => {
       body: JSON.stringify({ message: 'Hello World' })
     }
   } catch (error) {
-    console.log(error)
     return {
       statusCode: 400,
       body: JSON.stringify(error)
