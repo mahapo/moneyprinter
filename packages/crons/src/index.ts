@@ -36,6 +36,9 @@ import { Firebase } from '@moneyprinter/adapters'
               `0: ${market.symbol}: ${time} ${temp[time].indicator.rvoi}`
             )
           }
+          if (temp[time].signal != 0) {
+            console.log(market.symbol, time, temp[time])
+          }
           candels.pop()
 
           temp[time] = await intrend(candels)
