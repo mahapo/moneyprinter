@@ -21,14 +21,14 @@ function objectFromMessage(message) {
 const handler: Handler = async (event, context) => {
   try {
     const options = objectFromMessage(event.body)
-    if (options.ticker.includes('USDT')) {
+    if (options.ticker.includes('USDTPERP')) {
+      options.symbol = options.ticker.replace('USDTPERP', '/USDT')
+      options.ticker = options.ticker.replace('USDTPERP', 'USDT')
+    } else if (options.ticker.includes('USDT')) {
       options.symbol = options.ticker.replace('USDT', '/USDT')
     } else if (options.ticker.includes('USD')) {
       options.symbol = options.ticker.replace('USD', '/USDT')
       options.ticker = options.ticker.replace('USD', 'USDT')
-    } else if (options.ticker.includes('USDTPERP')) {
-      options.symbol = options.ticker.replace('USDTPERP', '/USDT')
-      options.ticker = options.ticker.replace('USDTPERP', 'USDT')
     } else if (options.ticker.includes('PERP')) {
       options.symbol = options.ticker.replace('PERP', '/USDT')
       options.ticker = options.ticker.replace('PERP', 'USDT')
@@ -42,6 +42,8 @@ const handler: Handler = async (event, context) => {
       options: { defaultType: 'future', adjustForTimeDifference: true }
       // verbose: true
     })
+
+    console.log(options)
 
     if (options.buy_strong) {
       await binance.placeOrder(options.symbol, true)

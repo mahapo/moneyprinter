@@ -126,7 +126,7 @@ export class Binance extends BinanceCCXT {
         const t = await this.fapiPrivatePostOrder(options)
         const t2 = await this.fapiPrivatePostOrder(stopLoss)
         // // const t = await this.fapiPrivatePostBatchOrders(params)
-        // console.log(t, t2)
+        console.log(t, t2)
       }
     } catch (error) {
       console.log(error)
