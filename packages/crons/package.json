@@ -6,6 +6,7 @@
     "node-cron": "^2.0.3"
   },
   "scripts": {
-    "test": "ts-node src/index.ts"
+    "test": "ts-node src/index.ts",
+    "transfer": "ts-node src/tasks/transfer.ts"
   }
 }

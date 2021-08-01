@@ -4,13 +4,29 @@ export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
     this.leverage = 50
+    this.risk = 5
   }
 
-  async calcAmount(symbol, risk = 20) {
-    const balance = await this.getCurrentBalance('USDT')
-    const price = await this.getLastPrice(symbol)
+  calcTpSL(symbol, price, isBuy) {
+    const factor = 100 / 100 / this.leverage / 2.1
+    const r = 3
+    let SL, TP
+    if (isBuy) {
+      SL = price * (1 - factor)
+      TP = price * (1 + factor * r)
+    } else {
+      SL = price * (1 + factor)
+      TP = price * (1 - factor * r)
+    }
+    SL = this.priceToPrecision(symbol, SL)
+    TP = this.priceToPrecision(symbol, TP)
 
-    let amount = (balance / risk / price) * this.leverage
+    return [TP, SL]
+  }
+
+  async calcAmount(symbol, balance, price) {
+    let amount = (balance / this.risk / price) * this.leverage
+
     return this.amountToPrecision(symbol, amount)
   }
 
@@ -24,7 +40,7 @@ export class Binance extends BinanceCCXT {
     return parseFloat(info.lastPrice)
   }
 
-  async placeOrder(symbol, isBuy, amount) {
+  async placeOrder(symbol, isBuy, close = false) {
     const { info } = await this.fetchBalance(symbol)
     const position = info.positions.find(
       pos => pos.symbol === symbol.replace('/', '')
@@ -47,30 +63,71 @@ export class Binance extends BinanceCCXT {
       }
     }
 
-    let quantity = Math.abs(position?.positionAmt || 0) + amount
+    await this.fapiPrivateDeleteAllOpenOrders({
+      symbol: symbol.replace('/', '')
+    })
 
-    if (!isBuy) {
-      quantity = quantity + -1
-    }
-
-    if (amount === 0) {
-      quantity =
-        parseFloat(position.positionAmt) >= 0
-          ? position.positionAmt
-          : parseFloat(position.positionAmt) * -1
-    }
-    const options = {
-      symbol,
+    let options = {
+      symbol: symbol.replace('/', ''),
       side: isBuy ? 'BUY' : 'SELL',
       type: 'MARKET',
-      quantity,
       positionSide: 'BOTH',
-      reduceOnly: amount === 0
+      reduceOnly: false,
+      workingType: 'MARK_PRICE',
+      quantity: 0
     }
 
     try {
-      const t = await this.fapiPrivatePostOrder(options)
-      console.log(t)
+      if (close) {
+        options.quantity =
+          parseFloat(position.positionAmt) >= 0
+            ? position.positionAmt
+            : parseFloat(position.positionAmt) * -1
+        options.reduceOnly = true
+
+        const t = await this.fapiPrivatePostOrder(options)
+      } else {
+        const balance = await this.getCurrentBalance('USDT')
+        const price = await this.getLastPrice(symbol)
+        const amount = await this.calcAmount(symbol, balance, price)
+        const [TP, SL] = this.calcTpSL(symbol, price, isBuy)
+
+        // @ts-ignore
+        options.quantity =
+          Math.abs(parseFloat(position?.positionAmt) || 0) + parseFloat(amount)
+        if (!isBuy) {
+          // @ts-ignore
+          options.quantity = options.quantity + -1
+        }
+
+        // const takeProfit = {
+        //   ...options,
+        //   type: 'TAKE_PROFIT',
+        //   // quantity: options.quantity,
+        //   stopPrice: TP,
+        //   side: isBuy ? 'SELL' : 'BUY',
+        //   reduceOnly: true
+        // }
+
+        const stopLoss = {
+          ...options,
+          type: 'STOP_MARKET',
+          reduceOnly: true,
+          stopPrice: SL,
+          side: isBuy ? 'SELL' : 'BUY'
+        }
+        // console.log([price, stopLoss])
+
+        // const params = {
+        //   batchOrders: encodeURIComponent(
+        //     JSON.stringify([takeProfit, stopLoss])
+        //   )
+        // }
+        const t = await this.fapiPrivatePostOrder(options)
+        const t2 = await this.fapiPrivatePostOrder(stopLoss)
+        // // const t = await this.fapiPrivatePostBatchOrders(params)
+        // console.log(t, t2)
+      }
     } catch (error) {
       console.log(error)
     }
