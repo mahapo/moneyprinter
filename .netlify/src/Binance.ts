@@ -3,7 +3,7 @@ import { binance as BinanceCCXT } from 'ccxt'
 export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
-    this.leverage = 30
+    this.leverage = 50
     this.risk = 5
   }
 
