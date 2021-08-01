@@ -26,6 +26,9 @@ const handler: Handler = async (event, context) => {
     } else if (options.ticker.includes('USD')) {
       options.symbol = options.ticker.replace('USD', '/USDT')
       options.ticker = options.ticker.replace('USD', 'USDT')
+    } else if (options.ticker.includes('USDTPERP')) {
+      options.symbol = options.ticker.replace('USDTPERP', '/USDT')
+      options.ticker = options.ticker.replace('USDTPERP', 'USDT')
     } else if (options.ticker.includes('PERP')) {
       options.symbol = options.ticker.replace('PERP', '/USDT')
       options.ticker = options.ticker.replace('PERP', 'USDT')

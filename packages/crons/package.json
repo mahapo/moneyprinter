@@ -3,10 +3,12 @@
   "version": "0.4.0",
   "main": "src/index.ts",
   "dependencies": {
+    "coingecko-api-v3": "^0.0.12",
     "node-cron": "^2.0.3"
   },
   "scripts": {
     "test": "ts-node src/index.ts",
-    "transfer": "ts-node src/tasks/transfer.ts"
+    "transfer": "ts-node src/tasks/transfer.ts",
+    "coins": "ts-node src/tasks/coins.ts"
   }
 }

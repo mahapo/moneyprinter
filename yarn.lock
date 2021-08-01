@@ -4336,6 +4336,11 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
+coingecko-api-v3@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/coingecko-api-v3/-/coingecko-api-v3-0.0.12.tgz#047bc0bd506145e3bf67942dfc39ed51ba6f2873"
+  integrity sha512-e6EdlSBSdpwNSeGz4PI7hbXKzW5zFZHwt0rU6Os0vG/JmiBPtUbN6t22oGakJ86Q1s+ifFT2nlSINBevrMZ4yg==
+
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/collect-v8-coverage/-/collect-v8-coverage-1.0.1.tgz#cc2c8e94fc18bbdffe64d6534570c8a673b27f59"
