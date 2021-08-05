@@ -112,7 +112,7 @@ export class Binance extends BinanceCCXT {
 
         // @ts-ignore
         options.quantity =
-          Math.abs(parseFloat(position ? .positionAmt) || 0) + parseFloat(amount)
+          Math.abs(parseFloat(position?.positionAmt) || 0) + parseFloat(amount)
         if (!isBuy) {
           // @ts-ignore
           options.quantity = options.quantity + -1
