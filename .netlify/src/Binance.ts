@@ -1,10 +1,12 @@
-import { binance as BinanceCCXT } from 'ccxt'
+import {
+  binance as BinanceCCXT
+} from 'ccxt'
 
 export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
     this.leverage = 30
-    this.risk = 4
+    this.risk = 5
   }
 
   calcTpSL(symbol, price, isBuy) {
@@ -31,17 +33,25 @@ export class Binance extends BinanceCCXT {
   }
 
   async getCurrentBalance(coin) {
-    const { free } = await this.fetchBalance({ recvWindow: 10000000 })
+    const {
+      free
+    } = await this.fetchBalance({
+      recvWindow: 10000000
+    })
     return free[coin]
   }
 
   async getLastPrice(symbol) {
-    let { info } = await this.fetchTicker(symbol.replace('/', ''), {})
+    let {
+      info
+    } = await this.fetchTicker(symbol.replace('/', ''), {})
     return parseFloat(info.lastPrice)
   }
 
   async placeOrder(symbol, isBuy, close = false) {
-    const { info } = await this.fetchBalance(symbol)
+    const {
+      info
+    } = await this.fetchBalance(symbol)
     const position = info.positions.find(
       pos => pos.symbol === symbol.replace('/', '')
     )
@@ -52,6 +62,14 @@ export class Binance extends BinanceCCXT {
           leverage: this.leverage
         })
       } catch (error) {}
+    }
+    if (!position.isolated) {
+      console.log(symbol, ': Change mode to ISOLATED')
+
+      await this.fapiPrivatePostMarginType({
+        symbol: symbol.replace('/', ''),
+        marginType: 'ISOLATED'
+      })
     }
 
     if (position) {
@@ -80,9 +98,9 @@ export class Binance extends BinanceCCXT {
     try {
       if (close) {
         options.quantity =
-          parseFloat(position.positionAmt) >= 0
-            ? position.positionAmt
-            : parseFloat(position.positionAmt) * -1
+          parseFloat(position.positionAmt) >= 0 ?
+          position.positionAmt :
+          parseFloat(position.positionAmt) * -1
         options.reduceOnly = true
 
         const t = await this.fapiPrivatePostOrder(options)
@@ -94,7 +112,7 @@ export class Binance extends BinanceCCXT {
 
         // @ts-ignore
         options.quantity =
-          Math.abs(parseFloat(position?.positionAmt) || 0) + parseFloat(amount)
+          Math.abs(parseFloat(position ? .positionAmt) || 0) + parseFloat(amount)
         if (!isBuy) {
           // @ts-ignore
           options.quantity = options.quantity + -1
