@@ -35,9 +35,9 @@ const handler: Handler = async (event, context) => {
     }
     const binance = new Binance({
       apiKey:
-        'pFRG137adrt0DbZvf9whB7kXB62ceVV9xFuub6hAa7Zh0Sil1clxhRPF0zy3kUcK',
+        'qiUi017Q88forZo2ACCOpaxnWxdLnEKXCUEOVwxHgylrU9bSs1apgpKUXCJstu1T',
       secret:
-        'BVmZcqP64sqcYMLMiZIRIlv6AsCKdCdEJBNyhCVkBCJtz5ZqmMVXGYaEVAD3qR0o',
+        '1dlU3XKTkiQEdUTIhaTDDsGZyww4AY5AkRUr81Wiq5JfYjp7wLzr7045kcpnSz8p',
       enableRateLimit: true,
       options: { defaultType: 'future', adjustForTimeDifference: true }
       // verbose: true
