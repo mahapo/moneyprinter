@@ -5,8 +5,8 @@ import {
 export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
-    this.leverage = 40
-    this.risk = 1.2
+    this.leverage = 30
+    this.risk = 1.3
   }
 
   calcTpSL(symbol, price, isBuy) {
