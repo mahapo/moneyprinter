@@ -1,11 +1,19 @@
 const Web3 = require('web3')
-import { getAddressesBalances } from './balance-checker/web3'
-import { privateToAddress, getRandomWallet } from './vanity'
+import {
+  getAddressesBalances
+} from './balance-checker/web3'
+import {
+  privateToAddress,
+  getRandomWallet
+} from './vanity'
 import * as range from 'lodash/range'
-
+import * as fs from 'fs-extra'
 var web3 = new Web3(
-  new Web3.providers.WebsocketProvider(
-    'wss://mainnet.infura.io/ws/v3/f9943db4650d46d382a3c490b0a5c113'
+  // new Web3.providers.WebsocketProvider(
+  //   'wss://mainnet.infura.io/ws/v3/f9943db4650d46d382a3c490b0a5c113'
+  // )
+  new Web3.providers.HttpProvider(
+    'https://bsc-dataseed.binance.org'
   )
 )
 
@@ -24,10 +32,10 @@ Object.defineProperty(Array.prototype, 'chunk_inefficient', {
 function getRange(start, end, pad = 0, letter = '0') {
   return range(parseInt(start, 16), parseInt(end, 16) + 1).map(number =>
     number
-      .toString(16)
-      .padStart(end.length, letter)
-      .padEnd(pad, letter)
-      .padStart(64, letter)
+    .toString(16)
+    .padStart(end.length, letter)
+    .padEnd(pad, letter)
+    .padStart(64, letter)
   )
 }
 
@@ -37,37 +45,39 @@ function getRange(start, end, pad = 0, letter = '0') {
 //   ...keys
 // }
 const tokens = [
-  '0xdac17f958d2ee523a2206206994597c13d831ec7',
-  '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
-  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  '0x2b591e99afe9f32eaa6214f7b7629768c40eeb39',
-  '0x4fabb145d64652a948d72533023f6e7a623c7c53',
-  '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
-  '0x514910771af9ca656af840dff83e8264ecf986ca',
-  '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-  '0x3883f5e181fccaf8410fa61e12b59bad963fb645',
-  '0xd850942ef8811f2a866692a623011bde52a462c1',
-  '0x6b175474e89094c44da98b954eedeac495271d0f',
-  '0x6e1A19F235bE7ED8E3369eF73b196C07257494DE',
-  '0xe1be5d3f34e89de342ee97e6e90d405884da6c67',
-  '0x39aa39c021dfbae8fac545936693ac917d5e7563',
-  '0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643',
-  '0xa0b73e1ff0b80914ab6fe0444e65848c4c34450b',
-  '0xaaaebe6fe48e54f431b0c390cfaf0b017d09d42d',
-  '0x75231f58b43240c9718dd58b4967c5114342a86c',
-  '0xc00e94cb662c3520282e6f5717214004a7f26888',
-  '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5',
-  '0xff20817765cb7f73d4bde2e66e067e58d11095c2',
-  '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
-  '0x2af5d2ad76741191d15dfe7bf6ac92d4bd912ca3',
+  // '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  // '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
+  // '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  // '0x2b591e99afe9f32eaa6214f7b7629768c40eeb39',
+  // '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+  // '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+  // '0x514910771af9ca656af840dff83e8264ecf986ca',
+  // '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  // '0x3883f5e181fccaf8410fa61e12b59bad963fb645',
+  // '0xd850942ef8811f2a866692a623011bde52a462c1',
+  // '0x6b175474e89094c44da98b954eedeac495271d0f',
+  // '0x6e1A19F235bE7ED8E3369eF73b196C07257494DE',
+  // '0xe1be5d3f34e89de342ee97e6e90d405884da6c67',
+  // '0x39aa39c021dfbae8fac545936693ac917d5e7563',
+  // '0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643',
+  // '0xa0b73e1ff0b80914ab6fe0444e65848c4c34450b',
+  // '0xaaaebe6fe48e54f431b0c390cfaf0b017d09d42d',
+  // '0x75231f58b43240c9718dd58b4967c5114342a86c',
+  // '0xc00e94cb662c3520282e6f5717214004a7f26888',
+  // '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5',
+  // '0xff20817765cb7f73d4bde2e66e067e58d11095c2',
+  // '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+  // '0x2af5d2ad76741191d15dfe7bf6ac92d4bd912ca3',
   '0x0000000000000000000000000000000000000000'
-]
-;(async () => {
-  for (const letter of range(0, 16)) {
-    for (const pad of range(4, 64)) {
+];
+(async () => {
+  const active = []
+  for (const letter of range(0, 1)) {
+    let length = 4
+    for (const pad of range(length, 64 + length, length)) {
       // console.log(pad)
 
-      let addresses = getRange('0', 'FF', pad, '4321')
+      let addresses = getRange('01', 'FFFF', pad)
       // console.log('Addresses:', addresses.length)
       console.log('Start:', addresses[0])
       console.log('End:', addresses[addresses.length - 1])
@@ -82,23 +92,33 @@ const tokens = [
           }, {})
         )
       for (const addresses of addressChunks) {
-        await getAddressesBalances(web3, Object.keys(addresses), tokens).then(
+        await getAddressesBalances(web3, Object.keys(addresses), tokens, {
+          contractAddress: '0xB12aeC3A7e0B8CFbA307203a33c88a3BBC0D9622'
+        }).then(
           balances => {
             // console.log(Object.entries(balances))
 
             const filteredBalances = Object.entries(balances)
               .filter(address => Object.values(address[1]).some(b => b !== '0'))
-              .map(([address, balance]) => [
+              .map(([address, balance]) => {
+                active.push(addresses[address])
+                return [
                 address,
                 addresses[address],
                 balance
-              ])
+              ]
+              })
+
             if (filteredBalances.length) console.log(filteredBalances)
           }
         )
       }
     }
   }
+  await fs.outputJson(
+    `${process.cwd()}/keys-active.json`,
+    active
+  )
   console.log('End')
   process.exit()
 })()

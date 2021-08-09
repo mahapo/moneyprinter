@@ -1,5 +1,9 @@
-import { Handler } from '@netlify/functions'
-import { Binance } from '../src/Binance'
+import {
+  Handler
+} from '@netlify/functions'
+import {
+  Binance
+} from '../src/Binance'
 
 //ticker:BLZUSDT;buy:0;sell:0;buy_strong:0;sell_strong:1;interval:1
 //ticker:{{ticker}};buy:{{plot("Buy")}};sell:{{plot("Sell")}};buy_strong:{{plot("Strong Buy")}};sell_strong:{{plot("Strong Sell")}}
@@ -34,12 +38,13 @@ const handler: Handler = async (event, context) => {
       options.ticker = options.ticker.replace('PERP', 'USDT')
     }
     const binance = new Binance({
-      apiKey:
-        'qiUi017Q88forZo2ACCOpaxnWxdLnEKXCUEOVwxHgylrU9bSs1apgpKUXCJstu1T',
-      secret:
-        '1dlU3XKTkiQEdUTIhaTDDsGZyww4AY5AkRUr81Wiq5JfYjp7wLzr7045kcpnSz8p',
+      apiKey: 'pFRG137adrt0DbZvf9whB7kXB62ceVV9xFuub6hAa7Zh0Sil1clxhRPF0zy3kUcK',
+      secret: 'BVmZcqP64sqcYMLMiZIRIlv6AsCKdCdEJBNyhCVkBCJtz5ZqmMVXGYaEVAD3qR0o',
       enableRateLimit: true,
-      options: { defaultType: 'future', adjustForTimeDifference: true }
+      options: {
+        defaultType: 'future',
+        adjustForTimeDifference: true
+      }
       // verbose: true
     })
 
@@ -57,7 +62,9 @@ const handler: Handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Hello World' })
+      body: JSON.stringify({
+        message: 'Hello World'
+      })
     }
   } catch (error) {
     return {
@@ -67,4 +74,6 @@ const handler: Handler = async (event, context) => {
   }
 }
 
-export { handler }
+export {
+  handler
+}
