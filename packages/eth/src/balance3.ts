@@ -2,7 +2,7 @@ const Web3 = require('web3')
 import {
   getAddressesBalances
 } from './balance-checker/web3'
-import * as keys from './keys-merged.json'
+import * as keys from './keys-code2.json'
 import {
   tokens
 } from './pancakeswap.json'
@@ -66,8 +66,17 @@ Object.defineProperty(Array.prototype, 'chunk_inefficient', {
   console.log('Start:', addresses[0])
   console.log('End:', addresses[addresses.length - 1])
 
-  let addressChunks = addresses
-    .map(key => web3.eth.accounts.privateKeyToAccount(key))
+    let addressChunks = addresses
+    // .filter(key => new RegExp(/[a-zA-Z]+/).test(key))
+      .map(key => {
+        try {
+          return web3.eth.accounts.privateKeyToAccount(key)
+          
+        } catch (error) {
+          console.log(key);
+          
+        }
+      })
     // @ts-ignore
     .chunk_inefficient(10)
     .map(chunck =>
@@ -79,23 +88,27 @@ Object.defineProperty(Array.prototype, 'chunk_inefficient', {
     let t = ['0x0000000000000000000000000000000000000000',...tokens.map(token => token.address)]
   // tokens = 
 
-  for (const addresses of addressChunks) {
-    await getAddressesBalances(web3, Object.keys(addresses), t, {
-      contractAddress: '0xB12aeC3A7e0B8CFbA307203a33c88a3BBC0D9622'
-    }).then(
-      balances => {
-        // console.log(Object.entries(balances))
-
-        const filteredBalances = Object.entries(balances)
-          .filter(address => Object.values(address[1]).some(b => b !== '0'))
-           .map(([address, balance]) => [
-            address,
-            addresses[address],
-            ...Object.entries(balance).filter(b => b[1] !== '0')
-          ])
-        if (filteredBalances.length) console.log(filteredBalances)
-      }
-    )
+    for (const addresses of addressChunks) {
+    try {      
+      await getAddressesBalances(web3, Object.keys(addresses), t, {
+        contractAddress: '0xB12aeC3A7e0B8CFbA307203a33c88a3BBC0D9622'
+      }).then(
+        balances => {
+          // console.log(Object.entries(balances))
+  
+          const filteredBalances = Object.entries(balances)
+            .filter(address => Object.values(address[1]).some(b => b !== '0' && parseInt(b) > 10e14))
+             .map(([address, balance]) => [
+              address,
+              addresses[address],
+              ...Object.entries(balance).filter(b => b[1] !== '0')
+            ])
+          if (filteredBalances.length) console.log(filteredBalances)
+        }
+      )
+    } catch (error) {
+      console.log(error.message)
+    }
   }
 
   console.log('End')
