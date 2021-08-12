@@ -6,7 +6,7 @@ export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
     this.leverage = 20
-    this.risk = 1.1
+    this.risk = 2.1
   }
 
   calcTpSL(symbol, price, isBuy) {
@@ -34,11 +34,12 @@ export class Binance extends BinanceCCXT {
 
   async getCurrentBalance(coin) {
     const {
-      free
+      free,
+      total
     } = await this.fetchBalance({
       recvWindow: 10000000
     })
-    return free[coin]
+    return total[coin]
   }
 
   async getLastPrice(symbol) {
