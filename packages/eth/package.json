@@ -11,6 +11,7 @@
     "transfer": "ts-node-dev --respawn ./src/transfer.ts",
     "balance": "ts-node-dev --respawn ./src/balance.ts",
     "balance2": "ts-node-dev --respawn ./src/balance2.ts",
+    "polygon": "ts-node-dev ./src/polygon.ts",
     "binance": "ts-node-dev --respawn ./src/balance3.ts"
   }
 }
