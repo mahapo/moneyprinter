@@ -2,7 +2,7 @@ const Web3 = require('web3')
 import {
   getAddressesBalances
 } from './balance-checker/web3'
-import * as keys from './keys-code2.json'
+import * as keys from './keys-all.json'
 import {
   tokens
 } from './pancakeswap.json'
