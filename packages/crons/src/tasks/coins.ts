@@ -27,7 +27,8 @@ import * as symbols from './symbols.json'
   // })
   const result = symbols
     // @ts-ignore
-    .sort((a, b) => a.quoteVolume - b.quoteVolume)
+    .sort((a, b) => b.quoteVolume - a.quoteVolume)
+    // .sort((a, b) => a.quoteVolume - b.quoteVolume)
     .map(market => ({ symbol: market.symbol, volume: market.quoteVolume }))
   console.table(result)
 })()
