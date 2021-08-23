@@ -19,7 +19,7 @@ const markets = {}
 const statistics = {
   percent: 0
 }
-fs.createReadStream('./TradingView_Alerts_Log_2021-08-21.csv')
+fs.createReadStream('./TradingView_Alerts_Log_2021-08-23.csv')
   .pipe(csv())
   .on('data', (data) => results.push(data))
   .on('end', () => {
@@ -33,8 +33,9 @@ fs.createReadStream('./TradingView_Alerts_Log_2021-08-21.csv')
           buy: 0,
           sell: 0,
           count: 0,
+          percent: 0,
           trades: [],
-          raw: []
+          raw: [],
         }
       }
       // markets[symbol].raw.push(result)
@@ -46,10 +47,11 @@ fs.createReadStream('./TradingView_Alerts_Log_2021-08-21.csv')
         if (currentTrade.side === 'sell') {
           currentTrade.percent = currentTrade.percent * -1
         }
+        markets[symbol].percent += currentTrade.percent
         statistics.percent += currentTrade.percent
       }
 
-      const all = flase
+      const all = true
       if (alert.buy_strong || (alert.buy && all)) {
         markets[symbol].buy_strong++
         markets[symbol].trades.push({
@@ -67,8 +69,8 @@ fs.createReadStream('./TradingView_Alerts_Log_2021-08-21.csv')
       }
       markets[symbol].count++
     }
-    console.log(markets);
-    console.table(statistics);
+    // console.log(markets);
+    console.table(statistics.percent*100*20);
     // [
     //   { NAME: 'Daffy Duck', AGE: '24' },
     //   { NAME: 'Bugs Bunny', AGE: '22' }
