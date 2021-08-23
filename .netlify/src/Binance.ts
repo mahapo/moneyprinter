@@ -6,7 +6,7 @@ export class Binance extends BinanceCCXT {
   constructor(options = {}, private demo = false) {
     super(options)
     this.leverage = 20
-    this.risk = 10
+    this.risk = 5
   }
 
   calcTpSL(symbol, price, isBuy) {
@@ -119,6 +119,9 @@ export class Binance extends BinanceCCXT {
           options.quantity = options.quantity + -1
         }
 
+        
+        
+
         // const takeProfit = {
         //   ...options,
         //   type: 'TAKE_PROFIT',
@@ -142,10 +145,10 @@ export class Binance extends BinanceCCXT {
         //     JSON.stringify([takeProfit, stopLoss])
         //   )
         // }
-        const t = await this.fapiPrivatePostOrder(options)
-        const t2 = await this.fapiPrivatePostOrder(stopLoss)
+        // const t = await this.fapiPrivatePostOrder(options)
+        // const t2 = await this.fapiPrivatePostOrder(stopLoss)
         // // const t = await this.fapiPrivatePostBatchOrders(params)
-        console.log(t, t2)
+        // console.log(t, t2)
       }
     } catch (error) {
       console.log(error)

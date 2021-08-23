@@ -17,7 +17,9 @@ function objectFromMessage(message) {
 }
 const markets = {}
 const statistics = {
-  percent: 0
+  roi: 0,
+  wins: 0,
+  losses: 0,
 }
 fs.createReadStream('./TradingView_Alerts_Log_2021-08-23.csv')
   .pipe(csv())
@@ -33,44 +35,55 @@ fs.createReadStream('./TradingView_Alerts_Log_2021-08-23.csv')
           buy: 0,
           sell: 0,
           count: 0,
-          percent: 0,
+          roi: 0,
           trades: [],
           raw: [],
         }
       }
       // markets[symbol].raw.push(result)
-      let currentTrade = markets[symbol].trades.slice(-1)[0];
-      if (currentTrade && currentTrade.status === 'open') {
+      let currentTrade = markets[symbol].trades.slice(-1)[0] || {};
+      let side = alert.buy_strong || alert.buy ? 'buy' : 'sell'
+
+      if (currentTrade && currentTrade.status === 'open' && currentTrade.side !== side) {
         currentTrade.status = 'closed'
         currentTrade.exit = parseFloat(alert.close)
-        currentTrade.percent = (parseFloat(alert.close) / currentTrade.entry) - 1
+        currentTrade.roi = (parseFloat(alert.close) / currentTrade.entry) - 1
         if (currentTrade.side === 'sell') {
-          currentTrade.percent = currentTrade.percent * -1
+          currentTrade.roi = currentTrade.roi * -1
         }
-        markets[symbol].percent += currentTrade.percent
-        statistics.percent += currentTrade.percent
+        if (currentTrade.roi >= 0) {
+          statistics.wins++
+        } else {
+          statistics.losses++
+        }
+        markets[symbol].roi += currentTrade.roi
+        statistics.roi += currentTrade.roi
       }
 
-      const all = true
-      if (alert.buy_strong || (alert.buy && all)) {
-        markets[symbol].buy_strong++
-        markets[symbol].trades.push({
-          status: 'open',
-          side: 'buy',
-          entry: parseFloat(alert.close)
-        })
-      } else if (alert.sell_strong || (alert.sell && all)) {
-        markets[symbol].sell_strong++
-        markets[symbol].trades.push({
-          status: 'open',
-          side: 'sell',
-          entry: parseFloat(alert.close)
-        })
+      if (currentTrade.status !== 'open') {
+        const all = false
+        if (alert.buy_strong || (alert.buy && all)) {
+          markets[symbol].buy_strong++
+          markets[symbol].trades.push({
+            status: 'open',
+            side: side,
+            entry: parseFloat(alert.close)
+          })
+        } else if (alert.sell_strong || (alert.sell && all)) {
+          markets[symbol].sell_strong++
+          markets[symbol].trades.push({
+            status: 'open',
+            side: side,
+            entry: parseFloat(alert.close)
+          })
+        }
       }
+
       markets[symbol].count++
     }
-    // console.log(markets);
-    console.table(statistics.percent*100*20);
+    const stats = Object.entries(markets).filter((a) => a[1].count > 0 && a[1].roi !== 0).sort((a, b) => b[1].roi - a[1].roi)
+    stats.forEach((a) => console.log(a[0], (a[1].roi*100).toFixed(2)))
+    console.table(statistics);
     // [
     //   { NAME: 'Daffy Duck', AGE: '24' },
     //   { NAME: 'Bugs Bunny', AGE: '22' }
