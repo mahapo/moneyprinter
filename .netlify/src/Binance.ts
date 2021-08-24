@@ -114,13 +114,10 @@ export class Binance extends BinanceCCXT {
         // @ts-ignore
         options.quantity =
           Math.abs(parseFloat(position?.positionAmt) || 0) + parseFloat(amount)
-        if (!isBuy) {
-          // @ts-ignore
-          options.quantity = options.quantity + -1
-        }
-
-        
-        
+        // if (!isBuy) {
+        //   // @ts-ignore
+        //   options.quantity = options.quantity + -1
+        // }
 
         // const takeProfit = {
         //   ...options,
@@ -133,20 +130,21 @@ export class Binance extends BinanceCCXT {
 
         const stopLoss = {
           ...options,
+          // quantity: options.quantity * -1,
           type: 'STOP_MARKET',
           reduceOnly: true,
           stopPrice: SL,
           side: isBuy ? 'SELL' : 'BUY'
         }
-        // console.log([price, stopLoss])
+        console.log([options, stopLoss])
 
         // const params = {
         //   batchOrders: encodeURIComponent(
         //     JSON.stringify([takeProfit, stopLoss])
         //   )
         // }
-        // const t = await this.fapiPrivatePostOrder(options)
-        // const t2 = await this.fapiPrivatePostOrder(stopLoss)
+        const t = await this.fapiPrivatePostOrder(options)
+        const t2 = await this.fapiPrivatePostOrder(stopLoss)
         // // const t = await this.fapiPrivatePostBatchOrders(params)
         // console.log(t, t2)
       }
