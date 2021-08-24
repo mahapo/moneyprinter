@@ -21,7 +21,7 @@ const statistics = {
   wins: 0,
   losses: 0,
 }
-fs.createReadStream('./TradingView_Alerts_Log_2021-08-23.csv')
+fs.createReadStream('./TradingView_Alerts_Log_2021-08-24.csv')
   .pipe(csv())
   .on('data', (data) => results.push(data))
   .on('end', () => {
@@ -84,6 +84,7 @@ fs.createReadStream('./TradingView_Alerts_Log_2021-08-23.csv')
     const stats = Object.entries(markets).filter((a) => a[1].count > 0 && a[1].roi !== 0).sort((a, b) => b[1].roi - a[1].roi)
     stats.forEach((a) => console.log(a[0], (a[1].roi*100).toFixed(2)))
     console.table(statistics);
+    console.table(statistics.roi * 100 * 20);
     // [
     //   { NAME: 'Daffy Duck', AGE: '24' },
     //   { NAME: 'Bugs Bunny', AGE: '22' }
