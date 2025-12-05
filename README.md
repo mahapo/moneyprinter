@@ -212,11 +212,8 @@ The optimal configuration from our testing:
 ## Resources
 
 ### Zone Recovery Algorithm References
-- CAP Zone Recovery EA PRO Official Site: [capforex.com](https://capforex.com/cap-zone-recovery-ea-pro)
 - Zone Recovery Trading Algorithm video: [https://youtu.be/DJz4E7VyeSw?t=2512](https://youtu.be/DJz4E7VyeSw?t=2512)
 - Zone Recovery EA for Metatrader: [https://www.mql5.com/en/market/product/20160](https://www.mql5.com/en/market/product/20160)
-- Technical Analysis of Zone Recovery: [forex-robot-trader.com](https://forex-robot-trader.com/cap-zone-recovery-algorithm)
-- Mathematical Foundation: [forex-mathematics.com](https://forex-mathematics.com/zone-recovery-algorithms)
 
 ### Academic Research
 - Zone Recovery Systems Research: [ResearchGate Publication](https://www.researchgate.net/publication/zone-recovery-trading-algorithms)
