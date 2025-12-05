@@ -57,10 +57,6 @@ This mathematical engine ensures that:
 - Position sizes grow according to a calculated factor sequence
 - The system maintains profit potential even after multiple recovery steps
 
-![CAP Zone Recovery EA PRO Settings](demo/cap-zone-recovery-ea-pro-screen-1712.png)
-
-![CAP Zone Recovery EA PRO Trade Panel](demo/cap-zone-recovery-ea-pro-screen-9182.png)
-
 
 ### Key Parameters with Demo Values
 
