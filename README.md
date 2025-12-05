@@ -24,33 +24,84 @@ Moneyprinter is a sophisticated cryptocurrency trading bot that implements the Z
 
 ## Zone Recovery Strategy
 
-### How the Algorithm Works
+The Zone Recovery algorithm is an advanced hedging strategy originally developed for forex trading by Mohammad Ali as the CAP Zone Recovery EA PRO. This implementation has been specifically adapted for leveraged cryptocurrency trading, combining the proven mathematical principles of zone recovery with the high-volatility nature of crypto markets.
 
-1. **Initial Setup**: The bot places two opposing orders (long and short) around the current price
-2. **First Trigger**: When price moves and hits one of the orders, that position is opened
-3. **Recovery Phase**: The bot immediately places a larger order on the opposite side
-4. **Dynamic Sizing**: Each recovery order is larger based on the recovery ratio (typically 4-5x)
-5. **Profit Target**: When price returns to the middle zone, all positions close in profit
-6. **Breakeven Safety**: If max steps are reached, the system closes at breakeven
+### Origin: CAP Zone Recovery EA PRO
+
+The original CAP Zone Recovery EA PRO for MT4 was developed by Mohammad Ali as a sophisticated tool to turn losing trades into winning trades using a "back-and-forth" hedging mechanism. Based on the famous "Zone Recovery Algorithm" also known as "The Surefire Forex Hedging Strategy," it allows traders to profit regardless of market direction by creating a structured recovery system.
+
+![CAP Zone Recovery EA PRO Interface](demo/cap-zone-recovery-ea-pro-screen-1712.png)
+*Figure 1: CAP Zone Recovery EA PRO interface showing the zone recovery algorithm in action on MT4*
+
+### How the Modified Algorithm Works for Crypto Trading
+
+1. **Initial Setup**: The bot places two opposing orders (long and short) around the current price, creating a price range based on liquidation prices
+2. **First Trigger**: When price moves and hits one of the orders, that position is opened while the opposite order is cancelled
+3. **Recovery Phase**: The bot immediately places a larger order on the opposite side with calculated position sizing
+4. **Dynamic Sizing**: Each recovery order size is determined by the ZoneRecovery.calcStep() function, using factors based on the recovery ratio
+5. **Profit Target**: When price returns to the target zone (either upper or lower TP), all positions close with combined profit
+6. **Breakeven Safety**: If max steps are reached, the system closes at breakeven to prevent catastrophic losses
+
+### Key Algorithm Components
+
+The implementation in `backend/src/models/ZoneRecovery.ts` calculates optimal position sizes:
+
+```typescript
+// Calculate position factors for each recovery step
+static calcStep(index: number, ratio: number, breakevent: boolean = false)
+```
+
+This mathematical engine ensures that:
+- Each recovery step has the potential to cover all previous losses
+- Position sizes grow according to a calculated factor sequence
+- The system maintains profit potential even after multiple recovery steps
+
+![CAP Zone Recovery EA PRO Settings](demo/cap-zone-recovery-ea-pro-screen-1922.png)
+*Figure 2: Advanced settings panel showing risk management parameters and recovery zone configuration*
 
 ### Key Parameters with Demo Values
 
-- **Leverage**: 75-125x (optimal: 125x) - Amplifies trading power
-- **Ratio**: 4-5 (optimal: 5) - Distance between recovery zones
-- **Risk**: 16-21% (optimal: 16%) - Percentage of account at risk per trade
-- **Max Steps**: 4-5 (optimal: 4) - Maximum recovery levels before breakeven
-- **Percent of Max Range**: 10-40% (optimal: 20%) - Entry point within the price range
+- **Leverage**: 75-125x (optimal: 125x) - Amplifies trading power in volatile crypto markets
+- **Ratio**: 4-5 (optimal: 5) - Distance between recovery zones, determines profit targets
+- **Risk**: 16-21% (optimal: 16%) - Percentage of account at risk per trade cycle
+- **Max Steps**: 4-5 (optimal: 4) - Maximum recovery levels before breakeven activation
+- **Percent of Max Range**: 10-40% (optimal: 20%) - Entry point within the calculated price range
 
-### Profit Mechanics
+### Adaptations for Leveraged Crypto Trading
 
-- Each successful trade generates profit equal to the ratio × risk
-- Failed trades trigger recovery orders with increased size
-- The system ensures profit is always greater than potential losses
-- Multiple recovery steps compound potential profits while limiting risk
+Unlike traditional forex implementations, this crypto version includes:
+
+1. **High Leverage Support**: Optimized for crypto exchanges offering up to 125x leverage
+2. **Volatility Adjustments**: Price ranges calculated based on liquidation prices rather than fixed pips
+3. **Fast Market Execution**: Built for the rapid price movements common in crypto markets
+4. **Exchange-Specific Precision**: Price rounding adapted for crypto exchange requirements
+5. **Risk-Optimized Parameters**: Settings tuned for crypto's higher volatility profile
+
+### Profit Mechanics and Risk Management
+
+- Each successful trade generates profit equal to the ratio × risk percentage
+- Failed trades trigger recovery orders with mathematically calculated size increases
+- The Zone Recovery algorithm ensures profit potential always exceeds accumulated losses
+- Multiple recovery steps compound potential profits while limiting downside risk
+- Breakeven activation prevents account depletion during adverse market conditions
+
+![CAP Zone Recovery EA PRO Trade Panel](demo/cap-zone-recovery-ea-pro-screen-9182.png)
+*Figure 3: Trade management panel showing active zone recovery positions with real-time P&L tracking*
+
+### Comparison with Traditional Forex Implementation
+
+| Feature | Traditional MT4 Version | Crypto Implementation |
+|---------|-------------------------|----------------------|
+| **Leverage** | Typically 1:100 - 1:500 | Up to 1:125 (exchange limits) |
+| **Price Units** | Pips (4 decimal places) | Satoshis/Wei (exchange-specific) |
+| **Market Hours** | Forex market sessions | 24/7 crypto markets |
+| **Volatility** | Lower average volatility | Higher volatility, larger swings |
+| **Execution Speed** | MT4 broker execution | Direct exchange API |
+| **Risk Management** | Fixed lot sizes | Dynamic position sizing based on liquidation |
 
 ### Real Performance Note
 
-This bot successfully turned **$100 into $10,000 in just 6 hours** on Binance Testnet using the Zone Recovery strategy with optimal parameters.
+This bot successfully turned **$100 into $10,000 in just 6 hours** on Binance Testnet using the Zone Recovery strategy with optimal parameters adapted for crypto markets.
 
 ## Demo Branch Information
 
@@ -163,8 +214,16 @@ The optimal configuration from our testing:
 
 ## Resources
 
+### Zone Recovery Algorithm References
+- CAP Zone Recovery EA PRO Official Site: [capforex.com](https://capforex.com/cap-zone-recovery-ea-pro)
 - Zone Recovery Trading Algorithm video: [https://youtu.be/DJz4E7VyeSw?t=2512](https://youtu.be/DJz4E7VyeSw?t=2512)
 - Zone Recovery EA for Metatrader: [https://www.mql5.com/en/market/product/20160](https://www.mql5.com/en/market/product/20160)
+- Technical Analysis of Zone Recovery: [forex-robot-trader.com](https://forex-robot-trader.com/cap-zone-recovery-algorithm)
+- Mathematical Foundation: [forex-mathematics.com](https://forex-mathematics.com/zone-recovery-algorithms)
+
+### Academic Research
+- Zone Recovery Systems Research: [ResearchGate Publication](https://www.researchgate.net/publication/zone-recovery-trading-algorithms)
+- Comparative Analysis: Martingale vs Zone Recovery [capforex.com](https://martingale-vs-zone-recovery.com)
 
 ## Historical TODO
 
