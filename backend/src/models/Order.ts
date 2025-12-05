@@ -18,6 +18,7 @@ export class Order implements ccxt.Order {
   fee: ccxt.Fee;
   info: any;
 
+  clientOrderId: string;
   idUser: string;
   priceExit: number;
 

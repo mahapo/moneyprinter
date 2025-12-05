@@ -22,7 +22,7 @@
     "@sentry/node": "5.15.5",
     "@slack/events-api": "^2.3.2",
     "@slack/web-api": "^5.8.1",
-    "ccxt": "^1.27.29",
+    "ccxt": "^1.95.43",
     "colors": "^1.4.0",
     "commander": "^5.1.0",
     "csv-parser": "^2.3.2",
