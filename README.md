@@ -31,7 +31,8 @@ The Zone Recovery algorithm is an advanced hedging strategy originally developed
 The original CAP Zone Recovery EA PRO for MT4 was developed by Mohammad Ali as a sophisticated tool to turn losing trades into winning trades using a "back-and-forth" hedging mechanism. Based on the famous "Zone Recovery Algorithm" also known as "The Surefire Forex Hedging Strategy," it allows traders to profit regardless of market direction by creating a structured recovery system.
 
 ![CAP Zone Recovery EA PRO Interface](demo/cap-zone-recovery-ea-pro-screen-1922.png)
-*Figure 1: CAP Zone Recovery EA PRO interface showing the zone recovery algorithm in action on MT4*
+![CAP Zone Recovery EA PRO Settings](demo/cap-zone-recovery-ea-pro-screen-1712.png)
+![CAP Zone Recovery EA PRO Trade Panel](demo/cap-zone-recovery-ea-pro-screen-9182.png)
 
 ### How the Modified Algorithm Works for Crypto Trading
 
@@ -57,10 +58,9 @@ This mathematical engine ensures that:
 - The system maintains profit potential even after multiple recovery steps
 
 ![CAP Zone Recovery EA PRO Settings](demo/cap-zone-recovery-ea-pro-screen-1712.png)
-*Figure 2: Advanced settings panel showing risk management parameters and recovery zone configuration*
 
 ![CAP Zone Recovery EA PRO Trade Panel](demo/cap-zone-recovery-ea-pro-screen-9182.png)
-*Figure 3: Trade management panel showing active zone recovery positions with real-time P&L tracking*
+
 
 ### Key Parameters with Demo Values
 
