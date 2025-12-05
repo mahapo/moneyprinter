@@ -160,10 +160,6 @@ The optimal configuration from our testing:
 
 **Important Note**: No trading size limits were implemented in the code for these backtests, allowing for exponential position growth.
 
-## Supported Exchanges
-
-- **Bybit Real**: [https://www.bybit.com/app/register?ref=mEYOp](https://www.bybit.com/app/register?ref=mEYOp)
-- **Bybit Demo**: [https://testnet.bybit.com/](https://testnet.bybit.com/)
 
 ## Resources
 
