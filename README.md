@@ -100,6 +100,20 @@ Unlike traditional forex implementations, this crypto version includes:
 
 This bot successfully turned **$100 into $10,000 in just 6 hours** on Binance Testnet using the Zone Recovery strategy with optimal parameters adapted for crypto markets.
 
+### ⚠️ Important Warning: Market Manipulation Risk
+
+Recent events on major exchanges demonstrate the real risks of algorithmic trading. The following screenshot shows extreme market manipulation where a single whale's $1.3 billion long position was intentionally targeted and liquidated through rapid price volatility:
+
+![Binance Market Manipulation Example 1](demo/binance-manipulation-1.png)
+
+**What happened:** ETH pumped and dumped by $100+ at least 40 times in seconds, liquidating over $7 billion in positions. This is a deliberate manipulation tactic designed to wipe out algorithmic traders and bots.
+
+**The Martingale Analogy:** This manipulation pattern is similar to the famous "roulette martingale system" flaw - where you keep doubling your bet after losses assuming you'll eventually win. In roulette, it only takes 40 consecutive same-color spins to wipe out any account using this strategy. The market manipulators are essentially forcing the equivalent of 40 consecutive "wrong" outcomes to liquidate bots.
+
+**Personal Experience:** I know this technique firsthand - I tried programming it as an Expert Advisor bot for MetaTrader 4 when I was around 18 years old. The Zone Recovery algorithm itself is mathematically sound, but exchanges can and do manipulate markets specifically to liquidate these automated strategies.
+
+**Key Takeaway:** While the Zone Recovery algorithm has proven mathematical advantages over simple martingale systems, no algorithm can protect against deliberate market manipulation. Always use proper risk management and be aware that exchanges may target algorithmic trading positions.
+
 ## Demo Branch Information
 
 This demo branch represents Moneyprinter as it existed on May 20, 2020. The referenced commit (`60b2b5d`) updated the rate limit from 1000 to 2000 for improved trading performance. This version was fully tested and production-ready, featuring a complete backtesting system and stable Zone Recovery implementation.
@@ -201,7 +215,7 @@ The optimal configuration from our testing:
 ### Key Metrics from Best Results
 
 - **Total Trades**: 12,822
-- **Final Profit**: $1,638,907,387,993,600,193,974,912.00
+- **Final Profit**: $1,638,907,387,993,600,193,974,912.00 (no size limit added)
 - **Min Balance**: $84.26
 - **Max Balance**: $1,664,072,460,275,528,821,997,568.00
 - **Max Steps Used**: 4
