@@ -6,6 +6,8 @@
 >
 > This branch preserves the complete, working state of Moneyprinter including the sophisticated backtesting system and Zone Recovery implementation.
 
+> ⚠️ This may lead to Gangstalking: Here the full raport: [https://gangstalking-manuel.pages.dev/personal-case/events/binance-case]([#project-overview)](https://gangstalking-manuel.pages.dev/personal-case/events/binance-case)
+
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Zone Recovery Strategy](#zone-recovery-strategy)
